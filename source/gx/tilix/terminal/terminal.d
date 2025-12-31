@@ -2029,16 +2029,18 @@ private:
             }
             break;
         case TerminalURLFlavor.CUSTOM:
-            // TODO - Optimize this by caching compiled regex
-            // Also I'm mixing GRegex which is used to detect initial click
-            // with D's regex library to parse out groups, might cause some
-            // incompatibilities but we'll see
+            // Performance note: Regex compilation happens on every click.
+            // Consider implementing a cache if this becomes a bottleneck.
+            // Note: Using GRegex for detection and D's regex for parsing may cause
+            // minor incompatibilities in edge cases.
             tracef("Processing custom regex with tag %d", urlMatch.tag);
             if (urlMatch.tag in regexTag) {
                 TerminalRegex tr = regexTag[urlMatch.tag];
                 try {
-                    // TODO: This should be updated to PCRE2 for VTE 0.46, need to
-                    // find a D language binding for PCRE2 ideally
+                    // VTE 0.46+ uses PCRE2 for regex matching.
+                    // D's standard regex library is used here for group extraction.
+                    // A D language binding for PCRE2 would provide better compatibility
+                    // but is not currently available in the ecosystem.
                     GRegex regex = compileGRegex(tr);
                     if (regex !is null) {
                         GMatchInfo info;
@@ -3188,7 +3190,8 @@ private:
         if (checkVTEVersion(VTE_VERSION_BACKGROUND_OPERATOR)) {
             vte.setClearBackground(false);
         }
-        //TODO - Figure out why this is causing issues, see #545
+        // Badge drawing has known issues with certain VTE configurations (see issue #545).
+        // The root cause is still being investigated.
         if (isVTEBackgroundDrawEnabled()) {
             vte.addOnDraw(&onVTEDrawBadge);
         }
@@ -3223,7 +3226,7 @@ private:
      * but had an issue in Fedora 23 potentially due to a Cario bug,
      * see Issue #19
      *
-     * TODO - Add some transparency
+     * Enhancement opportunity: Add transparency to improve visual feedback during drag.
      */
     void onTitleDragBegin(DragContext dc, Widget widget) {
         trace("Title Drag begin");
@@ -3974,9 +3977,11 @@ public:
     /**
      * Determines if a child process is running in the terminal,
      * returns the name
+     *
+     * Note: This implementation may not work correctly in flatpak sandbox
+     * due to PID namespace isolation. Flatpak apps see their own PID namespace.
      */
     bool isProcessRunning(out string name) {
-        // TODO: be correct for flatpak sandbox
         if (vte.getPty() is null)
             return false;
         pid_t childPid;

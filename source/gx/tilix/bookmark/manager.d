@@ -614,7 +614,8 @@ public:
             } catch (Exception e) {
                 error(_("Could not load bookmarks due to unexpected error"));
                 error(e);
-                //TODO: Copy bad file
+                // Consider backing up the corrupted file for user recovery.
+                // Current behavior: log error and continue with empty bookmarks.
             }
         }
         _changed = false;

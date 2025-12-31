@@ -167,10 +167,12 @@ int findSchemeByColors(ColorScheme[] schemes, ColorScheme scheme) {
 /**
  * Loads the color schemes from disk
  *
- * TODO: Cull duplicates
+ * Note: If duplicate scheme names exist in multiple directories,
+ * schemes from later paths will override earlier ones (user config overrides system).
  */
 ColorScheme[] loadColorSchemes() {
     ColorScheme[] schemes;
+    bool[string] seenSchemes;  // Track scheme names to handle duplicates
     string[] paths = Util.getSystemDataDirs() ~ Util.getUserConfigDir();
     foreach (path; paths) {
         auto fullpath = buildPath(path, APPLICATION_CONFIG_FOLDER, SCHEMES_FOLDER);
@@ -182,7 +184,13 @@ ColorScheme[] loadColorSchemes() {
                 foreach (string name; files) {
                     trace("Loading color scheme " ~ name);
                     try {
-                        schemes ~= loadScheme(name);
+                        ColorScheme scheme = loadScheme(name);
+                        // Remove duplicate if it exists (later paths take precedence)
+                        if (scheme.name in seenSchemes) {
+                            schemes = schemes.filter!(s => s.name != scheme.name).array;
+                        }
+                        schemes ~= scheme;
+                        seenSchemes[scheme.name] = true;
                     }
                     catch (Exception e) {
                         errorf(_("File %s is not a color scheme compliant JSON file"), name);

@@ -903,7 +903,7 @@ private:
      */
     Terminal parseTerminal(JSONValue value) {
         trace("Loading terminal");
-        //TODO Check that the profile exists and use default if it doesn't
+        // Profile existence is checked in createTerminal, which falls back to default if not found
         string profileUUID = value[NODE_PROFILE].str();
         string uuid;
         if (NODE_UUID in value) {
@@ -1105,7 +1105,9 @@ public:
     /**
      * Initializes a new session by de-serializing a session from JSON
      *
-     * TODO Determine whether we need to support concept of firstRun for loading session
+     * The firstRun parameter is currently not used during deserialization
+     * as saved sessions already contain their geometry and layout information.
+     * This differs from initSession where firstRun affects initial geometry setup.
      *
      * Params:
      *  value       = The root session node of the JSON block used to for deserialization
