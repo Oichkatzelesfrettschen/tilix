@@ -400,11 +400,10 @@ public:
             gsProfileList.setString(SETTINGS_PROFILE_DEFAULT_KEY, ps[0]);
         }
         onDelete.emit(uuid);
-        //TODO - Need to figure out a way to remove path from GSettings
-        //GSettings has no API to do this, terminal is using dconf API directly
-        //This delete removes the profile in the sense it is no longer in the list
-        //but otherwise it stays in dconf, try resetting it to see if resetting to default
-        //effectively removes it
+        // GSettings API does not provide a way to remove a path/schema directly.
+        // Terminal uses dconf API directly for this purpose.
+        // This delete removes the profile from the list, but the settings remain in dconf.
+        // Reset all keys to defaults as a workaround to minimize leftover data.
         GSettings gsProfile = getProfileSettings(uuid);
         string[] keys = gsProfile.listKeys();
         foreach (string key; keys) {

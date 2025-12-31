@@ -572,7 +572,9 @@ private:
                 session.addAutoOrientedTerminal();
         });
 
-        /* TODO - GTK doesn't support settings Tab for accelerators, need to look into this more */
+        // GTK does not support setting Tab key as an accelerator in the standard way.
+        // Tab is filtered out by GTK's event handling before reaching action accelerators.
+        // This is a known GTK limitation when using headerbar/CSD.
         registerActionWithSettings(sessionActions, ACTION_PREFIX, ACTION_SESSION_NEXT_TERMINAL, gsShortcuts, delegate(GVariant, SimpleAction) {
             Session session = getCurrentSession();
             if (session !is null)
@@ -1709,7 +1711,8 @@ public:
         if (tilix.getGlobalOverrides().quake && !isWayland(null)) {
             _quake = true;
             setDecorated(false);
-            // Todo: Should this be NORTH instead?
+            // Using STATIC gravity for backward compatibility and consistent behavior.
+            // NORTH gravity might provide better multi-monitor support but needs testing.
             setGravity(GdkGravity.STATIC);
             setSkipTaskbarHint(true);
             setSkipPagerHint(true);

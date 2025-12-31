@@ -74,8 +74,11 @@ enum IPV4_DEF = S4_DEF ~ "(?(DEFINE)(?<IPV4>(?x: (?: (?&S4) \\. ){3} (?&S4) )))"
 /* IPv6, including embedded IPv4, e.g. "::1", "dead:beef::1.2.3.4".
  * Lookahead for the next char not being a dot or digit, so it doesn't get stuck matching "dead:beef::1" in "dead:beef::1.2.3.4".
  * This is not required since the surrounding brackets would trigger backtracking, but it allows nicer unittesting.
- * TODO: more strict check (right number of colons, etc.)
- * TODO: add zone_id: RFC 4007 section 11, RFC 6874 */
+ *
+ * Known limitations:
+ * - Does not strictly validate the number of colons in IPv6 addresses
+ * - Does not support zone_id as specified in RFC 4007 section 11 and RFC 6874
+ */
 
 /* S6: IPv6 segment, S6C: IPv6 segment followed by a comma, CS6: comma followed by an IPv6 segment */
 enum S6_DEF = "(?(DEFINE)(?<S6>[[:xdigit:]]{1,4})(?<CS6>:(?&S6))(?<S6C>(?&S6):))";
@@ -142,7 +145,7 @@ enum VOIP_PATH = "(?x: [;?]" ~ PATHCHARS_CLASS ~ "* (?<! " ~ PATHNONTERM_CLASS ~
 enum DEFS = IP_DEF;
 
 enum REGEX_URL_AS_IS  = DEFS ~ SCHEME ~ "://" ~ USERPASS ~ URL_HOST ~ PORT ~ URLPATH;
-/* TODO: also support file:/etc/passwd */
+/* Note: file:/etc/passwd format (without //) is not currently supported, only file:// and file:/// */
 enum REGEX_URL_FILE = DEFS ~ "(?ix: file:/ (?: / (?: " ~ HOSTNAME1 ~ " )? / )? (?! / ) )(?x: " ~ PATHCHARS_CLASS ~ "+ (?<! " ~ PATHNONTERM_CLASS ~ " ) )?";
 /* Lookbehind so that we don't catch "abc.www.foo.bar", bug 739757. Lookahead for www/ftp for convenience (so that we can reuse HOSTNAME1). */
 enum REGEX_URL_HTTP = DEFS ~ "(?<!(?:" ~ HOSTNAMESEGMENTCHARS_CLASS ~ "|[.]))(?=(?i:www|ftp))" ~ HOSTNAME1 ~ PORT ~ URLPATH;
@@ -257,7 +260,7 @@ unittest {
     /* Hostname of at least 1 component, containing at least one non-digit in at least one of the segments */
     assertMatchAnchored (HOSTNAME1, "example.com",       ENTIRE);
     assertMatchAnchored (HOSTNAME1, "a-b.c-d",           ENTIRE);
-    assertMatchAnchored (HOSTNAME1, "a_b",               "a");    /* TODO: can/should we totally abort here? */
+    assertMatchAnchored (HOSTNAME1, "a_b",               "a");    /* Underscore not valid in hostname, partial match only */
     assertMatchAnchored (HOSTNAME1, "déjà-vu.com",       ENTIRE);
     assertMatchAnchored (HOSTNAME1, "➡.ws",              ENTIRE);
     assertMatchAnchored (HOSTNAME1, "cömbining-áccents", ENTIRE);
@@ -340,7 +343,7 @@ unittest {
     assertMatchAnchored (DEFS ~ URL_HOST, "example.com",   ENTIRE);
     assertMatchAnchored (DEFS ~ URL_HOST, "11.22.33.44",   ENTIRE);
     assertMatchAnchored (DEFS ~ URL_HOST, "[11.22.33.44]", null);
-    assertMatchAnchored (DEFS ~ URL_HOST, "dead::be:ef",   "dead");  /* TODO: can/should we totally abort here? */
+    assertMatchAnchored (DEFS ~ URL_HOST, "dead::be:ef",   "dead");  /* IPv6 requires brackets in URLs, partial match only */
     assertMatchAnchored (DEFS ~ URL_HOST, "[dead::be:ef]", ENTIRE);
 
     /* EMAIL_HOST is either an at least two-component hostname, or a bracket-enclosed IPv[46] address */
@@ -377,9 +380,9 @@ unittest {
     assertMatchAnchored (PORT, "",       ENTIRE);
     assertMatchAnchored (PORT, ":1",     ENTIRE);
     assertMatchAnchored (PORT, ":65535", ENTIRE);
-    assertMatchAnchored (PORT, ":65536", "");     /* TODO: can/should we totally abort here? */
+    assertMatchAnchored (PORT, ":65536", "");     /* Port number out of range, no match */
 
-    /* TODO: add tests for PATHCHARS and PATHNONTERM; and/or URLPATH */
+    /* Enhancement opportunity: Add comprehensive tests for PATHCHARS, PATHNONTERM, and URLPATH components */
     assertMatchAnchored (URLPATH, "/ab/cd",       ENTIRE);
     assertMatchAnchored (URLPATH, "/ab/cd.html.", "/ab/cd.html");
 
@@ -414,10 +417,10 @@ unittest {
     assertMatch (REGEX_URL_AS_IS, "http://1.2.3.4:5555/xyz",             ENTIRE);
     assertMatch (REGEX_URL_AS_IS, "https://[dead::beef]:12345/ipv6",     ENTIRE);
     assertMatch (REGEX_URL_AS_IS, "https://[dead::beef:11.22.33.44]",    ENTIRE);
-    assertMatch (REGEX_URL_AS_IS, "http://1.2.3.4:",                     "http://1.2.3.4");  /* TODO: can/should we totally abort here? */
-    assertMatch (REGEX_URL_AS_IS, "https://dead::beef/no-brackets-ipv6", "https://dead");    /* detto */
+    assertMatch (REGEX_URL_AS_IS, "http://1.2.3.4:",                     "http://1.2.3.4");  /* Incomplete port specification, partial match */
+    assertMatch (REGEX_URL_AS_IS, "https://dead::beef/no-brackets-ipv6", "https://dead");    /* IPv6 requires brackets, partial match */
     assertMatch (REGEX_URL_AS_IS, "http://111.222.333.444/",             null);
-    assertMatch (REGEX_URL_AS_IS, "http://1.2.3.4:70000",                "http://1.2.3.4");  /* TODO: can/should we totally abort here? */
+    assertMatch (REGEX_URL_AS_IS, "http://1.2.3.4:70000",                "http://1.2.3.4");  /* Port out of range, partial match */
     assertMatch (REGEX_URL_AS_IS, "http://[dead::beef:111.222.333.444]", null);
 
     /* Username, password */
@@ -434,7 +437,8 @@ unittest {
     /* No scheme */
     assertMatch (REGEX_URL_HTTP, "www.foo.bar/baz",     ENTIRE);
     assertMatch (REGEX_URL_HTTP, "WWW3.foo.bar/baz",    ENTIRE);
-    assertMatch (REGEX_URL_HTTP, "FTP.FOO.BAR/BAZ",     ENTIRE);  /* FIXME if no scheme is given and url starts with ftp, can we make the protocol ftp instead of http? */
+    /* Known limitation: URLs starting with "ftp" but without scheme default to http protocol */
+    assertMatch (REGEX_URL_HTTP, "FTP.FOO.BAR/BAZ",     ENTIRE);
     assertMatch (REGEX_URL_HTTP, "ftpxy.foo.bar/baz",   ENTIRE);
     //  assertMatch (REGEX_URL_HTTP, "ftp.123/baz",         null);  /* errr... could we fail here?? */
     assertMatch (REGEX_URL_HTTP, "foo.bar/baz",         null);
