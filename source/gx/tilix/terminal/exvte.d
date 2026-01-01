@@ -88,15 +88,16 @@ public:
 	gulong addOnNotificationReceived(void delegate(string, string, Terminal) dlg, ConnectFlags connectFlags=cast(ConnectFlags)0)
 	{
 		if (Signals.lookup("notification-received", getType()) != 0) {
-			onNotificationReceivedListeners ~= new OnNotificationReceivedDelegateWrapper(dlg, 0, connectFlags);
-			onNotificationReceivedListeners[onNotificationReceivedListeners.length - 1].handlerId = Signals.connectData(
+            auto wrapper = new OnNotificationReceivedDelegateWrapper(dlg, 0, connectFlags);
+			onNotificationReceivedListeners ~= wrapper;
+			wrapper.handlerId = Signals.connectData(
 				this,
 				"notification-received",
 				cast(GCallback)&callBackNotificationReceived,
-				cast(void*)onNotificationReceivedListeners[onNotificationReceivedListeners.length - 1],
+				cast(void*)wrapper,
 				cast(GClosureNotify)&callBackNotificationReceivedDestroy,
 				connectFlags);
-			return onNotificationReceivedListeners[onNotificationReceivedListeners.length - 1].handlerId;
+			return wrapper.handlerId;
 		} else {
 			return 0;
 		}
@@ -143,15 +144,16 @@ public:
 	gulong addOnTerminalScreenChanged(void delegate(int, Terminal) dlg, ConnectFlags connectFlags=cast(ConnectFlags)0)
 	{
 		if (Signals.lookup("terminal-screen-changed", getType()) != 0) {
-			onTerminalScreenChangedListeners ~= new OnTerminalScreenChangedDelegateWrapper(dlg, 0, connectFlags);
-			onTerminalScreenChangedListeners[onTerminalScreenChangedListeners.length - 1].handlerId = Signals.connectData(
+            auto wrapper = new OnTerminalScreenChangedDelegateWrapper(dlg, 0, connectFlags);
+			onTerminalScreenChangedListeners ~= wrapper;
+			wrapper.handlerId = Signals.connectData(
 				this,
 				"terminal-screen-changed",
 				cast(GCallback)&callBackTerminalScreenChanged,
-				cast(void*)onTerminalScreenChangedListeners[onTerminalScreenChangedListeners.length - 1],
+				cast(void*)wrapper,
 				cast(GClosureNotify)&callBackTerminalScreenChangedDestroy,
 				connectFlags);
-			return onTerminalScreenChangedListeners[onTerminalScreenChangedListeners.length - 1].handlerId;
+			return wrapper.handlerId;
 		} else {
 			return 0;
 		}

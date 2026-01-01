@@ -172,7 +172,7 @@ package:
         if (index < 0) {
             throw new BookmarkException("Target was not located in the folder");
         }
-        if (index < list.length - 1) {
+        if (list.length > 0 && index + 1 < list.length) {
             list.insertInPlace(index + 1, bm);
         } else {
             list ~= bm;

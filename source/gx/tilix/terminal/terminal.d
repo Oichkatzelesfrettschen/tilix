@@ -605,7 +605,7 @@ private:
             string style = gsSettings.getString(SETTINGS_TERMINAL_TITLE_STYLE_KEY);
             size_t index = SETTINGS_TERMINAL_TITLE_STYLE_VALUES.countUntil(style);
             index++;
-            if (index > SETTINGS_TERMINAL_TITLE_STYLE_VALUES.length - 1) {
+            if (index >= SETTINGS_TERMINAL_TITLE_STYLE_VALUES.length) {
                 index = 0;
             }
             gsSettings.setString(SETTINGS_TERMINAL_TITLE_STYLE_KEY, SETTINGS_TERMINAL_TITLE_STYLE_VALUES[index]);

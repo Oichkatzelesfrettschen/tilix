@@ -193,7 +193,7 @@ private:
                         return true;
                     }
                     int index = source.getIndex();
-                    if (index < lbSessions.getChildren().length - 1) {
+                    if (lbSessions.getChildren().length > 0 && index + 1 < lbSessions.getChildren().length) {
                         SideBarRow target = cast(SideBarRow)lbSessions.getRowAtIndex(index + 1);
                         reorderSessions(source, target, true);
                     }
@@ -245,13 +245,13 @@ private:
         SideBarRow[] rows = gx.gtk.util.getChildren!(SideBarRow)(lbSessions, false);
         switch (direction) {
             case GtkDirectionType.DOWN:
-                if (lbSessions.getSelectedRow() == rows[rows.length - 1]) {
+                if (rows.length > 0 && lbSessions.getSelectedRow() == rows[rows.length - 1]) {
                     lbSessions.selectRow(rows[0]);
                     return false;
                 }
                 break;
             case GtkDirectionType.UP:
-                if (lbSessions.getSelectedRow() == rows[0]) {
+                if (rows.length > 0 && lbSessions.getSelectedRow() == rows[0]) {
                     lbSessions.selectRow(rows[rows.length - 1]);
                     return false;
                 }
