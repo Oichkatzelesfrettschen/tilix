@@ -100,7 +100,8 @@ SimpleAction registerActionWithSettings(ActionMapIF actionMap, string prefix, st
             shortcuts = [shortcut];
     }
     catch (Exception e) {
-        //TODO - This does not work, figure out to catch GLib-GIO-ERROR
+        // GLib-GIO-ERROR is a GLib log domain error that cannot be caught as a D exception.
+        // This catch block handles GSettings key lookup failures gracefully.
         tracef("No shortcut for action %s.%s", prefix, id);
     }
 

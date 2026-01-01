@@ -768,8 +768,8 @@ public:
     * the moment there is just one, dragging a terminal from
     * one Window to the next.
     *
-    * TODO - Convert this into a template to eliminate casting
-    *        by callers
+    * Note: This method returns a generic Widget and requires callers to cast.
+    * Consider using D templates with type constraints if type safety becomes an issue.
     */
     Widget findWidgetForUUID(string uuid) {
 
