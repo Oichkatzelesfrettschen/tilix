@@ -81,7 +81,7 @@ import gx.tilix.prefeditor.titleeditor;
 /**
  * UI used for managing preferences for a specific profile
  */
-class ProfileEditor : Box {
+final class ProfileEditor : Box {
 
 private:
 
@@ -199,7 +199,7 @@ public:
 /**
  * Page that handles the general settings for the profile
  */
-class GeneralPage : ProfilePage {
+final class GeneralPage : ProfilePage {
 
 private:
 
@@ -474,7 +474,7 @@ public:
 /**
  * The profile page to manage color preferences
  */
-class ColorPage : ProfilePage {
+final class ColorPage : ProfilePage {
 
 private:
     immutable string PALETTE_COLOR_INDEX_KEY = "index";
@@ -1014,7 +1014,7 @@ public:
 /**
  * The page to manage scrolling options
  */
-class ScrollPage : ProfilePage {
+final class ScrollPage : ProfilePage {
 
 private:
 
@@ -1055,7 +1055,7 @@ public:
 /**
  * The profile page that manages compatibility options
  */
-class CompatibilityPage : ProfilePage {
+final class CompatibilityPage : ProfilePage {
 
 private:
 
@@ -1118,7 +1118,7 @@ public:
     }
 }
 
-class CommandPage : ProfilePage {
+final class CommandPage : ProfilePage {
 
 private:
 
@@ -1163,7 +1163,7 @@ public:
 /**
  * Page that manages options for Badges
  */
-class BadgePage: ProfilePage {
+final class BadgePage: ProfilePage {
 
     void createUI() {
         int row = 0;
@@ -1229,7 +1229,7 @@ public:
 /**
  * Page for advanced profile options such as custom hyperlinks and profile switching
  */
-class AdvancedPage: ProfilePage {
+final class AdvancedPage: ProfilePage {
 private:
     TreeView tvValues;
     ListStore lsValues;

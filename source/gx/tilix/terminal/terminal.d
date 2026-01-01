@@ -3843,7 +3843,7 @@ public:
      * Finalize the terminal and cleanup any references, this can be
      * called multiple times with no ill effect.
      */
-    void finalizeTerminal() {
+    final void finalizeTerminal() {
         // Disconnect all the VTE handlers, check for null since this
         // method can be called multiple times
         if (vte !is null) {

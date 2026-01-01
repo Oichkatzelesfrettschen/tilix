@@ -106,7 +106,7 @@ class SessionCreationException : Exception {
  * takes too much vertical space and I'll like the UI in Builder which also doesn't do this
  * and which inspired this application.
  */
-class Session : Stack, IIdentifiable {
+final class Session : Stack, IIdentifiable {
 
 private:
 
@@ -1655,7 +1655,7 @@ public:
         });
     }
 
-    void updateRatio() {
+    final void updateRatio() {
         //trace("Updating ratio");
         double newRatio = ratio;
         if (getOrientation() == Orientation.HORIZONTAL) {
@@ -1671,7 +1671,7 @@ public:
         }
     }
 
-    void updatePosition(bool force = false) {
+    final void updatePosition(bool force = false) {
         if (ignoreRatio) return;
         //tracef("TerminalPaned Size allocated, ratio %f", ratio);
         if (getOrientation() == Orientation.HORIZONTAL) {

@@ -2061,7 +2061,7 @@ public:
     /**
      * Returns true if this window is in quake mode.
      */
-    bool isQuake() {
+    final bool isQuake() {
         return _quake;
     }
 
@@ -2255,7 +2255,7 @@ public:
         }
     }
 
-    void updatePositionType(PositionType position) {
+    final void updatePositionType(PositionType position) {
         if (position == PositionType.LEFT || position == PositionType.RIGHT) {
             setOrientation(Orientation.VERTICAL);
             lblText.setAngle(position==PositionType.LEFT?90:270);

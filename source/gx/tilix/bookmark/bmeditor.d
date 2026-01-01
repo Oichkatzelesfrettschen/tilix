@@ -47,7 +47,7 @@ enum BookmarkEditorMode {ADD, EDIT}
  * works by using a Stack of editors where each editor is specific
  * to a particular bookmark type.
  */
-class BookmarkEditor: Dialog {
+final class BookmarkEditor: Dialog {
 
 private:
     Stack stEditors;
@@ -215,10 +215,10 @@ private:
 protected:
     int row = 0;
 
-    Label createLabel(string text) {
-        Label result = new Label(text);
-        result.setHalign(GtkAlign.END);
-        return result;
+    final Label createLabel(string text) {
+        Label lbl = new Label(text);
+        lbl.setHalign(GtkAlign.END);
+        return lbl;
     }
 
 public:
@@ -274,14 +274,14 @@ public:
 
 }
 
-class FolderEditor: BaseEditor {
+final class FolderEditor: BaseEditor {
 
     this(Bookmark bm) {
         super(bm);
     }
 }
 
-class PathEditor: BaseEditor {
+final class PathEditor: BaseEditor {
 private:
     FileChooserButton fcbPath;
 
@@ -322,7 +322,7 @@ public:
     }
 }
 
-class CommandEditor: BaseEditor {
+final class CommandEditor: BaseEditor {
 private:
     Entry eCommand;
 
@@ -365,7 +365,7 @@ public:
     }
 }
 
-class RemoteEditor: BaseEditor {
+final class RemoteEditor: BaseEditor {
 private:
     Entry eHost;
     SpinButton sPort;

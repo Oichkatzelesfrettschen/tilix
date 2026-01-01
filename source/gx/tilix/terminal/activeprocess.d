@@ -15,7 +15,7 @@ import std.string;
 /**
 * A stripped-down (plus extended) version of psutil's Process class.
 */
-class Process {
+final class Process {
 
     pid_t pid;
     string[] processStat;
