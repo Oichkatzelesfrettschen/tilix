@@ -507,9 +507,9 @@ heaptrack_print heaptrack.tilix.*.gz | grep "scrollback\|buffer"
 ### Immediate (This Week)
 
 1. **Fix Critical Issues**
-   - [ ] Review & refactor 14 virtual calls in constructors
-   - [ ] Add bounds checks to 9 length subtraction operations
-   - [ ] Audit 3 variable shadowing cases
+   - [x] Review & refactor 14 virtual calls in constructors (FIXED)
+   - [x] Add bounds checks to 9 length subtraction operations (1 Fixed, 8 Unreproducible)
+   - [x] Audit 3 variable shadowing cases (Unreproducible/Clean)
 
 2. **Documentation Sprint**
    - [ ] Generate doc skeleton: `dscanner --fix source/`
