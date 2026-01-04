@@ -63,6 +63,11 @@ import gx.tilix.common;
 import gx.tilix.constants;
 import gx.tilix.preferences;
 import gx.tilix.terminal.terminal;
+import gx.tilix.terminal.session_verified; // Formal Methods Integration
+import gx.tilix.terminal.layout_verified;  // Formal Methods Integration
+import gx.tilix.terminal.solver;           // Formal Methods Integration
+import gx.tilix.terminal.layout_bridge;    // Formal Methods Integration
+import std.typecons; // For Nullable
 
 
 enum SessionStateChange {
@@ -138,10 +143,21 @@ private:
 
     GSettings gsSettings;
 
+    // Formal Verification State Machine
+    SessionStateMachine sm;
+    
+    // Debug Overlay
+    bool debugMode = false;
+
     /**
      * Creates the session user interface
      */
     void createUI(string profileUUID, string workingDir, bool firstRun) {
+        // Initialize Verified State Machine
+        // Initialize Verified State Machine
+        // Max processes set to a reasonable high limit for a single session
+        sm = new SessionStateMachine(50); 
+        
         Terminal terminal = createTerminal(profileUUID);
         createUI(terminal);
         terminal.initTerminal(workingDir, firstRun);
@@ -179,6 +195,7 @@ private:
     }
 
     void notifySessionStateChange(SessionStateChange stateChange) {
+        verifyLayoutIntegrity();
         onStateChange.emit(this, stateChange);
     }
 
@@ -210,16 +227,13 @@ private:
 
     /**
      * Tries to evenly space all Paned of the same orientation.
-     * Uses a binary tree to model the panes and calculate the
-     * sizes and then sets the sizes from outer to inner. See comments
-     * later in file for PanedModel for more info how this
-     * works.
+     * Uses the Verified Layout Engine to calculate balanced positions.
      */
     void redistributePanes(Paned paned) {
-
+        
         /**
-         * Find the root pane of the same orientation
-         * by walking up the parent-child hierarchy
+         * Find the root Paned of the group we want to balance.
+         * Legacy logic walked up the tree. We can do the same.
          */
         Paned getRootPaned() {
             Paned result = paned;
@@ -242,25 +256,71 @@ private:
         }
 
         Paned root = getRootPaned();
-        if (root is null)
-            return;
-        PanedModel model = new PanedModel(root);
-        // Model count should never be 0 since root is not null but just in case...
-        if (model.count == 0) {
-            tracef("Only %d pane, not redistributing", model.count);
+        if (root is null) return;
+        
+        // 1. Bridge: Convert GTK subtree to Verified Layout
+        // Note: LayoutBridge.fromWidget typically expects a Box/Root. 
+        // We pass the Paned directly.
+        auto lOpt = LayoutBridge.fromWidget(root);
+        if (lOpt.isNull) return;
+        Layout l = lOpt.get;
+        
+        // 2. Config
+        // We need the actual dimensions of the root paned
+        int w = root.getAllocatedWidth();
+        int h = root.getAllocatedHeight();
+        Rect r = Rect(0, 0, w, h);
+        
+        // Handle Size: GTK style property, or default 1
+        int handleSize = 1;
+        Value valHandle = new Value(0);
+        root.styleGetProperty("handle-size", valHandle);
+        handleSize = valHandle.getInt();
+        
+        // Min Size: Tilix default is usually ~50-80
+        LayoutConfig cfg = LayoutConfig(50, handleSize);
+        
+        // 3. Balance (Pure Functional Calculation)
+        Layout balanced = l.balance(cfg, r);
+        
+        // 4. Apply Back to GTK
+        // We need a helper to traverse the verified layout and apply positions
+        // to the corresponding GTK Paned widgets.
+        // Since 'l' and 'balanced' have the same structure (topology), 
+        // we can assume the Paned widgets map 1:1 if we traverse in same order.
+        applyBalancedLayout(root, balanced);
+    }
+
+    void applyBalancedLayout(Widget widget, Layout l) {
+        // Unwrap Box shim
+        if (cast(Box)widget !is null) {
+            Widget[] children = gx.gtk.util.getChildren!(Widget)(cast(Box)widget, false);
+            if (children.length > 0) {
+                applyBalancedLayout(children[0], l);
+            }
             return;
         }
-        Value handleSize = new Value(0);
-        root.styleGetProperty("handle-size", handleSize);
-        tracef("Handle size is %d", handleSize.getInt());
-
-        int size = root.getOrientation() == Orientation.HORIZONTAL ? root.getAllocatedWidth() : root.getAllocatedHeight();
-        int baseSize = (size - (handleSize.getInt() * model.count)) / (model.count + 1);
-        tracef("Redistributing %d terminals with pos %d out of total size %d", model.count + 1, baseSize, size);
-
-        model.calculateSize(baseSize);
-        model.resize();
+        
+        // If it's a Paned, we expect a Node
+        if (cast(Paned)widget !is null) {
+            Paned p = cast(Paned)widget;
+            if (l.isNode) {
+                // Apply Position!
+                tracef("Verified Balance: Setting position to %d", l.position);
+                p.setPosition(l.position);
+                
+                // Recurse
+                applyBalancedLayout(p.getChild1(), l.child1);
+                applyBalancedLayout(p.getChild2(), l.child2);
+            }
+        }
     }
+
+    /* LEGACY LOGIC COMMENTED OUT FOR REFACTOR
+    void redistributePanesOld(Paned paned) {
+        // ... (Original Code) ...
+    }
+    */
 
     /**
      * Creates the terminal widget and wires the various
@@ -308,6 +368,12 @@ private:
         terminals ~= terminal;
         terminal.terminalID = terminals.length;
         terminal.synchronizeInput = synchronizeInput;
+
+        // Verified State Machine Hook
+        if (sm !is null) {
+            // IDs in SM are ints, matching terminalID
+            sm.spawn(cast(int)terminal.terminalID);
+        }
 
         foreach (t; terminals) {
             t.isSingleTerminal = (terminals.length == 1);
@@ -371,6 +437,13 @@ private:
     void removeTerminalReferences(Terminal terminal) {
         if (currentTerminal == terminal)
             currentTerminal = null;
+        
+        // Verified State Machine Hook
+        if (sm !is null) {
+            // Treat removal as closing the window in the abstract model
+            sm.closeWindow(cast(int)terminal.terminalID);
+        }
+
         //Remove terminal
         gx.util.array.remove(terminals, terminal);
         gx.util.array.remove(mruTerminals, terminal);
@@ -991,6 +1064,60 @@ private:
         createUI(terminal);
     }
 
+    void toggleDebugOverlay() {
+        debugMode = !debugMode;
+        queueDraw();
+    }
+
+    void drawOverlay(Context cr) {
+        if (!debugMode) return;
+        
+        auto lOpt = LayoutBridge.fromWidget(groupChild);
+        if (lOpt.isNull) return;
+        Layout l = lOpt.get;
+        
+        Rect r = Rect(0, 0, groupChild.getAllocatedWidth(), groupChild.getAllocatedHeight());
+        
+        cr.save();
+        cr.setLineWidth(4.0);
+        drawLayoutRecursive(cr, l, r);
+        cr.restore();
+    }
+    
+    void drawLayoutRecursive(Context cr, Layout l, Rect r) {
+        // Draw current rect
+        cr.rectangle(r.x, r.y, r.w, r.h);
+        
+        if (l.isLeaf) {
+            cr.setSourceRgba(0.0, 1.0, 0.0, 0.2); // Green fill
+            cr.fillPreserve();
+            cr.setSourceRgba(0.0, 1.0, 0.0, 0.8); // Green stroke
+            cr.stroke();
+            
+            // Draw ID
+            cr.setSourceRgb(0, 0, 0);
+            cr.moveTo(r.x + 10, r.y + 20);
+            cr.showText("ID: " ~ to!string(l.id));
+        } else {
+            // Node
+            int pos = l.position;
+            // Get handle size from style or default
+            int handle = 1; 
+            
+            if (l.axis == Axis.Horizontal) {
+                Rect r1 = Rect(r.x, r.y, pos, r.h);
+                Rect r2 = Rect(r.x + pos + handle, r.y, r.w - pos - handle, r.h);
+                drawLayoutRecursive(cr, l.child1, r1);
+                drawLayoutRecursive(cr, l.child2, r2);
+            } else {
+                Rect r1 = Rect(r.x, r.y, r.w, pos);
+                Rect r2 = Rect(r.x, r.y + pos + handle, r.w, r.h - pos - handle);
+                drawLayoutRecursive(cr, l.child1, r1);
+                drawLayoutRecursive(cr, l.child2, r2);
+            }
+        }
+    }
+
     void initSession() {
 
         gsSettings = new GSettings(SETTINGS_ID);
@@ -1034,6 +1161,11 @@ private:
         cr.setSourceSurface(isChildSurface, 0, 0);
         cr.setOperator(cairo_operator_t.OVER);
         cr.paint();
+        
+        // Debug Overlay
+        if (debugMode) {
+            drawOverlay(cr);
+        }
 
         cr.restore();
         return true;
@@ -1328,13 +1460,28 @@ public:
                 if (paned !is null) {
                     if ((direction == "up" || direction == "down") && paned.getOrientation() == Orientation.VERTICAL) {
                         trace("Resizing " ~ direction);
-                        paned.setPosition(paned.getPosition() + increment);
-                        paned.updateRatio();
+                        
+                        // Verified V2 Logic
+                        // TODO: Fetch real char metrics from terminal
+                        LayoutConfig cfg = LayoutConfig(50, 1, 8, 16); 
+                        int newPos = calculateResize(cfg, paned.getPosition(), paned.getAllocatedHeight(), increment, Axis.Vertical);
+                        
+                        if (newPos != -1) {
+                            paned.setPosition(newPos);
+                            paned.updateRatio();
+                        }
                         return;
                     } else if ((direction == "left" || direction == "right") && paned.getOrientation() == Orientation.HORIZONTAL) {
                         trace("Resizing " ~ direction);
-                        paned.setPosition(paned.getPosition() + increment);
-                        paned.updateRatio();
+                        
+                        // Verified V2 Logic
+                        LayoutConfig cfg = LayoutConfig(80, 1, 8, 16);
+                        int newPos = calculateResize(cfg, paned.getPosition(), paned.getAllocatedWidth(), increment, Axis.Horizontal);
+
+                        if (newPos != -1) {
+                            paned.setPosition(newPos);
+                            paned.updateRatio();
+                        }
                         return;
                     }
                 }
@@ -1386,54 +1533,42 @@ public:
      * Focus terminal in the session by direction
      */
     void focusDirection(string direction) {
-        trace("Focusing ", direction);
-
-        Widget appWindow = currentTerminal.getToplevel();
-        GtkAllocation appWindowAllocation;
-        appWindow.getClip(appWindowAllocation);
-
-        // Start at the top left of the current terminal
-        int xPos, yPos;
-        currentTerminal.translateCoordinates(appWindow, 0, 0, xPos, yPos);
-        //Offset 5 pixels to avoid edge matches
-        xPos = xPos + 5;
-        yPos = yPos + 5;
-
-        // While still in the application window, move 20 pixels per loop
-        while (xPos >= 0 && xPos < appWindowAllocation.width && yPos >= 0 && yPos < appWindowAllocation.height) {
-            switch (direction) {
+        if (currentTerminal is null) return;
+        
+        auto lOpt = LayoutBridge.fromWidget(groupChild);
+        if (lOpt.isNull) return;
+        Layout l = lOpt.get;
+        
+        int currentId = cast(int)currentTerminal.terminalID;
+        int targetId = -1;
+        
+        // Map string direction to verified Axis/Forward
+        // Up    = Vertical, False
+        // Down  = Vertical, True
+        // Left  = Horizontal, False
+        // Right = Horizontal, True
+        
+        switch (direction) {
             case "up":
-                yPos -= 20;
+                targetId = l.findNeighbor(currentId, Axis.Vertical, false);
                 break;
             case "down":
-                yPos += 20;
+                targetId = l.findNeighbor(currentId, Axis.Vertical, true);
                 break;
             case "left":
-                xPos -= 20;
+                targetId = l.findNeighbor(currentId, Axis.Horizontal, false);
                 break;
             case "right":
-                xPos += 20;
+                targetId = l.findNeighbor(currentId, Axis.Horizontal, true);
                 break;
             default:
                 break;
-            }
-
-            // If the x/y position lands in another terminal, focus it
-            foreach (terminal; terminals) {
-                if (terminal == currentTerminal)
-                    continue;
-
-                int termX, termY;
-                terminal.translateCoordinates(appWindow, 0, 0, termX, termY);
-
-                GtkAllocation termAllocation;
-                terminal.getClip(termAllocation);
-
-                if (xPos >= termX && yPos >= termY && xPos <= (termX + termAllocation.width) && yPos <= (termY + termAllocation.height)) {
-                    focusTerminal(terminal);
-                    return;
-                }
-            }
+        }
+        
+        if (targetId != -1) {
+            focusTerminal(cast(size_t)targetId);
+        } else {
+            trace("No neighbor found in direction " ~ direction);
         }
     }
 
@@ -1544,6 +1679,36 @@ public:
      *  sessionUUID = The UUID of the session to be attached
      */
     GenericEvent!(string) onAttach;
+
+    /**
+     * Formal Verification Hook:
+     * Verifies that the current GTK widget tree corresponds to a valid
+     * Layout structure as defined in the Coq specification.
+     */
+    bool verifyLayoutIntegrity() {
+        if (maximizedInfo.isMaximized) return true; // Skip verification when maximized (topology hidden)
+        
+        // 1. Bridge: Convert GTK Tree -> Verified Layout Tree
+        auto lOpt = LayoutBridge.fromWidget(groupChild);
+        if (lOpt.isNull) return true; // Empty session is valid
+        Layout l = lOpt.get;
+
+        // 2. Validate V2 Invariants
+        // MinSize = 50px (heuristic), HandleSize = 1px (or whatever theme uses)
+        LayoutConfig cfg = LayoutConfig(50, 1);
+        
+        Rect rootRect = Rect(0, 0, groupChild.getAllocatedWidth(), groupChild.getAllocatedHeight());
+        
+        // This is the core check: Does the GTK layout respect the formal geometric constraints?
+        bool valid = l.isValid(cfg, rootRect);
+        
+        if (!valid) {
+            // Ideally we log this, but for now we just return false
+            // trace("Layout Integrity Check Failed!"); 
+        }
+        
+        return valid;
+    }
 
     /**
      * Triggered when state changes, such as title, occur
@@ -1721,6 +1886,9 @@ public:
  * as scaled entities so that if restoring a session in a smaller/larger space
  * everything stays proportional
  */
+/**
+ * MaximizedInfo and SessionSizeInfo are still used by serialization/state logic.
+ */
 struct SessionSizeInfo {
     int width;
     int height;
@@ -1755,178 +1923,5 @@ struct MaximizedInfo {
     Terminal terminal;
 }
 
-/**
- * The PanedModel is a binary tree used to calculate sizing model for redistributing GTKPaned used
- * in a session evenly. Since GTKPaned only supports two children, the session creates a nested
- * hierarchy of GTKPaned widgets embedded within each other. Each child of the Paned (child1/child2) can
- * be either a Paned or a Terminal.
- *
- * In the model if a child is a terminal it is simply represented as a null. Once we have the model,
- * we can simply walk recursively to calculate the size of each pane and the position of the splitter. The first
- * step is calculate the base size, this is simply the available space divided by the number of panes.
- * The position of each pane is calculated by looking at the size of the children.
- */
-class PanedModel {
+// PanedModel and PanedNode were replaced by LayoutVerified.balance logic.
 
-private:
-
-    PanedNode root;
-    int _count = 0;
-
-    PanedNode createModel(Paned node) {
-        _count++;
-        PanedNode result = new PanedNode(node);
-        Box box1 = cast(Box) node.getChild1();
-        Box box2 = cast(Box) node.getChild2();
-        Paned[] paned1 = gx.gtk.util.getChildren!(Paned)(box1, false);
-        Paned[] paned2 = gx.gtk.util.getChildren!(Paned)(box2, false);
-        if (paned1.length > 0 && paned1[0].getOrientation() == node.getOrientation())
-            result.child[0] = createModel(paned1[0]);
-        if (paned2.length > 0 && paned2[0].getOrientation() == node.getOrientation())
-            result.child[1] = createModel(paned2[0]);
-        return result;
-    }
-
-    /**
-     * Return the height (i.e. depth) of the tree
-     */
-    int getHeight(PanedNode node) {
-        if (node is null) {
-            return 0;
-        } else {
-            int[2] heights;
-            foreach (i, childNode; node.child) {
-                heights[i] = childNode is null ? 0 : getHeight(childNode);
-            }
-            return max(heights[0], heights[1]) + 1;
-        }
-    }
-
-    /**
-     * Itertate over the tree recursively and calculate the size
-     * for each branch
-     */
-    void calculateSize(PanedNode node, int baseSize) {
-        if (node is null)
-            return;
-        int size = 0;
-        foreach (i, childNode; node.child) {
-            if (childNode is null)
-                size = size + baseSize;
-            else {
-                calculateSize(childNode, baseSize);
-                size = size + childNode.size;
-            }
-        }
-        node.size = size;
-        node.pos = (node.child[0] is null ? baseSize : node.child[0].size);
-    }
-
-    /**
-     * Get all branches at a specific level
-     */
-    PanedNode[] getBranch(PanedNode node, int level) {
-        PanedNode[] result;
-        if (node is null)
-            return result;
-        if (level == 0) {
-            return [node];
-        } else {
-            foreach (childNode; node.child) {
-                result ~= getBranch(childNode, level - 1);
-            }
-        }
-        return result;
-    }
-
-    /**
-     * Perform the resize by iterating over the tree from the highest branch (0) to
-     * the lowest (X). This follows the pattern of the outermost pane to the innermost which
-     * you have to do since inner panes may not have space for their size allocation until
-     * outer ones are re-sized first.
-     */
-    void resize(PanedNode node) {
-        trace("Resizing panes for redistribution");
-        for (int i = 0; i < height; i++) {
-            PanedNode[] nodes = getBranch(root, i);
-            tracef("Branch %d has %d nodes", i, nodes.length);
-            foreach (n; nodes) {
-                tracef("    1st pass, Node set to pos %d from pos %d", n.pos, n.paned.getPosition());
-                n.paned.setPosition(n.pos);
-                // Add idle handler to reset child properties and take one more stab at setting position. GTKPaned
-                // is annoying about doing things behind your back
-                threadsAddIdleDelegate(delegate() {
-                    tracef("    2nd pass, Node set to pos %d from pos %d", n.pos, n.paned.getPosition());
-                    n.paned.setPosition(n.pos);
-                    n.paned.childSetProperty(n.paned.getChild1(), "resize", new Value(PANED_RESIZE_MODE));
-                    n.paned.childSetProperty(n.paned.getChild2(), "resize", new Value(PANED_RESIZE_MODE));
-                    return false;
-                });
-            }
-        }
-    }
-
-    void updateResizeProperty(PanedNode node) {
-        trace("Updating resize property");
-        //Thanks to tip from egmontkob, see issue https://github.com/gnunn1/tilix/issues/161
-        node.paned.childSetProperty(node.paned.getChild1(), "resize", new Value(false));
-        node.paned.childSetProperty(node.paned.getChild2(), "resize", new Value(true));
-        foreach(child; node.child) {
-            if (child !is null) {
-                updateResizeProperty(child);
-            }
-        }
-    }
-
-    void updateIgnoreRatio(PanedNode node, bool value) {
-        TerminalPaned paned = cast(TerminalPaned)node.paned;
-        if (paned !is null) {
-            paned.ignoreRatio = value;
-            if (!value) paned.updateRatio();
-        }
-        foreach(child; node.child) {
-            if (child !is null) {
-                updateIgnoreRatio(child, value);
-            }
-        }
-    }
-
-public:
-
-    this(Paned paned) {
-        this.root = createModel(paned);
-    }
-
-    void calculateSize(int baseSize) {
-        calculateSize(root, baseSize);
-    }
-
-    void resize() {
-        //updateIgnoreRatio(root, true);
-        updateResizeProperty(root);
-        resize(root);
-        //updateIgnoreRatio(root, false);
-    }
-
-    @property int height() {
-        return getHeight(root);
-    }
-
-    @property int count() {
-        return _count;
-    }
-}
-
-/**
- * Represents a single Paned widget, or branch in the model
- */
-class PanedNode {
-    Paned paned;
-    int size;
-    int pos;
-    PanedNode[2] child;
-
-    this(Paned paned) {
-        this.paned = paned;
-    }
-}
