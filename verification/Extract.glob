@@ -1,5 +1,0 @@
-DIGEST 4b5aa3c4d2efe04f52c2c8b4d74760c5
-FExtract
-R15:20 Layout <> <> lib
-R76:104 Stdlib.extraction.ExtrOcamlBasic <> <> lib
-R122:151 Stdlib.extraction.ExtrOcamlNatInt <> <> lib

@@ -50,3 +50,23 @@ po/remove-potcdate.sin
 po/stamp-po
 po/*.gmo
 po/remove-potcdate.sed
+
+# Local analysis, verification, and profiling artifacts
+*.lst
+*.db
+perf.data*
+perf_report_*.txt
+logs/
+benchmark_scrolling
+tilix-test-*
+verification/_build/
+verification/*.aux
+verification/.*.aux
+verification/*.glob
+verification/.*.glob
+verification/*.vo
+verification/.*.vo
+verification/*.vok
+verification/*.vos
+verification/*.cmi
+verification/*.cmo
