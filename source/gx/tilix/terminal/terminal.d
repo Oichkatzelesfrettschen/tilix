@@ -60,7 +60,6 @@ import glib.MatchInfo : GMatchInfo = MatchInfo;
 import glib.Regex : GRegex = Regex;
 import glib.ShellUtils;
 import glib.SimpleXML;
-import glib.Idle;
 import glib.Str;
 import glib.Util;
 import glib.URI;
@@ -236,7 +235,6 @@ private:
     ExtendedVTE vte;  // DEPRECATED: Will be removed after migration to _container
     IRenderingContainer _container;  // New abstraction layer
     TerminalStateManager _stateManager;  // Phase 5: IO thread state coordinator
-    uint _idleFrameUpdateId = 0;  // Phase 5: Idle callback for frame updates
     gulong[] vteHandlers;
     Overlay terminalOverlay;
     ScrolledWindow sw;
@@ -1041,10 +1039,13 @@ private:
         });
 
         /*
-         * Monitor changes in the VTE to test for triggers
+         * Monitor changes in the VTE to test for triggers and update frame state
          */
         if (checkVTEFeature(TerminalFeature.EVENT_SCREEN_CHANGED)) {
-            vteHandlers ~= _container.addOnContentsChanged(delegate() { onVTECheckTriggers(vte); });
+            vteHandlers ~= _container.addOnContentsChanged(delegate() {
+                onVTECheckTriggers(vte);
+                onFrameUpdate();  // Phase 5: Poll IO thread state on content change
+            });
             vteHandlers ~= vte.addOnTerminalScreenChanged(&onVTEScreenChanged);
         }
 
@@ -1638,12 +1639,12 @@ private:
     TerminalScreen currentScreen = TerminalScreen.NORMAL;
 
     /**
-     * Phase 5: GTK idle callback for frame updates from IO thread.
-     * Polls events from the IO thread and updates the main thread state.
-     * Returns true to keep the callback active.
+     * Phase 5: Frame update callback triggered by VTE content changes.
+     * Polls IO thread state manager for events and queues redraws.
+     * Integrated with VTE's onContentsChanged signal to drive the update loop.
      */
-    bool onIdleFrameUpdate() {
-        if (_stateManager is null) return true;
+    void onFrameUpdate() {
+        if (_stateManager is null) return;
 
         // Poll for all pending IO events
         IOMessage msg;
@@ -1669,8 +1670,6 @@ private:
             _container.widget.queueDraw();
             _stateManager.acknowledgeFrame();
         }
-
-        return true;  // Keep callback active
     }
 
     void onVTEScreenChanged(int screen, VTE) {
@@ -3911,9 +3910,8 @@ public:
         _stateManager.ioThreadManager.setPtyFd(ptyFd);
         // Phase 5: Start IO thread state manager
         _stateManager.start();
-        // Phase 5: Install idle callback for frame updates
-        // TODO: Fix delegate callback registration with gtk-d Idle.add()
-        // For now, frame updates are handled through VTE's existing signals
+        // Phase 5: Frame updates driven by VTE's onContentsChanged signal
+        // Integrated into createVTE() - no separate idle callback needed
         trace("Terminal initialized");
         updateDisplayText();
     }
