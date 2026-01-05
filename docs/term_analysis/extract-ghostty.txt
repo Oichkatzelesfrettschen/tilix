@@ -1,0 +1,127 @@
+/home/eirikr/Github/tilix/term_analysis/ghostty/example/c-vt-sgr/README.md:19:```shell-session
+/home/eirikr/Github/tilix/term_analysis/ghostty/example/zig-formatter/README.md:14:```shell-session
+/home/eirikr/Github/tilix/term_analysis/ghostty/example/zig-formatter/README.md:22:```shell-session
+/home/eirikr/Github/tilix/term_analysis/ghostty/example/c-vt-key-encode/README.md:9:2. Configure Kitty keyboard protocol flags (this example uses KKP)
+/home/eirikr/Github/tilix/term_analysis/ghostty/example/c-vt-key-encode/README.md:10:3. Create and configure a key event
+/home/eirikr/Github/tilix/term_analysis/ghostty/example/c-vt-key-encode/README.md:20:```shell-session
+/home/eirikr/Github/tilix/term_analysis/ghostty/example/zig-vt-stream/README.md:21:```shell-session
+/home/eirikr/Github/tilix/term_analysis/ghostty/example/c-vt/README.md:15:```shell-session
+/home/eirikr/Github/tilix/term_analysis/ghostty/example/zig-vt/README.md:12:```shell-session
+/home/eirikr/Github/tilix/term_analysis/ghostty/example/c-vt-paste/README.md:15:```shell-session
+/home/eirikr/Github/tilix/term_analysis/ghostty/README.md:71:|  4  | Richer windowing features -- multi-window, tabbing, panes |   ✅   |
+/home/eirikr/Github/tilix/term_analysis/ghostty/README.md:103:For rendering, we have a multi-renderer architecture that uses OpenGL on
+/home/eirikr/Github/tilix/term_analysis/ghostty/README.md:104:Linux and Metal on macOS. As far as I'm aware, we're the only terminal
+/home/eirikr/Github/tilix/term_analysis/ghostty/README.md:105:emulator other than iTerm that uses Metal directly. And we're the only
+/home/eirikr/Github/tilix/term_analysis/ghostty/README.md:106:terminal emulator that has a Metal renderer that supports ligatures (iTerm
+/home/eirikr/Github/tilix/term_analysis/ghostty/README.md:107:uses a CPU renderer if ligatures are enabled). We can maintain around 60fps
+/home/eirikr/Github/tilix/term_analysis/ghostty/README.md:109:usually rendering much lower due to little screen changes.
+/home/eirikr/Github/tilix/term_analysis/ghostty/README.md:124:The Mac and Linux (build with GTK) apps support multi-window, tabbing, and
+/home/eirikr/Github/tilix/term_analysis/ghostty/README.md:125:splits.
+/home/eirikr/Github/tilix/term_analysis/ghostty/README.md:134:  would expect such as real windowing, menu bars, a settings GUI, etc.
+/home/eirikr/Github/tilix/term_analysis/ghostty/README.md:135:- macOS uses a true Metal renderer with CoreText for font discovery.
+/home/eirikr/Github/tilix/term_analysis/ghostty/README.md:138:There are more improvements to be made. The macOS settings window is still
+/home/eirikr/Github/tilix/term_analysis/ghostty/README.md:155:writing this, the API isn't stable yet and we haven't tagged an official
+/home/eirikr/Github/tilix/term_analysis/ghostty/README.md:193:```shell-session
+/home/eirikr/Github/tilix/term_analysis/ghostty/CONTRIBUTING.md:35:> a significant amount of human accountability, involvement and interaction
+/home/eirikr/Github/tilix/term_analysis/ghostty/CONTRIBUTING.md:38:> questions about it. Should a PR see no visible human accountability and
+/home/eirikr/Github/tilix/term_analysis/ghostty/CONTRIBUTING.md:40:> acceptable, **we reserve the right to close it without hesitation**.
+/home/eirikr/Github/tilix/term_analysis/ghostty/CONTRIBUTING.md:72:Minor exceptions to this policy include trivial AI-generated tab completion
+/home/eirikr/Github/tilix/term_analysis/ghostty/CONTRIBUTING.md:124:First, search the issue tracker and discussions for similar issues. Tip: also
+/home/eirikr/Github/tilix/term_analysis/ghostty/CONTRIBUTING.md:125:search for [closed issues] and [discussions] — your issue might have already
+/home/eirikr/Github/tilix/term_analysis/ghostty/CONTRIBUTING.md:133:> GitHub has a very _noisy_ set of default notification settings which
+/home/eirikr/Github/tilix/term_analysis/ghostty/CONTRIBUTING.md:160:Like bug reports, first search through both issues and discussions and try to
+/home/eirikr/Github/tilix/term_analysis/ghostty/CONTRIBUTING.md:264:This builds a Ghostty executable with Valgrind support and runs Valgrind
+/home/eirikr/Github/tilix/term_analysis/ghostty/CONTRIBUTING.md:268:`run`, such as specifying additional configurations after a trailing `--`.
+/home/eirikr/Github/tilix/term_analysis/ghostty/CONTRIBUTING.md:273:key event and ends with text encoding being sent to the pty (it
+/home/eirikr/Github/tilix/term_analysis/ghostty/CONTRIBUTING.md:274:does not include _rendering_ the text, which is part of the
+/home/eirikr/Github/tilix/term_analysis/ghostty/CONTRIBUTING.md:275:font or rendering stack).
+/home/eirikr/Github/tilix/term_analysis/ghostty/CONTRIBUTING.md:294:1. Wayland, X11
+/home/eirikr/Github/tilix/term_analysis/ghostty/CONTRIBUTING.md:306:Set your keyboard layout to "Spanish" (or another layout that uses dead keys).
+/home/eirikr/Github/tilix/term_analysis/ghostty/CONTRIBUTING.md:315:the text should be correct when it is sent to the pty.
+/home/eirikr/Github/tilix/term_analysis/ghostty/CONTRIBUTING.md:327:Configure fcitx or ibus with a keyboard layout like Japanese or Mozc. The
+/home/eirikr/Github/tilix/term_analysis/ghostty/CONTRIBUTING.md:328:exact layout doesn't matter.
+/home/eirikr/Github/tilix/term_analysis/ghostty/CONTRIBUTING.md:332:3. On a US physical layout, type: `konn`, you should see `こん` in preedit.
+/home/eirikr/Github/tilix/term_analysis/ghostty/CONTRIBUTING.md:341:3. On a US physical layout, type: `konn`, you should see `こん` in preedit.
+/home/eirikr/Github/tilix/term_analysis/ghostty/CONTRIBUTING.md:342:4. Press `Ctrl+Shift` to switch to another layout (any)
+/home/eirikr/Github/tilix/term_analysis/ghostty/CONTRIBUTING.md:370:   writable by the VM user, so be careful!
+/home/eirikr/Github/tilix/term_analysis/ghostty/CONTRIBUTING.md:375:   config. This _should_ be as simple as adding `nix.linux-builder.enable=true` to your
+/home/eirikr/Github/tilix/term_analysis/ghostty/CONTRIBUTING.md:376:   configuration and then rebuilding. See [this](https://nixcademy.com/posts/macos-linux-builder/)
+/home/eirikr/Github/tilix/term_analysis/ghostty/CONTRIBUTING.md:390:    nixpkgs.url = "nixpkgs/nixpkgs-unstable";
+/home/eirikr/Github/tilix/term_analysis/ghostty/CONTRIBUTING.md:398:   nixosConfigurations.custom-vm = ghostty.create-gnome-vm {
+/home/eirikr/Github/tilix/term_analysis/ghostty/CONTRIBUTING.md:402:     # module = ./configuration.nix # also works
+/home/eirikr/Github/tilix/term_analysis/ghostty/CONTRIBUTING.md:416:nix run .#nixosConfigurations.custom-vm.config.system.build.vm
+/home/eirikr/Github/tilix/term_analysis/ghostty/CONTRIBUTING.md:432:3. The VMs can be built using only packages from the current stable NixOS release.
+/home/eirikr/Github/tilix/term_analysis/ghostty/CONTRIBUTING.md:438:2. VMs should not expose any services to the network, or run any remote access
+/home/eirikr/Github/tilix/term_analysis/ghostty/CONTRIBUTING.md:466:   config. This _should_ be as simple as adding `nix.linux-builder.enable=true` to your
+/home/eirikr/Github/tilix/term_analysis/ghostty/CONTRIBUTING.md:467:   configuration and then rebuilding. See [this](https://nixcademy.com/posts/macos-linux-builder/)
+/home/eirikr/Github/tilix/term_analysis/ghostty/CONTRIBUTING.md:480:For more information about the Nix test console, see [the NixOS manual](https://nixos.org/manual/nixos/stable/index.html#sec-call-nixos-test-outside-nixos)
+/home/eirikr/Github/tilix/term_analysis/ghostty/CONTRIBUTING.md:484:Some test VMs are configured to allow outside SSH access for debugging. To
+/home/eirikr/Github/tilix/term_analysis/ghostty/build.zig.zon.txt:6:https://deps.files.ghostty.org/fontconfig-2.14.2.tar.gz
+/home/eirikr/Github/tilix/term_analysis/ghostty/build.zig.zon.txt:20:https://deps.files.ghostty.org/plasma_wayland_protocols-12207e0851c12acdeee0991e893e0132fc87bb763969a585dc16ecca33e88334c566.tar.gz
+/home/eirikr/Github/tilix/term_analysis/ghostty/build.zig.zon.txt:26:https://deps.files.ghostty.org/wayland-9cb3d7aa9dc995ffafdbdef7ab86a949d0fb0e7d.tar.gz
+/home/eirikr/Github/tilix/term_analysis/ghostty/build.zig.zon.txt:27:https://deps.files.ghostty.org/wayland-protocols-258d8f88f2c8c25a830c6316f87d23ce1a0f12d9.tar.gz
+/home/eirikr/Github/tilix/term_analysis/ghostty/build.zig.zon.txt:32:https://deps.files.ghostty.org/zig_wayland-1b5c038ec10da20ed3a15b0b2a6db1c21383e8ea.tar.gz
+/home/eirikr/Github/tilix/term_analysis/ghostty/po/README_CONTRIBUTORS.md:12:In the GTK app runtime, translatable strings are mainly sourced from Blueprint
+/home/eirikr/Github/tilix/term_analysis/ghostty/po/README_CONTRIBUTORS.md:14:translatable strings, which look like this:
+/home/eirikr/Github/tilix/term_analysis/ghostty/po/README_CONTRIBUTORS.md:24:By default identical strings are collapsed together into one translatable entry.
+/home/eirikr/Github/tilix/term_analysis/ghostty/po/README_CONTRIBUTORS.md:31:Translatable strings can also be sourced from Zig source files. This is useful
+/home/eirikr/Github/tilix/term_analysis/ghostty/po/README_CONTRIBUTORS.md:47:All translatable strings are extracted into the _translation template file_,
+/home/eirikr/Github/tilix/term_analysis/ghostty/po/README_CONTRIBUTORS.md:49:the list of translatable strings present in source code or Blueprints at all times.**
+/home/eirikr/Github/tilix/term_analysis/ghostty/test/README.md:6:all rendering conforms to what we expect.
+/home/eirikr/Github/tilix/term_analysis/ghostty/test/README.md:16:```shell-session
+/home/eirikr/Github/tilix/term_analysis/ghostty/HACKING.md:22:> (e.g. the Xcode SDK on macOS) compared to stable versions — make sure to
+/home/eirikr/Github/tilix/term_analysis/ghostty/HACKING.md:53:the iOS SDK, and Metal Toolchain are all installed.
+/home/eirikr/Github/tilix/term_analysis/ghostty/HACKING.md:59:```shell-session
+/home/eirikr/Github/tilix/term_analysis/ghostty/HACKING.md:68:> still use Xcode 26 on macOS 15 stable.
+/home/eirikr/Github/tilix/term_analysis/ghostty/HACKING.md:94:> review a PR so broken that it requires significant rework to be acceptable.
+/home/eirikr/Github/tilix/term_analysis/ghostty/HACKING.md:109:Ghostty's logging can be configured in two ways. The first is by what
+/home/eirikr/Github/tilix/term_analysis/ghostty/HACKING.md:131:[Prettier](https://prettier.io) with out-of-the-box settings. A Prettier CI
+/home/eirikr/Github/tilix/term_analysis/ghostty/HACKING.md:170:derivation](https://nix.dev/manual/nix/stable/language/advanced-attributes.html#adv-attr-outputHash)
+/home/eirikr/Github/tilix/term_analysis/ghostty/HACKING.md:207:This builds a Ghostty executable with Valgrind support and runs Valgrind
+/home/eirikr/Github/tilix/term_analysis/ghostty/HACKING.md:211:`run`, such as specifying additional configurations after a trailing `--`.
+/home/eirikr/Github/tilix/term_analysis/ghostty/HACKING.md:216:key event and ends with text encoding being sent to the pty (it
+/home/eirikr/Github/tilix/term_analysis/ghostty/HACKING.md:217:does not include _rendering_ the text, which is part of the
+/home/eirikr/Github/tilix/term_analysis/ghostty/HACKING.md:218:font or rendering stack).
+/home/eirikr/Github/tilix/term_analysis/ghostty/HACKING.md:237:1. Wayland, X11
+/home/eirikr/Github/tilix/term_analysis/ghostty/HACKING.md:249:Set your keyboard layout to "Spanish" (or another layout that uses dead keys).
+/home/eirikr/Github/tilix/term_analysis/ghostty/HACKING.md:258:the text should be correct when it is sent to the pty.
+/home/eirikr/Github/tilix/term_analysis/ghostty/HACKING.md:270:Configure fcitx or ibus with a keyboard layout like Japanese or Mozc. The
+/home/eirikr/Github/tilix/term_analysis/ghostty/HACKING.md:271:exact layout doesn't matter.
+/home/eirikr/Github/tilix/term_analysis/ghostty/HACKING.md:275:3. On a US physical layout, type: `konn`, you should see `こん` in preedit.
+/home/eirikr/Github/tilix/term_analysis/ghostty/HACKING.md:284:3. On a US physical layout, type: `konn`, you should see `こん` in preedit.
+/home/eirikr/Github/tilix/term_analysis/ghostty/HACKING.md:285:4. Press `Ctrl+Shift` to switch to another layout (any)
+/home/eirikr/Github/tilix/term_analysis/ghostty/HACKING.md:313:   writable by the VM user, so be careful!
+/home/eirikr/Github/tilix/term_analysis/ghostty/HACKING.md:318:   config. This _should_ be as simple as adding `nix.linux-builder.enable=true` to your
+/home/eirikr/Github/tilix/term_analysis/ghostty/HACKING.md:319:   configuration and then rebuilding. See [this](https://nixcademy.com/posts/macos-linux-builder/)
+/home/eirikr/Github/tilix/term_analysis/ghostty/HACKING.md:333:    nixpkgs.url = "nixpkgs/nixpkgs-unstable";
+/home/eirikr/Github/tilix/term_analysis/ghostty/HACKING.md:341:   nixosConfigurations.custom-vm = ghostty.create-gnome-vm {
+/home/eirikr/Github/tilix/term_analysis/ghostty/HACKING.md:345:     # module = ./configuration.nix # also works
+/home/eirikr/Github/tilix/term_analysis/ghostty/HACKING.md:359:nix run .#nixosConfigurations.custom-vm.config.system.build.vm
+/home/eirikr/Github/tilix/term_analysis/ghostty/HACKING.md:375:3. The VMs can be built using only packages from the current stable NixOS release.
+/home/eirikr/Github/tilix/term_analysis/ghostty/HACKING.md:381:2. VMs should not expose any services to the network, or run any remote access
+/home/eirikr/Github/tilix/term_analysis/ghostty/po/README_TRANSLATORS.md:20:> through GnuWin32**, since it hasn't been updated since 2010 and very likely
+/home/eirikr/Github/tilix/term_analysis/ghostty/po/README_TRANSLATORS.md:62:#. Translators: the category in the right-click context menu that contains split items for all directions
+/home/eirikr/Github/tilix/term_analysis/ghostty/po/README_TRANSLATORS.md:64:#  译注：其他终端程序对 Split 皆有不同翻译，此处采取最直观的翻译方式
+/home/eirikr/Github/tilix/term_analysis/ghostty/po/README_TRANSLATORS.md:66:msgid "Split"
+/home/eirikr/Github/tilix/term_analysis/ghostty/po/README_TRANSLATORS.md:88:The first entry of the `.po` file has an empty `msgid`. This entry is special
+/home/eirikr/Github/tilix/term_analysis/ghostty/po/README_TRANSLATORS.md:109:> acceptable, while `pt_BR.UTF-8.po` is.
+/home/eirikr/Github/tilix/term_analysis/ghostty/PACKAGING.md:16:Source tarballs with stable checksums are available for tagged releases
+/home/eirikr/Github/tilix/term_analysis/ghostty/PACKAGING.md:108:  the binary a PIE (Position Independent Executable) by default (override
+/home/eirikr/Github/tilix/term_analysis/ghostty/vendor/nerd-fonts/README.md:6:We use parse a section of this file to codegen a lookup table of the nerd font
+/home/eirikr/Github/tilix/term_analysis/ghostty/src/shell-integration/README.md:43:Elvish, on startup, searches for paths defined in `XDG_DATA_DIRS`
+/home/eirikr/Github/tilix/term_analysis/ghostty/src/shell-integration/README.md:51:autostart integration in `$XDG_CONFIG_HOME/elvish/rc.elv`,
+/home/eirikr/Github/tilix/term_analysis/ghostty/src/shell-integration/README.md:73:`XDG_DATA_DIRS` directory. Fish automatically loads configuration
+/home/eirikr/Github/tilix/term_analysis/ghostty/src/terminal/res/rgb.txt:60:190 190 190		x11 gray
+/home/eirikr/Github/tilix/term_analysis/ghostty/src/terminal/res/rgb.txt:61:190 190 190		X11Gray
+/home/eirikr/Github/tilix/term_analysis/ghostty/src/terminal/res/rgb.txt:62:190 190 190		x11 grey
+/home/eirikr/Github/tilix/term_analysis/ghostty/src/terminal/res/rgb.txt:63:190 190 190		X11Grey
+/home/eirikr/Github/tilix/term_analysis/ghostty/src/terminal/res/rgb.txt:144:  0 255   0		x11 green
+/home/eirikr/Github/tilix/term_analysis/ghostty/src/terminal/res/rgb.txt:145:  0 255   0		X11Green
+/home/eirikr/Github/tilix/term_analysis/ghostty/src/terminal/res/rgb.txt:219:176  48  96		x11 maroon
+/home/eirikr/Github/tilix/term_analysis/ghostty/src/terminal/res/rgb.txt:220:176  48  96		X11Maroon
+/home/eirikr/Github/tilix/term_analysis/ghostty/src/terminal/res/rgb.txt:241:160  32 240		x11 purple
+/home/eirikr/Github/tilix/term_analysis/ghostty/src/terminal/res/rgb.txt:242:160  32 240		X11Purple
+/home/eirikr/Github/tilix/term_analysis/ghostty/pkg/README.md:28:IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+/home/eirikr/Github/tilix/term_analysis/ghostty/src/font/res/MIT.txt:14:IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+/home/eirikr/Github/tilix/term_analysis/ghostty/src/font/res/OFL.txt:85:MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT
+/home/eirikr/Github/tilix/term_analysis/ghostty/src/font/sprite/draw/octants.txt:3:# table for drawing them since we weren't able to discern a

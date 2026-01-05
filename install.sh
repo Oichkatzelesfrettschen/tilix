@@ -2,6 +2,8 @@
 # exit on first error
 set -o errexit
 
+SCRIPT_DIR=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
+
 # Determine PREFIX.
 if [ -z "$1" ]; then
     if [ -z "$PREFIX" ]; then
@@ -47,6 +49,34 @@ done
 
 echo "Installing to prefix $PREFIX"
 
+# Prepare resources and localized metadata in build staging.
+PREP_SCRIPT="$SCRIPT_DIR/scripts/dub/prepare-resources.sh"
+if [ ! -x "$PREP_SCRIPT" ]; then
+    echo "Missing resource prep script: $PREP_SCRIPT" 1>&2
+    exit 1
+fi
+
+$PREP_SCRIPT
+
+BUILD_DIR="$SCRIPT_DIR/build/dub"
+RESOURCE_OUT="$BUILD_DIR/tilix.gresource"
+DESKTOP_OUT="$BUILD_DIR/com.gexperts.Tilix.desktop"
+APPDATA_OUT="$BUILD_DIR/com.gexperts.Tilix.appdata.xml"
+DBUS_OUT="$BUILD_DIR/com.gexperts.Tilix.service"
+
+if [ ! -f "$RESOURCE_OUT" ]; then
+    echo "Resource bundle not found: $RESOURCE_OUT" 1>&2
+    exit 1
+fi
+if [ ! -f "$DESKTOP_OUT" ]; then
+    echo "Desktop file not found: $DESKTOP_OUT" 1>&2
+    exit 1
+fi
+if [ ! -f "$APPDATA_OUT" ]; then
+    echo "Appdata file not found: $APPDATA_OUT" 1>&2
+    exit 1
+fi
+
 # Copy and compile schema
 echo "Copying and compiling schema..."
 install -Dm 644 data/gsettings/com.gexperts.Tilix.gschema.xml -t "$PREFIX/share/glib-2.0/schemas/"
@@ -54,14 +84,9 @@ glib-compile-schemas $PREFIX/share/glib-2.0/schemas/
 
 export TILIX_SHARE="$PREFIX/share/tilix"
 
-# Copy and compile icons
-cd data/resources
-
-echo "Building and copy resources..."
-glib-compile-resources tilix.gresource.xml
-install -Dm 644 tilix.gresource -t "$TILIX_SHARE/resources/"
-
-cd ../..
+# Copy compiled resources
+echo "Copying resources..."
+install -Dm 644 "$RESOURCE_OUT" -t "$TILIX_SHARE/resources/"
 
 # Copy shell integration script
 echo "Copying scripts..."
@@ -70,9 +95,6 @@ install -Dm 755 data/scripts/* -t "$TILIX_SHARE/scripts/"
 # Copy color schemes
 echo "Copying color schemes..."
 install -Dm 644 data/schemes/* -t "$TILIX_SHARE/schemes/"
-
-# Create/Update LINGUAS file
-find po -name "*\.po" -printf "%f\\n" | sed "s/\.po//g" | sort > po/LINGUAS
 
 # Compile po files
 echo "Copying and installing localization files"
@@ -84,28 +106,15 @@ for f in po/*.po; do
     rm -f "$LOCALE.mo"
 done
 
-# Generate desktop file
-msgfmt --desktop --template=data/pkg/desktop/com.gexperts.Tilix.desktop.in -d po -o data/pkg/desktop/com.gexperts.Tilix.desktop
-if [ $? -ne 0 ]; then
-    echo "Note that localizating appdata requires a newer version of xgettext, copying instead"
-    cp data/pkg/desktop/com.gexperts.Tilix.desktop.in data/pkg/desktop/com.gexperts.Tilix.desktop
-fi
-
-desktop-file-validate data/pkg/desktop/com.gexperts.Tilix.desktop
-
-# Generate appdata file, requires xgettext 0.19.7
-msgfmt --xml --template=data/metainfo/com.gexperts.Tilix.appdata.xml.in -d po -o data/metainfo/com.gexperts.Tilix.appdata.xml
-if [ $? -ne 0 ]; then
-    echo "Note that localizating appdata requires xgettext 0.19.7 or later, copying instead"
-    cp data/metainfo/com.gexperts.Tilix.appdata.xml.in data/metainfo/com.gexperts.Tilix.appdata.xml
-fi
+desktop-file-validate "$DESKTOP_OUT"
 
 # Copying Nautilus extension
 echo "Copying Nautilus extension"
 install -Dm 644 data/nautilus/open-tilix.py -t "$PREFIX/share/nautilus-python/extensions/"
 
 # Copy D-Bus service descriptor
-install -Dm 644 data/dbus/com.gexperts.Tilix.service -t "$PREFIX/share/dbus-1/services/"
+sed "s|@bindir@|$PREFIX/bin|g" data/dbus/com.gexperts.Tilix.service.in > "$DBUS_OUT"
+install -Dm 644 "$DBUS_OUT" -t "$PREFIX/share/dbus-1/services/"
 
 # Copy man page
 . $(dirname $(realpath "$0"))/data/scripts/install-man-pages.sh
@@ -122,8 +131,8 @@ cd ../../..
 # Copy executable, desktop and appdata file
 install -Dm 755 tilix -t "$PREFIX/bin/"
 
-install -Dm 644 data/pkg/desktop/com.gexperts.Tilix.desktop -t "$PREFIX/share/applications/"
-install -Dm 644 data/metainfo/com.gexperts.Tilix.appdata.xml -t "$PREFIX/share/metainfo/"
+install -Dm 644 "$DESKTOP_OUT" -t "$PREFIX/share/applications/"
+install -Dm 644 "$APPDATA_OUT" -t "$PREFIX/share/metainfo/"
 
 # Update icon cache if Prefix is /usr
 if [ "$PREFIX" = '/usr' ] || [ "$PREFIX" = "/usr/local" ]; then

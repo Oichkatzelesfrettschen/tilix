@@ -1,0 +1,427 @@
+/home/eirikr/Github/tilix/term_analysis/alacritty/README.md:5:<h1 align="center">Alacritty - A fast, cross-platform, OpenGL terminal emulator</h1>
+/home/eirikr/Github/tilix/term_analysis/alacritty/README.md:8:  <img alt="Alacritty - A fast, cross-platform, OpenGL terminal emulator"
+/home/eirikr/Github/tilix/term_analysis/alacritty/README.md:15:allows for extensive [configuration](#configuration). By integrating with other
+/home/eirikr/Github/tilix/term_analysis/alacritty/README.md:38:- [Alacritty Lands Scrollback, Publishes Benchmarks](https://jwilm.io/blog/alacritty-lands-scrollback/) September 17, 2018
+/home/eirikr/Github/tilix/term_analysis/alacritty/README.md:53:- At least OpenGL ES 2.0
+/home/eirikr/Github/tilix/term_analysis/alacritty/README.md:54:- [Windows] ConPTY support (Windows 10 version 1809 or higher)
+/home/eirikr/Github/tilix/term_analysis/alacritty/README.md:56:## Configuration
+/home/eirikr/Github/tilix/term_analysis/alacritty/README.md:58:You can find the documentation for Alacritty's configuration in `man 5
+/home/eirikr/Github/tilix/term_analysis/alacritty/README.md:62:[the website]: https://alacritty.org/config-alacritty.html
+/home/eirikr/Github/tilix/term_analysis/alacritty/README.md:64:Alacritty doesn't create the config file for you, but it looks for one in the
+/home/eirikr/Github/tilix/term_analysis/alacritty/README.md:67:1. `$XDG_CONFIG_HOME/alacritty/alacritty.toml`
+/home/eirikr/Github/tilix/term_analysis/alacritty/README.md:68:2. `$XDG_CONFIG_HOME/alacritty.toml`
+/home/eirikr/Github/tilix/term_analysis/alacritty/README.md:69:3. `$HOME/.config/alacritty/alacritty.toml`
+/home/eirikr/Github/tilix/term_analysis/alacritty/README.md:73:On Windows, the config file will be looked for in:
+/home/eirikr/Github/tilix/term_analysis/alacritty/README.md:104:good fit for Alacritty. This means you won't find things like tabs or splits
+/home/eirikr/Github/tilix/term_analysis/alacritty/README.md:106:niceties like a GUI config editor.
+/home/eirikr/Github/tilix/term_analysis/alacritty/alacritty_terminal/CHANGELOG.md:3:All notable changes to alacritty_terminal are documented in this file. The
+/home/eirikr/Github/tilix/term_analysis/alacritty/alacritty_terminal/CHANGELOG.md:31:- Escape sequence to move cursor forward tabs ( CSI Ps I )
+/home/eirikr/Github/tilix/term_analysis/alacritty/alacritty_terminal/CHANGELOG.md:41:- Semantic search handling of fullwidth characters
+/home/eirikr/Github/tilix/term_analysis/alacritty/alacritty_terminal/CHANGELOG.md:42:- Inline search ignoring line wrapping flag
+/home/eirikr/Github/tilix/term_analysis/alacritty/alacritty_terminal/CHANGELOG.md:44:- FD leaks when closing PTYs on Unix
+/home/eirikr/Github/tilix/term_analysis/alacritty/alacritty_terminal/CHANGELOG.md:45:- Crash when ConPTY creation failed
+/home/eirikr/Github/tilix/term_analysis/alacritty/alacritty_terminal/CHANGELOG.md:51:- `tty::unix::from_fd()` to create a TTY from a pre-opened PTY's file-descriptors
+/home/eirikr/Github/tilix/term_analysis/alacritty/docs/features.md:9:The vi mode allows moving around Alacritty's viewport and scrollback using the
+/home/eirikr/Github/tilix/term_analysis/alacritty/docs/features.md:10:keyboard. It also serves as a jump-off point for other features like search and
+/home/eirikr/Github/tilix/term_analysis/alacritty/docs/features.md:17:configurable. If you don't like vi's bindings, take a look at the configuration
+/home/eirikr/Github/tilix/term_analysis/alacritty/docs/features.md:30:## Search
+/home/eirikr/Github/tilix/term_analysis/alacritty/docs/features.md:32:Search allows you to find anything in Alacritty's scrollback buffer. You can
+/home/eirikr/Github/tilix/term_analysis/alacritty/docs/features.md:33:search forward using <kbd>Ctrl</kbd> <kbd>Shift</kbd> <kbd>f</kbd> (<kbd>Command</kbd> <kbd>f</kbd> on macOS) and
+/home/eirikr/Github/tilix/term_analysis/alacritty/docs/features.md:36:### Vi Search
+/home/eirikr/Github/tilix/term_analysis/alacritty/docs/features.md:38:In vi mode the search is bound to <kbd>/</kbd> for forward and <kbd>?</kbd> for
+/home/eirikr/Github/tilix/term_analysis/alacritty/docs/features.md:39:backward search. This allows you to move around quickly and help with selecting
+/home/eirikr/Github/tilix/term_analysis/alacritty/docs/features.md:40:content. The `SearchStart` and `SearchEnd` keybinding actions can be bound if
+/home/eirikr/Github/tilix/term_analysis/alacritty/docs/features.md:43:### Normal Search
+/home/eirikr/Github/tilix/term_analysis/alacritty/docs/features.md:45:During normal search you don't have the opportunity to move around freely, but
+/home/eirikr/Github/tilix/term_analysis/alacritty/docs/features.md:47:<kbd>Enter</kbd>. After leaving search with <kbd>Escape</kbd> your active match
+/home/eirikr/Github/tilix/term_analysis/alacritty/docs/features.md:50:## Hints
+/home/eirikr/Github/tilix/term_analysis/alacritty/docs/features.md:52:Terminal hints allow easily interacting with visible text without having to
+/home/eirikr/Github/tilix/term_analysis/alacritty/docs/features.md:57:Hints can also be triggered using the mouse or vi mode cursor. If a hint is
+/home/eirikr/Github/tilix/term_analysis/alacritty/docs/features.md:60:<kbd>Enter</kbd> key in vi mode will then trigger the hint.
+/home/eirikr/Github/tilix/term_analysis/alacritty/docs/features.md:62:Hints can be configured in the `hints` and `colors.hints` sections in the
+/home/eirikr/Github/tilix/term_analysis/alacritty/docs/features.md:63:Alacritty configuration file.
+/home/eirikr/Github/tilix/term_analysis/alacritty/docs/features.md:75:be held and program which should open the URL can be setup in the configuration
+/home/eirikr/Github/tilix/term_analysis/alacritty/INSTALL.md:68:   rustup override set stable
+/home/eirikr/Github/tilix/term_analysis/alacritty/INSTALL.md:69:   rustup update stable
+/home/eirikr/Github/tilix/term_analysis/alacritty/INSTALL.md:77:If you're running Wayland with an Nvidia GPU, you'll likely want the EGL
+/home/eirikr/Github/tilix/term_analysis/alacritty/INSTALL.md:87:apt install cmake g++ pkg-config libfontconfig1-dev libxcb-xfixes0-dev libxkbcommon-dev python3
+/home/eirikr/Github/tilix/term_analysis/alacritty/INSTALL.md:97:pacman -S cmake freetype2 fontconfig pkg-config make libxcb libxkbcommon python
+/home/eirikr/Github/tilix/term_analysis/alacritty/INSTALL.md:107:dnf install cmake freetype-devel fontconfig-devel libxcb-devel libxkbcommon-devel g++
+/home/eirikr/Github/tilix/term_analysis/alacritty/INSTALL.md:117:yum install cmake freetype-devel fontconfig-devel libxcb-devel libxkbcommon-devel xcb-util-devel
+/home/eirikr/Github/tilix/term_analysis/alacritty/INSTALL.md:128:dnf install cmake freetype-devel fontconfig-devel libxcb-devel libxkbcommon-devel
+/home/eirikr/Github/tilix/term_analysis/alacritty/INSTALL.md:139:zypper install cmake freetype-devel fontconfig-devel libxcb-devel libxkbcommon-devel gcc-c++
+/home/eirikr/Github/tilix/term_analysis/alacritty/INSTALL.md:152:xbps-install cmake freetype-devel expat-devel fontconfig-devel libxcb-devel pkg-config python3
+/home/eirikr/Github/tilix/term_analysis/alacritty/INSTALL.md:162:pkg install cmake freetype2 fontconfig pkgconf python3
+/home/eirikr/Github/tilix/term_analysis/alacritty/INSTALL.md:187:eopkg install fontconfig-devel
+/home/eirikr/Github/tilix/term_analysis/alacritty/INSTALL.md:206:emerge --onlydeps x11-terms/alacritty
+/home/eirikr/Github/tilix/term_analysis/alacritty/INSTALL.md:216:swupd bundle-add devpkg-expat devpkg-freetype devpkg-libxcb devpkg-fontconfig
+/home/eirikr/Github/tilix/term_analysis/alacritty/INSTALL.md:235:sudo apk add cmake pkgconf freetype-dev fontconfig-dev python3 libxcb-dev
+/home/eirikr/Github/tilix/term_analysis/alacritty/INSTALL.md:257:X11 or Wayland rendering backend the following commands can be used.
+/home/eirikr/Github/tilix/term_analysis/alacritty/INSTALL.md:260:# Force support for only Wayland
+/home/eirikr/Github/tilix/term_analysis/alacritty/INSTALL.md:261:cargo build --release --no-default-features --features=wayland
+/home/eirikr/Github/tilix/term_analysis/alacritty/INSTALL.md:263:# Force support for only X11
+/home/eirikr/Github/tilix/term_analysis/alacritty/INSTALL.md:264:cargo build --release --no-default-features --features=x11
+/home/eirikr/Github/tilix/term_analysis/alacritty/INSTALL.md:278:The following will build an executable that runs on both x86 and ARM macos
+/home/eirikr/Github/tilix/term_analysis/alacritty/INSTALL.md:321:sudo update-desktop-database
+/home/eirikr/Github/tilix/term_analysis/alacritty/CONTRIBUTING.md:5:Table of Contents:
+/home/eirikr/Github/tilix/term_analysis/alacritty/CONTRIBUTING.md:76:nightly releases, it's advised to perform these tests on the latest Rust stable release.
+/home/eirikr/Github/tilix/term_analysis/alacritty/CONTRIBUTING.md:82:Latency is another important factor for Alacritty. On X11, Windows, and macOS the
+/home/eirikr/Github/tilix/term_analysis/alacritty/CONTRIBUTING.md:90:If any change has been made to the `config.rs` file, it should also be documented in the man pages.
+/home/eirikr/Github/tilix/term_analysis/alacritty/CONTRIBUTING.md:94:`CHANGELOG.md`. When a notable change is made to `alacritty_terminal`, it should be documented in
+/home/eirikr/Github/tilix/term_analysis/alacritty/CONTRIBUTING.md:115:Alacritty's release process aims to provide stable and well tested releases without having to hold
+/home/eirikr/Github/tilix/term_analysis/alacritty/CONTRIBUTING.md:130:  7. The changelog since the last release (stable or RC) is added to the GitHub release description
+/home/eirikr/Github/tilix/term_analysis/alacritty/CONTRIBUTING.md:139: 14. The changelog since the last stable release (**not** RC) is added to the GitHub release
+/home/eirikr/Github/tilix/term_analysis/alacritty/CONTRIBUTING.md:155:and `-rcX` version suffix identical across the two crates. As soon as the new Alacritty stable
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:3:All notable changes to Alacritty are documented in this file.
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:8:Notable changes to the `alacritty_terminal` crate are documented in its
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:23:- Don't highlight hints on hover when the mouse cursor is hidden
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:24:- IME is disabled in Vi mode on X11
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:30:- Brief error popup when saving the config file with some editors
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:32:- Crash when OpenGL context resets
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:49:- IPC config retrieval using `alacritty msg get-config`
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:52:- Add `/etc/alacritty/alacritty.toml` fallback for system wide configuration
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:58:- Improve rendering of rounded corners with builtin box drawing
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:62:- Crash when OpenGL context resets
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:65:- `Enter`,`Tab`, `Backspace` not disambiguated with `shift` in kitty keyboard's disambiguate mode
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:66:- Hint bindings not respecting IPC overrides
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:67:- Search matching a wrapping fullwidth character in the last column
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:71:- `window.startup_mode` applied to existing window when opening a new tab on macOS
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:79:- Default URL hints now stop before backslashes
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:83:- Modifiers being out of sync for fast/synthetic input on X11
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:91:- Config option `window.level = "AlwaysOnTop"` to force Alacritty to always be the toplevel window
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:92:- Escape sequence to move cursor forward tabs ( CSI Ps I )
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:93:- Pass activation token in `alacritty msg create-window` on Wayland/X11
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:103:- Mouse/Vi cursor hint highlighting broken on the terminal cursor line
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:104:- Hint launcher opening arbitrary text, when terminal content changed while opening
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:109:- Report of Enter/Tab/Backspace in kitty keyboard's report event types mode
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:121:- Support relative path imports from config files
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:122:- `alacritty migrate` support for TOML configuration changes
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:130:- Moved config options `import`, `working_directory`, `live_config_reload`, and `ipc_socket`
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:132:- Moved config option `shell` to `terminal.shell`
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:138:- Crash when trying to create a new tab without decorations enabled
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:139:- New window being treated as focused when it's not on Wayland
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:145:- Config emitting errors for nonexistent import paths
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:147:- Broken search with words broken across line boundary on the first character
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:148:- Config import changes not being live reloaded
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:151:- Windows app icon now displays properly in old alt+tab on Windows
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:155:- Vi inline search only working for direct key input without modifiers
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:165:- CLI env variables clearing configuration file variables
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:166:- Vi inline search/semantic selection expanding across newlines
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:168:- Occasional hang on startup with some Wayland compositors
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:171:- Sticky keys not working sometimes on X11
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:172:- Modifiers occasionally getting desynced on X11
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:173:- Autokey no longer working with alacritty on X11
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:175:- Mouse cursor not changing on Wayland when cursor theme uses legacy cursor icon names
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:176:- Config keys are available under proper names
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:177:- Build failure when compiling with x11 feature on NetBSD
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:178:- Hint `Select` action selecting the entire line for URL escapes
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:183:- No unused-key warnings will be emitted for OS-specific config keys
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:191:- Support for pasting in Vi + Search mode
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:206:- Xmodmap not working on X11
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:207:- Occasional slow startup on some X11 window managers
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:208:- Blurry window when using `window.dimensions` on some Wayland compositors
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:209:- IME input lagging behind on X11
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:210:- xdotool modifiers input not working correctly on X11
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:212:- Some config options overriding each other in CLI/IPC
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:224:- Warnings for unused configuration file options
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:225:- Config option `persist` in `hints` config section
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:226:- Support for dynamically loading conpty.dll on Windows
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:229:- Copy global IPC options (`-w -1`) for new windows
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:230:- Bindings to create and navigate tabs on macOS
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:231:- Support startup notify protocol to raise initial window on Wayland/X11
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:233:- Inline vi-mode search using `f`/`F`/`t`/`T`
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:234:- `window.blur` config option to request blur for transparent windows
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:243:- Configuration file now uses TOML instead of YAML
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:244:    Run `alacritty migrate` to automatically convert all configuration files
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:245:- Deprecated config option `draw_bold_text_with_bright_colors`, use
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:247:- Deprecated config option `key_bindings`, use `keyboard.bindings`
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:248:- Deprecated config option `mouse_bindings`, use `mouse.bindings`
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:253:- Apply `colors.transparent_background_colors` for selections, hints, and search matches
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:254:- Underline full hint during keyboard selection
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:263:- `Xft.dpi` is now reloaded when xsettingd change its value on X11
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:267:- Unconditional query of xdg-portal settings on Wayland
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:268:- `Maximized` startup mode not filling the screen properly on GNOME Wayland
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:269:- `OptionAsAlt` with `OnlyLeft`/`OnlyRight` settings not working properly on macOS
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:270:- Default Vi key bindings for `Last`/`First` actions not working on X11/Wayland
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:273:- Double clicking on CSD titlebar not always maximizing a window on Wayland
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:276:- Copy/Paste being truncated to 64KiB on Wayland
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:277:- X11 clipboard lagging behind sometimes
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:278:- High wakeup count on Wayland due to clipboard polling
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:279:- Blocking paste freezing alacritty on Wayland
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:280:- `Command` modifier persisting after `Cmd + Tab` on macOS
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:281:- Crash on exit when using NVIDIA binary drivers on Wayland
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:282:- `window.startup_mode` applied to window again when creating new tab
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:283:- Crash when leaving search after resize
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:285:- Message bar content getting stuck after closing with multiple messages on Wayland
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:286:- Vi cursor position not redrawn on PageUp/PageDown without scrollback
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:293:- Config option `background_opacity`, use `window.background_opacity`
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:294:- Config option `colors.search.bar`, use `colors.footer_bar` instead
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:295:- Config option `mouse.url`, use the `hints` config section
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:296:- Config options `mouse.double_click` and `mouse.triple_click`
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:303:- Crash when Wayland compositor advertises `wl_compositor@v5` interface
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:321:- Very long startup times on Wayland systems with broken xdg-portal setup.
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:330:- Support for fractional scaling on Wayland with wp-fractional-scale protocol
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:333:- `window.resize_increments` config option, disabled by default
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:340:- The hint about window transparency is now properly issued on Wayland and macOS
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:344:- Resize increments are now set on macOS and X11 to resize by cell sizes
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:351:- Startup failure on macOS with default config when system `/bin/sh` is `dash`
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:352:- Artifacts in corners for maximized window with CSD on Wayland
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:356:- Crash during text compose on old GNOME under Wayland
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:359:- Crash while typing on Wayland
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:363:- Redraw hanging until a keypress on X11 in rare cases
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:367:- Drag & Drop not working for the search bar
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:372:- `window.gtk_theme_variant` config field; use `window.decorations_theme_variant` instead
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:391:- Track and report surface damage information to Wayland compositors
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:394:- Support for OpenGL ES 2.0
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:399:- Config option `cursor.blink_timeout` to timeout cursor blinking after inactivity
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:401:- Config `hints.enabled.hyperlinks` for hyperlink escape sequence hint highlight
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:402:- `window.decorations_theme_variant` to control both Wayland CSD and GTK theme variant on X11
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:407:- No longer renders to macos and x11 windows that are fully occluded / not directly visible
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:412:- Deprecated `colors.search.bar`, use `colors.footer_bar` instead
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:415:- Client side decorations should have proper text rendering now on Wayland
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:416:- Config option `window.gtk_theme_variant`, you should use `window.decorations_theme_variant` instead
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:419:- Search bar is now respecting cursor thickness
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:420:- On X11 the IME popup window is stuck at the bottom of the window due to Xlib limitations
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:425:- Creating the IPC socket failing if `WAYLAND_DISPLAY` contains an absolute path
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:430:- Vi cursor blinking not reset when navigating in search
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:435:- Window flickering on resize on Wayland
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:436:- Unnecessary config reload when using `/dev/null` as a config file
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:440:- On macOS, Alacritty sessions did not appear in the list of tty sessions for `w` and `who`
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:441:- Cursor not hiding on GNOME Wayland
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:442:- Font having different scale factor after monitor powering off/on on X11
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:443:- Viewport not updating after opening a new tabbed window on macOS
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:445:- CPU usage spikes due to mouse movements for unfocused windows on X11/Windows
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:446:- First window on macOS not tabbed with system prefer tabs setting
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:447:- Window being treated as focused by default on Wayland
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:451:- `font.use_thin_strokes` config field; to use thin strokes on macOS, set
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:468:- OSC 104 not clearing colors when second parameter is empty
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:486:- Urgency support on Wayland via `xdg_activation_v1`
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:490:- `ExpandSelection` is now a configurable mouse binding action
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:491:- Config option `background_opacity`, you should use `window.opacity` instead
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:492:- Reload configuration files when their symbolic link is replaced
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:496:- Remove trailing newline from strings taken from hints or simple/semantic selections
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:503:- Vi mode search starting in the line below the vi cursor
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:506:- Crash when the vi cursor is on the scrollback and viewport clear is invoked
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:507:- Freeze when the vi cursor is on the scrollback and scrollback clear is invoked
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:509:- Input lag on Wayland with Nvidia binary driver
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:515:- Wayland client side decorations were simplified
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:526:- Mode field for regex hint bindings
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:530:- Regression in rendering performance with dense grids since 0.6.0
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:533:- Slow PTY read performance with extremely dense grids
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:537:- Search without vi mode not starting at the correct location when scrolled into history
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:538:- Crash when starting a vi mode search from the bottommost line
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:539:- Original scroll position not restored after canceling search
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:540:- Clipboard copy skipping non-empty cells when encountering an interrupted tab character
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:543:- Broken bitmap font rendering with FreeType 2.11+
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:545:- Newly installed fonts not rendering until Alacritty restart
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:556:- Added ARM executable to prebuilt macOS binaries
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:562:- Regex terminal hints ([see features.md](./docs/features.md#hints))
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:569:- Focused search match will use cell instead of match colors for CellForeground/CellBackground
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:570:- URL highlighting has moved from `mouse.url` to the `hints` config section
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:574:- Alacritty failing to start on X11 with invalid DPI reported by XRandr
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:575:- Text selected after search without any match
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:576:- Incorrect vi cursor position after leaving search
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:585:- Config field `visual_bell`, you should use `bell` instead
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:596:- Segmentation fault on shutdown with Wayland
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:597:- Incorrect estimated DPR with Wayland
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:598:- Consecutive clipboard stores dropped on Wayland until the application is refocused
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:604:- Jumping between matches in backward vi search
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:610:- Support for `~/` at the beginning of configuration file imports
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:612:- New `cursor.blink_interval` option to configure the blinking frequency
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:616:- Customizable keybindings for search
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:617:- History for search mode, bound to ^P/^N/Up/Down by default
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:618:- Default binding to cancel search on Ctrl+C
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:619:- History position indicator for search and vi mode
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:623:- Nonexistent config imports are ignored instead of raising an error
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:624:- Value for disabling logging with `config.log_level` is `Off` instead of `None`
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:633:- Slow rendering performance with a lot of cells with underline/strikeout attributes
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:635:- Extra mouse buttons are no longer ignored on Wayland
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:636:- Numpad arrow keys are now properly recognized on Wayland
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:639:- Window being always on top during alt-tab on Windows
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:641:- No live config update when starting Alacritty with a broken configuration file
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:642:- PTY not drained to the end with the `--hold` flag enabled
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:643:- High CPU usage on BSD with live config reload enabled
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:645:- Crash due to clipboard not being properly released on Wayland
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:651:- Crash on Wayland due to non-standard fontconfig configuration
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:652:- Search without vi mode not jumping properly between all matches
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:658:    * `--live-config-reload`
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:659:    * `--no-live-config-reload`
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:663:- Config option `dynamic_title`, you should use `window.dynamic_title` instead
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:664:- Config option `scrolling.faux_multiplier`, which was replaced by escape `CSI ? 1007 h/l`
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:665:- WinPTY support on Windows
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:673:- Updated `setab`/`setaf` capabilities in `alacritty-direct` to use colons
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:674:- WinPTY is now enabled only when targeting MSVC
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:675:- Deprecated the WinPTY backend feature, disabling it by default
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:681:- New Ctrl+C binding to cancel search and leave vi mode
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:683:- Configuration file option for sourcing other files (`import`)
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:684:- CLI parameter `--option`/`-o` to override any configuration field
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:687:- Right clicking on Wayland's client side decorations will show application menu
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:688:- Escape sequences to enable and disable window urgency hints (`CSI ? 1042 h`, `CSI ? 1042 l`)
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:697:- Use yellow/red from the config for error and warning messages instead of fixed colors
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:699:- Wayland's Client side decorations now use the search bar colors
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:700:- Reduce memory usage by up to at least 30% with a full scrollback buffer
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:706:- Incorrect window location with negative `window.position` config options
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:707:- Slow rendering performance with HiDPI displays, especially on macOS
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:708:- Keys swallowed during search when pressing them right before releasing backspace
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:711:- Pasting into clients only supporting `UTF8_STRING` mime type on Wayland
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:712:- Crash when copying/pasting with neither pointer nor keyboard focus on Wayland
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:713:- Crash due to fd leak on Wayland
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:714:- IME window position with fullwidth characters in the search bar
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:718:- Remapped caps lock to escape not triggering escape bindings on Wayland
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:719:- Crash when setting overly long title on Wayland
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:720:- Switching in and out of various window states, like Fullscreen, not persisting window size on Wayland
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:721:- Crash when providing 0 for `XCURSOR_SIZE` on Wayland
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:722:- Gap between window and server side decorations on KWIN Wayland
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:723:- Wayland's client side decorations not working after tty switch
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:724:- `Fullscreen` startup mode not working on Wayland
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:725:- Window not being rescaled when changing DPR of the current monitor on Wayland
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:726:- Crash in some cases when pointer isn't presented upon startup on Wayland
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:727:- IME not working on Wayland
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:728:- Crash on startup on GNOME since its 3.37.90 version on Wayland
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:729:- Touchpad scrolling scrolled less than it should on macOS/Wayland on scaled outputs
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:730:- Incorrect modifiers at startup on X11
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:733:- Crash when writing to the clipboard fails on Wayland
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:745:- On Linux/BSD the build will fail without Fontconfig installed, instead of building it from source
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:751:- Vi mode for regex search, copying text, and opening links
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:755:- Support for Fontconfig embolden and matrix options
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:756:- Opt-out compilation flag `winpty` to disable WinPTY support
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:763:- Ability to make selections while search is active
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:769:- Wayland client side decorations are now based on config colorscheme
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:782:- Renamed config option `visual_bell` to `bell`
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:783:- Moved config option `dynamic_title` to `window.dynamic_title`
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:784:- When searching without vi mode, matches are only selected once search is cancelled
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:789:- Freeze when application is invisible on Wayland
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:790:- Paste from some apps on Wayland
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:791:- Slow startup with Nvidia binary drivers on some X11 systems
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:793:- Regression in font rendering on macOS
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:801:- Cursor color escape ignored when its color is set to inverted in the config
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:802:- Fontconfig's `autohint` and `hinting` options being ignored
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:804:- Alacritty crashing at startup when the configured font does not exist
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:806:- Opening URLs while search is active
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:811:- Deprecated `window.start_maximized` config field
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:812:- Deprecated `render_timer` config field
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:813:- Deprecated `persistent_logging` config field
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:819:- Tabstops not being reset with `reset`
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:821:- Resize lag on launch under some X11 wms
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:822:- Increased input latency due to vsync behavior on X11
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:835:- Added Rust features `x11` and `wayland` to pick backends, with both enabled by default
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:840:- Live config reload for `window.title`
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:845:- Renamed `WINIT_HIDPI_FACTOR` environment variable to `WINIT_X11_SCALE_FACTOR`
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:851:- Dynamic title is not disabled anymore when `window.title` is set in config
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:855:- Incorrect default config path in `--help` on Windows and macOS
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:858:- Crash when starting on some X11 systems
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:861:- Alacritty not ignoring keyboard events for changing WM focus on X11
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:863:- CLI parameters discarded when config is reload
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:866:- Block selection starting from first column after beginning leaves the scrollback
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:876:- Inconsistent fontconfig fallback
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:886:- Config reload creating alternate screen history instead of updating scrollback
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:887:- Crash on Wayland compositors supporting `wl_seat` version 7+
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:888:- Message bar not hiding after fixing wrong color value in config
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:889:- Tabstops cleared on resize
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:890:- Tabstops not breaking across lines
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:894:- Clipboard not working after TTY switch on Wayland
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:895:- Crash when pasting non UTF-8 string advertised as UTF-8 string on Wayland
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:896:- Incorrect modifiers tracking on X11 and macOS, leading to 'sticky' modifiers
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:898:- Variables `XCURSOR_THEME` and `XCURSOR_SIZE` ignored on Wayland
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:899:- Low resolution mouse cursor and decorations on HiDPI Wayland outputs
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:900:- Decorations visible when in fullscreen on Wayland
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:902:- Crash on startup with some locales on X11
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:907:- Config option `auto_scroll`, which is now always disabled
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:908:- Config option `tabspaces`, which is now fixed at `8`
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:926:- On Windows, the ConPTY backend will now be used by default if available
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:927:- The `enable_experimental_conpty_backend` config option has been replaced with `winpty_backend`
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:933:- Clipboard escape `OSC 52` not working with empty clipboard parameter
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:935:- Incorrect window size on X11 when waking up from suspend
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:937:- Minimize on windows causing layout issues
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:939:- Vague startup crash messages on Windows with WinPTY backend
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:940:- Deadlock on Windows when closing Alacritty using the title bar "X" button (ConPTY backend)
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:943:- Slow startup on some Wayland compositors
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:947:- Resize cursor not showing up on Wayland
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:948:- Maximized windows spawning behind system panel on Gnome Wayland
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:959:- Config is not generated anymore, please consider distributing the alacritty.yml as documentation
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:965:- Allow setting general window class on X11 using CLI or config (`window.class.general`)
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:966:- Config option `window.gtk_theme_variant` to set GTK theme variant
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:978:- Live reload font settings from config
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:985:- On Windows, query DirectWrite for recommended anti-aliasing settings
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:990:- GUI programs launched by Alacritty starting in the background on X11
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:996:- X11 clipboard hanging when mime type is set
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:997:- On macOS, Alacritty will now fallback to Menlo if a font specified in the config cannot be loaded
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:1001:- On Linux, respect fontconfig's `embeddedbitmap` configuration option
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:1002:- Selecting trailing tab with semantic expansion
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:1005:- Wayland clipboard integration
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:1007:- Wayland primary selection clipboard not storing text when selection is stopped outside of the window
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:1013:- Background always opaque on X11
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:1014:- Skipping redraws on PTY update
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:1020:- Change mouse cursor depending on mode with Wayland
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:1021:- Hide mouse cursor when typing if the `mouse.hide_when_typing` option is set on Wayland
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:1024:- Crash when trying to start on X11 with a Wayland compositor running
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:1025:- Crash with a virtual display connected on X11
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:1026:- Use `\` instead of `\\` as path separators on Windows for logging config file location
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:1035:- Blank lines after each line when pasting from GTK apps on Wayland
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:1040:- Automatic config generation
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:1060:- `_NET_WM_ICON` property is set on X11 now, allowing for WMs to show icons in titlebars
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:1062:- Config options `window.title` and `window.class`
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:1063:- Config option `working_directory`
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:1064:- Config group `debug` with the options `debug.log_level`, `debug.print_events`
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:1076:- Moved config option `render_timer` and `persistent_logging` to the `debug` group
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:1082:- PTY size not getting updated when message bar is shown
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:1090:- UTF-8 BOM skipped when reading config file
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:1095:- Deprecated `mouse.faux_scrollback_lines` config field
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:1096:- Deprecated `custom_cursor_colors` config field
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:1097:- Deprecated `hide_cursor_when_typing` config field
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:1098:- Deprecated `cursor_style` config field
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:1099:- Deprecated `unfocused_hollow_cursor` config field
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:1100:- Deprecated `dimensions` config field
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:1106:- Panic on startup when using Conpty on Windows
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:1113:- Native clipboard support on X11 and Wayland
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:1144:- New configuration field `window.position` allows specifying the starting position
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:1157:- Fix panic which could occur when quitting Alacritty on Windows if using the Conpty backend
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:1159:- Scrollback history live reload only working when shrinking lines
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:1160:- Crash when decreasing scrollback history in config while scrolled in history
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:1161:- Resetting the terminal while in the alt screen will no longer disable scrollback
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:1166:- Windows: Conpty backend could close immediately on startup in certain situations
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:1171:- Support for alternate keyboard layouts on macOS
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:1172:- Slow startup time on some X11 systems
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:1175:- On Wayland, the `--title` flag will set the Window title now
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:1178:- Fix `start_maximized` option on X11
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:1196:- Window class on Wayland is set to `Alacritty` by default
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:1206:- Config error messages are automatically removed when the config is fixed
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:1207:- Scroll history on Shift+PgUp/PgDown when scrollback history is available
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:1212:- Excessive polling every 100ms with `live_config_reload` enabled
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:1214:- Remove error message when reloading an empty config
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:1216:- Corrected the `window.decorations` config documentation for macOS
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:1242:- All options in the configuration file are now optional
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:1246:- Replaced `Command` with `Super` in the Linux and Windows config documentation
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:1250:- Characters will no longer be deleted when using ncurses with the hard tab optimization
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:1255:- Windows and macOS configuration files (`alacritty.yml` is now platform independent)
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:1261:- New configuration field `visual_bell.color` allows changing the visual bell color
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:1263:- Windows: New configuration field `enable_experimental_conpty_backend` which enables support
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:1264:    for the Pseudoconsole API (ConPTY) added in Windows 10 October 2018 (1809) update
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:1270:- Windows configuration location has been moved from %USERPROFILE%\alacritty.yml
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:1279:- Tabs are no longer replaced by spaces when copying them to the clipboard
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:1281:- Various Windows issues, like color support and performance, through the new ConPTY
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:1282:- Fixed rendering non default mouse cursors in terminal mouse mode (linux)
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:1297:- New configuration option `persistent_logging` and CLI flag `--persistent-logging`,
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:1306:- When the config file is empty, Alacritty now logs an info instead of an error message
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:1332:- DEB file adds Alacritty as option to `update-alternatives --config x-terminal-emulator`
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:1346:- Fixed erroneous results when using the `indexed_colors` config option
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:1347:- Fixed rendering cursors other than rectangular with the RustType backend
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:1349:- Invalid default configuration on macOS and Linux
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:1351:- Selections now properly update as you scroll the scrollback buffer while selecting
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:1354:- On macOS, issues with Command-[KEY] and Control-Tab keybindings have been fixed
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:1356:- On Wayland, windows will no longer be spawned outside of the visible region
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:1358:- On Wayland, key repetition works again
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:1360:- On Linux, the `WINIT_HIDPI_FACTOR` environment variable can be set from the config now
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:1364:- The `custom_cursor_colors` config field was deleted, remove the `colors.cursor.*` options
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:1366:- The `scale_with_dpi` configuration value has been removed, on Linux the env
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:1376:- On macOS, there are two new values for the config option `window.decorations`:
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:1380:- Add support for changing the colors from 16 to 256 in the `indexed_colors` config section
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:1381:- Add `save_to_clipboard` configuration option for copying selected text to the system clipboard
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:1389:- Reduce memory usage significantly by only initializing part of the scrollback buffer at startup
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:1394:- The values `true` and `false` for the config option `window.decorations` have been replaced with
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:1399:- Rendering now occurs without the terminal locked which improves performance
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:1400:- Clear screen properly before rendering of content to prevent various graphical glitches
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:1403:- Empty lines in selections are now properly copied to the clipboard
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:1405:- Rendering of selections which start above the visible area and end below it
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:1417:- Add a scrollback history buffer (10_000 lines by default)
+/home/eirikr/Github/tilix/term_analysis/alacritty/CHANGELOG.md:1421:  scrollback history

@@ -15,7 +15,9 @@
 
   <description>
     <p>
-      Tilix is a tiling terminal emulator.
+      Tilix is a tiling terminal emulator designed for power users who manage
+      many sessions at once. It focuses on fast, flexible layouts with
+      split panes, drag-and-drop rearranging, and profile-driven workflows.
     </p>
     <p>It lets you:</p>
     <ul>
@@ -39,12 +41,15 @@
   <screenshots>
     <screenshot type="default">
         <image>https://gnunn1.github.io/tilix-web/assets/images/gallery/tilix-screenshot-1.png</image>
+        <caption>Default tiling layout with split terminals</caption>
     </screenshot>
     <screenshot>
         <image>https://gnunn1.github.io/tilix-web/assets/images/gallery/tilix-screenshot-2.png</image>
+        <caption>Tabbed sessions and configurable profiles</caption>
     </screenshot>
     <screenshot>
         <image>https://gnunn1.github.io/tilix-web/assets/images/gallery/tilix-screenshot-3.png</image>
+        <caption>Quake-style drop-down terminal mode</caption>
     </screenshot>
   </screenshots>
 

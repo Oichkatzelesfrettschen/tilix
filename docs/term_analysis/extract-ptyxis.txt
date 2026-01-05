@@ -1,0 +1,111 @@
+/home/eirikr/Github/tilix/term_analysis/ptyxis/README.md:1:![Ptyxis Logo](https://gitlab.gnome.org/chergert/ptyxis/-/raw/main/data/icons/ptyxis.svg)
+/home/eirikr/Github/tilix/term_analysis/ptyxis/README.md:3:[![License: GPL v3+](https://img.shields.io/badge/License-GPL%20v3%2B-blue.svg)](https://gitlab.gnome.org/chergert/ptyxis/-/blob/main/COPYING)
+/home/eirikr/Github/tilix/term_analysis/ptyxis/README.md:4:[![GitLab Pipeline Status](https://gitlab.gnome.org/chergert/ptyxis/badges/main/pipeline.svg)](https://gitlab.gnome.org/chergert/ptyxis/-/pipelines)
+/home/eirikr/Github/tilix/term_analysis/ptyxis/README.md:5:[![Distribution: Flatpak (Stable)](https://img.shields.io/badge/Available%20on-Flatpak%20(Stable)-4d9c9a.svg?logo=flatpak&logoColor=white)](https://flathub.org/apps/app.devsuite.Ptyxis)
+/home/eirikr/Github/tilix/term_analysis/ptyxis/README.md:6:[![Distribution: Flatpak (Nightly)](https://img.shields.io/badge/Available%20on-Flatpak%20(Nightly)-4d9c9a.svg?logo=flatpak&logoColor=white)](https://gitlab.gnome.org/chergert/ptyxis#flatpak-recommended)
+/home/eirikr/Github/tilix/term_analysis/ptyxis/README.md:8:# Ptyxis: Your Container-Oriented Terminal for GNOME
+/home/eirikr/Github/tilix/term_analysis/ptyxis/README.md:15:![Ptyxis Screenshot - Tab Overview](https://gitlab.gnome.org/chergert/ptyxis/-/raw/main/data/screenshots/tab-overview.png)
+/home/eirikr/Github/tilix/term_analysis/ptyxis/README.md:16:_Fig 1: Ptyxis tab overview for managing multiple terminal sessions._
+/home/eirikr/Github/tilix/term_analysis/ptyxis/README.md:20:- [What Makes Ptyxis Special?](#what-makes-ptyxis-special)
+/home/eirikr/Github/tilix/term_analysis/ptyxis/README.md:27:- [Report an Issue](https://gitlab.gnome.org/chergert/ptyxis/-/issues)
+/home/eirikr/Github/tilix/term_analysis/ptyxis/README.md:31:## What Makes Ptyxis Special?
+/home/eirikr/Github/tilix/term_analysis/ptyxis/README.md:33:Ptyxis (the application project was formerly named "Prompt" and may still appear
+/home/eirikr/Github/tilix/term_analysis/ptyxis/README.md:34:under `app.devsuite.Ptyxis` for its stable Flatpak release) isn't just another
+/home/eirikr/Github/tilix/term_analysis/ptyxis/README.md:39:experience. Ptyxis is the default terminal in Fedora Workstation,
+/home/eirikr/Github/tilix/term_analysis/ptyxis/README.md:53:- **Smart Process Tracking**: Visual indicators for `sudo` sessions, active
+/home/eirikr/Github/tilix/term_analysis/ptyxis/README.md:56:- **Advanced Tab Management**: Searchable tab overview with live previews and
+/home/eirikr/Github/tilix/term_analysis/ptyxis/README.md:57:  pinned tabs that persist their session context (profile, container,
+/home/eirikr/Github/tilix/term_analysis/ptyxis/README.md:60:  highly configurable keyboard shortcuts accessible via the preferences.
+/home/eirikr/Github/tilix/term_analysis/ptyxis/README.md:62:  containers, startup commands, appearance settings (font, palette),
+/home/eirikr/Github/tilix/term_analysis/ptyxis/README.md:64:- **`ptyxis-agent` Architecture**: A unique out-of-process helper
+/home/eirikr/Github/tilix/term_analysis/ptyxis/README.md:65:  (`ptyxis-agent`) enables full functionality even when Ptyxis is run as a
+/home/eirikr/Github/tilix/term_analysis/ptyxis/README.md:66:  Flatpak by managing PTY creation, direct container interaction, and host
+/home/eirikr/Github/tilix/term_analysis/ptyxis/README.md:68:- **High-Performance Rendering**: Leverages the VTE (Virtual Terminal
+/home/eirikr/Github/tilix/term_analysis/ptyxis/README.md:69:  Emulator) library with GPU acceleration (Vulkan/OpenGL where available)
+/home/eirikr/Github/tilix/term_analysis/ptyxis/README.md:74:- **Encrypted Scrollback Buffers**: Enhances privacy for your terminal
+/home/eirikr/Github/tilix/term_analysis/ptyxis/README.md:75:  session history.
+/home/eirikr/Github/tilix/term_analysis/ptyxis/README.md:84:Here's a glimpse into Ptyxis's interface and capabilities:
+/home/eirikr/Github/tilix/term_analysis/ptyxis/README.md:86:![Container Menu shows automatically discovered containers](https://gitlab.gnome.org/chergert/ptyxis/-/raw/main/data/screenshots/containers-menu.png)
+/home/eirikr/Github/tilix/term_analysis/ptyxis/README.md:89:![Tab Overview screen shows multiple tabs with previews](https://gitlab.gnome.org/chergert/ptyxis/-/raw/main/data/screenshots/tab-overview.png)
+/home/eirikr/Github/tilix/term_analysis/ptyxis/README.md:90:_Fig 3: A visual, searchable overview of all open terminal tabs._
+/home/eirikr/Github/tilix/term_analysis/ptyxis/README.md:92:![Behavior Settings window for tweaking terminal behavior](https://gitlab.gnome.org/chergert/ptyxis/-/raw/main/data/screenshots/change-behavior.png)
+/home/eirikr/Github/tilix/term_analysis/ptyxis/README.md:95:![Palette Selector screen for choosing color schemes](https://gitlab.gnome.org/chergert/ptyxis/-/raw/main/data/screenshots/palette-selector.png)
+/home/eirikr/Github/tilix/term_analysis/ptyxis/README.md:98:![Profile Editor for customizing profiles](https://gitlab.gnome.org/chergert/ptyxis/-/raw/main/data/screenshots/edit-profile.png)
+/home/eirikr/Github/tilix/term_analysis/ptyxis/README.md:101:![Shortcut Editor for remapping keyboard shortcuts](https://gitlab.gnome.org/chergert/ptyxis/-/raw/main/data/screenshots/shortcut-editing.png)
+/home/eirikr/Github/tilix/term_analysis/ptyxis/README.md:104:![Sudo Tracking indicator in the terminal](https://gitlab.gnome.org/chergert/ptyxis/-/raw/main/data/screenshots/sudo-tracking.png)
+/home/eirikr/Github/tilix/term_analysis/ptyxis/README.md:107:![SSH Tracking indicator in the terminal](https://gitlab.gnome.org/chergert/ptyxis/-/raw/main/data/screenshots/ssh-tracking.png)
+/home/eirikr/Github/tilix/term_analysis/ptyxis/README.md:108:_Fig 9: A visual cue reminds you when connected to a remote system via SSH._
+/home/eirikr/Github/tilix/term_analysis/ptyxis/README.md:110:![Terminal with a partially transparent background](https://gitlab.gnome.org/chergert/ptyxis/-/raw/main/data/screenshots/transparency.png)
+/home/eirikr/Github/tilix/term_analysis/ptyxis/README.md:113:![Terminal showing an overlay when the column or row size changes](https://gitlab.gnome.org/chergert/ptyxis/-/raw/main/data/screenshots/columns-and-rows.png)
+/home/eirikr/Github/tilix/term_analysis/ptyxis/README.md:122:Ptyxis is primarily distributed as a Flatpak, ensuring all dependencies are
+/home/eirikr/Github/tilix/term_analysis/ptyxis/README.md:125:- **Stable Version (from Flathub):**
+/home/eirikr/Github/tilix/term_analysis/ptyxis/README.md:126:  The stable version uses the application ID `app.devsuite.Ptyxis`.
+/home/eirikr/Github/tilix/term_analysis/ptyxis/README.md:129:  flatpak install flathub app.devsuite.Ptyxis
+/home/eirikr/Github/tilix/term_analysis/ptyxis/README.md:132:  To run: `flatpak run app.devsuite.Ptyxis`
+/home/eirikr/Github/tilix/term_analysis/ptyxis/README.md:135:  For the latest features (potentially less stable). This version uses the
+/home/eirikr/Github/tilix/term_analysis/ptyxis/README.md:136:  application ID `org.gnome.Ptyxis.Devel`.
+/home/eirikr/Github/tilix/term_analysis/ptyxis/README.md:139:  flatpak install --user --from https://nightly.gnome.org/repo/appstream/org.gnome.Ptyxis.Devel.flatpakref
+/home/eirikr/Github/tilix/term_analysis/ptyxis/README.md:142:  To run: `flatpak run org.gnome.Ptyxis.Devel`
+/home/eirikr/Github/tilix/term_analysis/ptyxis/README.md:146:Ptyxis uses the Meson build system.
+/home/eirikr/Github/tilix/term_analysis/ptyxis/README.md:164:    git clone https://gitlab.gnome.org/chergert/ptyxis.git
+/home/eirikr/Github/tilix/term_analysis/ptyxis/README.md:165:    cd ptyxis
+/home/eirikr/Github/tilix/term_analysis/ptyxis/README.md:168:3. **Configure the build using Meson:**
+/home/eirikr/Github/tilix/term_analysis/ptyxis/README.md:189:integrated development environment. Simply open the cloned `ptyxis/` directory
+/home/eirikr/Github/tilix/term_analysis/ptyxis/README.md:190:in Builder for build configuration, running, and debugging.
+/home/eirikr/Github/tilix/term_analysis/ptyxis/README.md:196:Launch Ptyxis from your system's application launcher or by typing `ptyxis`
+/home/eirikr/Github/tilix/term_analysis/ptyxis/README.md:203:- `--new-window`: Open a new Ptyxis window.
+/home/eirikr/Github/tilix/term_analysis/ptyxis/README.md:204:- `--tab`: Open a new tab in the most-recently-used window.
+/home/eirikr/Github/tilix/term_analysis/ptyxis/README.md:205:- `--tab-with-profile=PROFILE_UUID`: Open a new tab using the specified
+/home/eirikr/Github/tilix/term_analysis/ptyxis/README.md:207:  Example: `ptyxis --tab-with-profile=a1b2c3d4-e5f6-7890-1234-567890abcdef`
+/home/eirikr/Github/tilix/term_analysis/ptyxis/README.md:210:  Example: `ptyxis -x "htop"`
+/home/eirikr/Github/tilix/term_analysis/ptyxis/README.md:213:  Example: `ptyxis -- htop -u myuser`
+/home/eirikr/Github/tilix/term_analysis/ptyxis/README.md:215:  tab/window or command.
+/home/eirikr/Github/tilix/term_analysis/ptyxis/README.md:216:  Example: `ptyxis -d /home/user/myproject`
+/home/eirikr/Github/tilix/term_analysis/ptyxis/README.md:217:- `--title=TITLE`: Set initial title for new tab/window.
+/home/eirikr/Github/tilix/term_analysis/ptyxis/README.md:220:- `--import-palette=FILE`: Import a Ptyxis `.palette` file.
+/home/eirikr/Github/tilix/term_analysis/ptyxis/README.md:221:- `-s`, `--standalone`: Start a new instance of Ptyxis.
+/home/eirikr/Github/tilix/term_analysis/ptyxis/README.md:224:For a complete list, refer to the `ptyxis(1)` man page.
+/home/eirikr/Github/tilix/term_analysis/ptyxis/README.md:230:Ptyxis uses a two-part architecture for robust terminal emulation and deep
+/home/eirikr/Github/tilix/term_analysis/ptyxis/README.md:237:- Windows, tabs, and the graphical interface.
+/home/eirikr/Github/tilix/term_analysis/ptyxis/README.md:240:- Communication with `ptyxis-agent`.
+/home/eirikr/Github/tilix/term_analysis/ptyxis/README.md:242:### `ptyxis-agent`
+/home/eirikr/Github/tilix/term_analysis/ptyxis/README.md:245:Ptyxis UI is a Flatpak). It handles:
+/home/eirikr/Github/tilix/term_analysis/ptyxis/README.md:247:- Creating and managing PTYs (pseudo-terminals).
+/home/eirikr/Github/tilix/term_analysis/ptyxis/README.md:260:Ptyxis is engineered for intuitive integration with local containerized
+/home/eirikr/Github/tilix/term_analysis/ptyxis/README.md:265:1. **Discovery:** `ptyxis-agent` queries the host for containers (e.g.,
+/home/eirikr/Github/tilix/term_analysis/ptyxis/README.md:270:    `distrobox enter ...`). It manages PTY setup and I/O.
+/home/eirikr/Github/tilix/term_analysis/ptyxis/README.md:277:### `ptyxis-agent` Functions in Container Management
+/home/eirikr/Github/tilix/term_analysis/ptyxis/README.md:282:- Can create systemd user scopes for tabs for resource isolation (if
+/home/eirikr/Github/tilix/term_analysis/ptyxis/README.md:290:- **JHBuild:** Supported as a special environment. For session persistence,
+/home/eirikr/Github/tilix/term_analysis/ptyxis/README.md:309:Ptyxis assumes containers are not used for strict security isolation, as most
+/home/eirikr/Github/tilix/term_analysis/ptyxis/README.md:321:    - Native: `~/.local/share/org.gnome.Ptyxis/palettes/`
+/home/eirikr/Github/tilix/term_analysis/ptyxis/README.md:322:    - Flatpak (Stable): `~/.var/app/app.devsuite.Ptyxis/data/ptyxis/palettes/`
+/home/eirikr/Github/tilix/term_analysis/ptyxis/README.md:323:    - Flatpak (Nightly): `~/.var/app/org.gnome.Ptyxis.Devel/data/ptyxis/palettes/`
+/home/eirikr/Github/tilix/term_analysis/ptyxis/README.md:324:    - In Ptyxis 49, you can use the `--install-palette FILENAME` option to
+/home/eirikr/Github/tilix/term_analysis/ptyxis/README.md:328:  - Most actions have configurable shortcuts via Preferences.
+/home/eirikr/Github/tilix/term_analysis/ptyxis/README.md:330:  - Optional background transparency, adjustable via GSettings.
+/home/eirikr/Github/tilix/term_analysis/ptyxis/README.md:335:    gsettings set org.gnome.Ptyxis.Profile:/org/gnome/Ptyxis/Profiles/$PTYXIS_PROFILE/ opacity .85
+/home/eirikr/Github/tilix/term_analysis/ptyxis/README.md:337:    # If using app.devsuite.Ptyxis from Flathub
+/home/eirikr/Github/tilix/term_analysis/ptyxis/README.md:338:    flatpak run --command=gsettings app.devsuite.Ptyxis set org.gnome.Ptyxis.Profile:/org/gnome/Ptyxis/Profiles/$PTYXIS_PROFILE/ opacity .85
+/home/eirikr/Github/tilix/term_analysis/ptyxis/README.md:340:    # If using org.gnome.Ptyxis.Devel Nightly Flatpak
+/home/eirikr/Github/tilix/term_analysis/ptyxis/README.md:341:    flatpak run --command=gsettings org.gnome.Ptyxis.Devel set org.gnome.Ptyxis.Devel.Profile:/org/gnome/Ptyxis/Devel/Profiles/$PTYXIS_PROFILE/ opacity .85
+/home/eirikr/Github/tilix/term_analysis/ptyxis/README.md:352:Ptyxis UI and `ptyxis-agent` communicate via D-Bus messages over a `socketpair()`.
+/home/eirikr/Github/tilix/term_analysis/ptyxis/README.md:353:The agent handles PTY creation and container interaction. It's designed for
+/home/eirikr/Github/tilix/term_analysis/ptyxis/README.md:354:portability (e.g., GLIBC symbol versioning for `x86_64`, targeting GLIBC 2.17)
+/home/eirikr/Github/tilix/term_analysis/ptyxis/README.md:357:When Ptyxis UI is a Flatpak, it uses permissions like `org.freedesktop.Flatpak`
+/home/eirikr/Github/tilix/term_analysis/ptyxis/README.md:361:non-standard linkers on NixOS), Ptyxis attempts to run `ptyxis-agent` inside
+/home/eirikr/Github/tilix/term_analysis/ptyxis/README.md:369:Ptyxis uses its GitLab issue tracker primarily for engineering defects. For new
+/home/eirikr/Github/tilix/term_analysis/ptyxis/README.md:384:Once a design is well-defined, an issue can be filed on the Ptyxis tracker
+/home/eirikr/Github/tilix/term_analysis/ptyxis/README.md:394:  escape sequences used by Ptyxis.
+/home/eirikr/Github/tilix/term_analysis/ptyxis/README.md:400:- **GPU/Font Rendering Issues:**
+/home/eirikr/Github/tilix/term_analysis/ptyxis/README.md:401:  Problems with GPU rendering or font rendering (especially with HiDPI
+/home/eirikr/Github/tilix/term_analysis/ptyxis/README.md:405:  - Try different fonts or rendering settings.
+/home/eirikr/Github/tilix/term_analysis/ptyxis/README.md:408:    providing Ptyxis/GTK/VTE versions, OS, GPU/driver, scaling factor,
+/home/eirikr/Github/tilix/term_analysis/ptyxis/README.md:415:  - Check tool/distribution documentation for VTE integration settings.
+/home/eirikr/Github/tilix/term_analysis/ptyxis/README.md:416:  - If detection fails, create a Ptyxis profile to launch commands
+/home/eirikr/Github/tilix/term_analysis/ptyxis/README.md:423:Ptyxis is licensed under the **GNU General Public License v3.0 or later**.
+/home/eirikr/Github/tilix/term_analysis/ptyxis/README.md:430:Ptyxis is primarily developed by **Christian Hergert**. It evolves concepts
+/home/eirikr/Github/tilix/term_analysis/ptyxis/README.md:432:motivated by VTE performance/feature enhancements for Wayland. The aim is a
+/home/eirikr/Github/tilix/term_analysis/ptyxis/meson_options.txt:2:option('generic', type: 'combo', value: 'ptyxis',
+/home/eirikr/Github/tilix/term_analysis/ptyxis/meson_options.txt:3:       choices: ['ptyxis', 'terminal', 'builder'],
+/home/eirikr/Github/tilix/term_analysis/ptyxis/data/palettes/README.md:5:install them in `$XDG_USER_DATA_DIR`/org.gnome.Ptyxis(.Devel)/palettes

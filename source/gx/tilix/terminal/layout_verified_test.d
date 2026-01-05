@@ -20,11 +20,11 @@ unittest {
     // Left gets 10. Right gets 185.
     // Right (H=100). Top 10. Bottom 85.
     
-    Layout l = Layout.makeNode(Axis.Horizontal, 10,
-        Layout.makeLeaf(1),
-        Layout.makeNode(Axis.Vertical, 10,
-            Layout.makeLeaf(2),
-            Layout.makeLeaf(3)
+    Layout l = makeNode(Axis.Horizontal, 10,
+        makeLeaf(1),
+        makeNode(Axis.Vertical, 10,
+            makeLeaf(2),
+            makeLeaf(3)
         )
     );
     
@@ -43,8 +43,8 @@ unittest {
     Rect rootRect = Rect(0, 0, 200, 100);
     Layout balanced = l.balance(cfg, rootRect);
     
-    assert(balanced.type == Layout.Type.Node);
-    assert(balanced.position == 65);
-    assert(balanced.child2.type == Layout.Type.Node);
-    assert(balanced.child2.position == 47);
+    assert(isNode(balanced));
+    assert(balanced.position() == 65);
+    assert(isNode(balanced.child2()));
+    assert(balanced.child2().position() == 47);
 }
