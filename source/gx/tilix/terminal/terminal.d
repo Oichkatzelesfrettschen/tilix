@@ -143,6 +143,8 @@ import gx.tilix.preferences;
 import gx.tilix.terminal.actions;
 import gx.tilix.terminal.advpaste;
 import gx.tilix.terminal.exvte;
+import gx.tilix.backend.container;
+import gx.tilix.backend.vte3container;
 import gx.tilix.terminal.layout;
 import gx.tilix.terminal.password;
 import gx.tilix.terminal.regex;
@@ -211,7 +213,8 @@ private:
 
     SearchRevealer rFind;
 
-    ExtendedVTE vte;
+    ExtendedVTE vte;  // DEPRECATED: Will be removed after migration to _container
+    IRenderingContainer _container;  // New abstraction layer
     gulong[] vteHandlers;
     Overlay terminalOverlay;
     ScrolledWindow sw;
@@ -471,7 +474,7 @@ private:
     //Dynamically build the menus for selecting an encoding
     void buildEncodingMenu() {
         encodingMenu.removeAll();
-        saEncodingSelect.setState(new GVariant(vte.getEncoding()));
+        saEncodingSelect.setState(new GVariant(_container.encoding));
         string[] encodings = gsSettings.getStrv(SETTINGS_ENCODINGS_KEY);
         foreach (encoding; encodings) {
             if (encoding in lookupEncoding) {
@@ -512,13 +515,13 @@ private:
 
         //Clipboard actions
         saCopy = registerActionWithSettings(group, ACTION_PREFIX, ACTION_COPY, gsShortcuts, delegate(GVariant, SimpleAction) {
-            if (vte.getHasSelection()) {
+            if (_container.hasSelection) {
                 vte.copyClipboard();
             }
         });
         if (checkVTEVersion(VTE_VERSION_COPY_AS_HTML)) {
             saCopyAsHtml = registerActionWithSettings(group, ACTION_PREFIX, ACTION_COPY_AS_HTML, gsShortcuts, delegate(GVariant, SimpleAction) {
-                if (vte.getHasSelection()) {
+                if (_container.hasSelection) {
                     vte.copyClipboardFormat(VteFormat.HTML);
                 }
             });
@@ -646,7 +649,7 @@ private:
         registerActionWithSettings(group, ACTION_PREFIX, ACTION_READ_ONLY, gsShortcuts, delegate(GVariant state, SimpleAction sa) {
             bool newState = !sa.getState().getBoolean();
             sa.setState(new GVariant(newState));
-            vte.setInputEnabled(!newState);
+            _container.inputEnabled = !newState;
             if (newState) imgReadOnly.show();
             else imgReadOnly.hide();
         }, null, new GVariant(false));
@@ -757,7 +760,7 @@ private:
         saEncodingSelect = registerAction(group, ACTION_PREFIX, ACTION_ENCODING_SELECT, null, delegate(GVariant value, SimpleAction sa) {
             size_t l;
             sa.setState(value);
-            vte.setEncoding(value.getString(l));
+            _container.setEncoding(value.getString(l));
         }, encoding.getType(), encoding);
 
         // Add Bookmark
@@ -895,6 +898,7 @@ private:
      */
     Widget createVTE() {
         vte = new ExtendedVTE();
+        _container = new VTE3Container(vte);  // Phase 1: Wrap VTE in container abstraction
         // Basic widget properties
         vte.setHexpand(true);
         vte.setVexpand(true);
@@ -963,7 +967,7 @@ private:
             // but passing command parameters causes contentschanged signal to fire twice even though there is no change in content.
             if (terminalInitialized && tilix.testVTEConfig() && gst.currentLocalDirectory.length == 0 && _overrideCommand.length == 0) {
                 glong cursorCol, cursorRow;
-                vte.getCursorPosition(cursorCol, cursorRow);
+                _container.getCursorPosition(cursorCol, cursorRow);
                 //tracef("\trow=%d, column=%d",cursorRow,cursorCol);
                 if (cursorRow > 0 || cursorCol >0) {
                     trace("Warning VTE Configuration");
@@ -982,7 +986,7 @@ private:
                     bool commandNotification = checkVTEFeature(TerminalFeature.EVENT_NOTIFICATION) && gsSettings.getBoolean(SETTINGS_NOTIFY_ON_PROCESS_COMPLETE_KEY);
                     if (!commandNotification || (commandNotification && isProcessRunning())) {
                         glong cursorCol, cursorRow;
-                        vte.getCursorPosition(cursorCol, cursorRow);
+                        _container.getCursorPosition(cursorCol, cursorRow);
                         if (cursorRow > 0) cursorRow--;
                         ArrayG attr = new ArrayG(false, false, 16);
                         string text = vte.getTextRange(cursorRow, 0, cursorRow, 128, null, null, attr);
@@ -1033,7 +1037,7 @@ private:
                 string[] actions = tilix.getActionsForAccel("<Ctrl>c");
                 if (actions.length > 0 &&
                    (actions[0] == getActionDetailedName(ACTION_PREFIX,ACTION_COPY) || actions[0] == getActionDetailedName(ACTION_PREFIX,ACTION_COPY_AS_HTML)) &&
-                   !vte.getHasSelection()) {
+                   !_container.hasSelection) {
                     string controlc = "\u0003";
                     vte.feedChild(controlc);
                     return true;
@@ -1046,7 +1050,7 @@ private:
 
             if (event.key.keyval == GdkKeysyms.GDK_Return && checkVTEFeature(TerminalFeature.EVENT_SCREEN_CHANGED) && currentScreen == TerminalScreen.NORMAL) {
                 glong row, column;
-                vte.getCursorPosition(column, row);
+                _container.getCursorPosition(column, row);
                 addPromptPosition(row);
                 tracef("Added prompt position %d", row);
             }
@@ -1066,7 +1070,7 @@ private:
         vteHandlers ~= vte.addOnSelectionChanged(delegate(VTE) {
             if (vte is null) return;
 
-            if (vte.getHasSelection() && gsSettings.getBoolean(SETTINGS_COPY_ON_SELECT_KEY)) {
+            if (_container.hasSelection && gsSettings.getBoolean(SETTINGS_COPY_ON_SELECT_KEY)) {
                 vte.copyClipboard();
             }
         });
@@ -1304,17 +1308,17 @@ private:
      * Replace the various token variables in a string
      */
     string replaceVariables(string text) {
-        string windowTitle = vte.getWindowTitle();
+        string windowTitle = _container.windowTitle;
         if (windowTitle.length == 0)
             windowTitle = _("Terminal");
         text = text.replace(VARIABLE_TERMINAL_TITLE, windowTitle);
         text = text.replace(VARIABLE_TERMINAL_ICON_TITLE, vte.getIconTitle());
         text = text.replace(VARIABLE_TERMINAL_ID, to!string(terminalID));
-        text = text.replace(VARIABLE_TERMINAL_COLUMNS, to!string(vte.getColumnCount()));
-        text = text.replace(VARIABLE_TERMINAL_ROWS, to!string(vte.getRowCount()));
+        text = text.replace(VARIABLE_TERMINAL_COLUMNS, to!string(_container.columnCount));
+        text = text.replace(VARIABLE_TERMINAL_ROWS, to!string(_container.rowCount));
         text = text.replace(VARIABLE_TERMINAL_HOSTNAME, gst.currentHostname);
         text = text.replace(VARIABLE_TERMINAL_USERNAME, gst.currentUsername);
-        text = text.replace(VARIABLE_TERMINAL_STATUS_READONLY, to!string(!vte.getInputEnabled()));
+        text = text.replace(VARIABLE_TERMINAL_STATUS_READONLY, to!string(!_container.inputEnabled));
         text = text.replace(VARIABLE_TERMINAL_STATUS_SILENCE, to!string(monitorSilence));
         text = text.replace(VARIABLE_TERMINAL_STATUS_INPUT_SYNC, to!string(isSynchronizedInput()));
 
@@ -1618,7 +1622,7 @@ private:
         if (triggers.length == 0) return;
 
         glong cursorRow, cursorCol;
-        vte.getCursorPosition(cursorCol, cursorRow);
+        _container.getCursorPosition(cursorCol, cursorRow);
         //tracef("triggerLastRowChecked=%d, cursorRow=%d", triggerLastRowChecked, cursorRow);
 
         //Check that position has moved to warrant check
@@ -1983,9 +1987,9 @@ private:
 
     void showContextPopover(Event event = null) {
         buildContextMenu();
-        saCopy.setEnabled(vte.getHasSelection());
+        saCopy.setEnabled(_container.hasSelection);
         if (saCopyAsHtml !is null) {
-            saCopyAsHtml.setEnabled(vte.getHasSelection());
+            saCopyAsHtml.setEnabled(_container.hasSelection);
         }
         saPaste.setEnabled(Clipboard.get(null).waitIsTextAvailable());
         if (event !is null) {
@@ -2213,12 +2217,12 @@ private:
 //        tracef("vteBGUsed: %f, %f, %f, %f", vteBG.red, vteBG.green, vteBG.blue, vteBG.alpha);
         if (isTerminalWidgetFocused() || dimPercent == 0) {
 //            tracef("vteFG: %f, %f, %f", vteFG.red, vteFG.green, vteFG.blue);
-            vte.setColors(vteFG, vteBG, vtePalette);
+            _container.setColors(vteFG, vteBG, vtePalette);
             setBoldColor(vteBold);
             currentColorSet = VTEColorSet.normal;
         } else {
 //            tracef("dimFG: %f, %f, %f", dimFG.red, dimFG.green, dimFG.blue);
-            vte.setColors(dimFG, vteBG, dimPalette);
+            _container.setColors(dimFG, vteBG, dimPalette);
             setBoldColor(dimBold);
             currentColorSet = VTEColorSet.dim;
         }
@@ -2236,16 +2240,16 @@ private:
         switch (key) {
         case SETTINGS_PROFILE_TERMINAL_BELL_KEY:
             string value = gsProfile.getString(SETTINGS_PROFILE_TERMINAL_BELL_KEY);
-            vte.setAudibleBell(value == SETTINGS_PROFILE_TERMINAL_BELL_SOUND_VALUE || value == SETTINGS_PROFILE_TERMINAL_BELL_ICON_SOUND_VALUE);
+            _container.setAudibleBell(value == SETTINGS_PROFILE_TERMINAL_BELL_SOUND_VALUE || value == SETTINGS_PROFILE_TERMINAL_BELL_ICON_SOUND_VALUE);
             break;
         case SETTINGS_PROFILE_ALLOW_BOLD_KEY:
-            vte.setAllowBold(gsProfile.getBoolean(SETTINGS_PROFILE_ALLOW_BOLD_KEY));
+            _container.setAllowBold(gsProfile.getBoolean(SETTINGS_PROFILE_ALLOW_BOLD_KEY));
             break;
         case SETTINGS_PROFILE_REWRAP_KEY:
-            vte.setRewrapOnResize(gsProfile.getBoolean(SETTINGS_PROFILE_REWRAP_KEY));
+            _container.setRewrapOnResize(gsProfile.getBoolean(SETTINGS_PROFILE_REWRAP_KEY));
             break;
         case SETTINGS_PROFILE_CURSOR_SHAPE_KEY:
-            vte.setCursorShape(getCursorShape(gsProfile.getString(SETTINGS_PROFILE_CURSOR_SHAPE_KEY)));
+            _container.setCursorShape(getCursorShape(gsProfile.getString(SETTINGS_PROFILE_CURSOR_SHAPE_KEY)));
             break;
         case SETTINGS_PROFILE_FG_COLOR_KEY, SETTINGS_PROFILE_BG_COLOR_KEY, SETTINGS_PROFILE_PALETTE_COLOR_KEY, SETTINGS_PROFILE_USE_THEME_COLORS_KEY,
         SETTINGS_PROFILE_BG_TRANSPARENCY_KEY, SETTINGS_PROFILE_DIM_TRANSPARENCY_KEY:
@@ -2298,22 +2302,18 @@ private:
             if (gsProfile.getBoolean(SETTINGS_PROFILE_USE_HIGHLIGHT_COLOR_KEY)) {
                 vteHighlightFG.parse(gsProfile.getString(SETTINGS_PROFILE_HIGHLIGHT_FG_COLOR_KEY));
                 vteHighlightBG.parse(gsProfile.getString(SETTINGS_PROFILE_HIGHLIGHT_BG_COLOR_KEY));
-                vte.setColorHighlightForeground(vteHighlightFG);
-                vte.setColorHighlight(vteHighlightBG);
+                _container.setColorHighlight(vteHighlightBG, vteHighlightFG);
             } else {
-                vte.setColorHighlightForeground(null);
-                vte.setColorHighlight(null);
+                _container.setColorHighlight(null, null);
             }
             break;
         case SETTINGS_PROFILE_USE_CURSOR_COLOR_KEY, SETTINGS_PROFILE_CURSOR_FG_COLOR_KEY, SETTINGS_PROFILE_CURSOR_BG_COLOR_KEY:
             if (gsProfile.getBoolean(SETTINGS_PROFILE_USE_CURSOR_COLOR_KEY)) {
                 vteCursorFG.parse(gsProfile.getString(SETTINGS_PROFILE_CURSOR_FG_COLOR_KEY));
                 vteCursorBG.parse(gsProfile.getString(SETTINGS_PROFILE_CURSOR_BG_COLOR_KEY));
-                vte.setColorCursorForeground(vteCursorFG);
-                vte.setColorCursor(vteCursorBG);
+                _container.setColorCursor(vteCursorBG, vteCursorFG);
             } else {
-                vte.setColorCursorForeground(null);
-                vte.setColorCursor(null);
+                _container.setColorCursor(null, null);
             }
             break;
         case SETTINGS_PROFILE_SHOW_SCROLLBAR_KEY:
@@ -2346,13 +2346,13 @@ private:
             vte.setDeleteBinding(getEraseBinding(gsProfile.getString(SETTINGS_PROFILE_DELETE_BINDING_KEY)));
             break;
         case SETTINGS_PROFILE_ENCODING_KEY:
-            vte.setEncoding(gsProfile.getString(SETTINGS_PROFILE_ENCODING_KEY));
+            _container.setEncoding(gsProfile.getString(SETTINGS_PROFILE_ENCODING_KEY));
             break;
         case SETTINGS_PROFILE_CJK_WIDTH_KEY:
             vte.setCjkAmbiguousWidth(to!int(countUntil(SETTINGS_PROFILE_CJK_WIDTH_VALUES, gsProfile.getString(SETTINGS_PROFILE_CJK_WIDTH_KEY))) + 1);
             break;
         case SETTINGS_PROFILE_CURSOR_BLINK_MODE_KEY:
-            vte.setCursorBlinkMode(getBlinkMode(gsProfile.getString(SETTINGS_PROFILE_CURSOR_BLINK_MODE_KEY)));
+            _container.setCursorBlinkMode(getBlinkMode(gsProfile.getString(SETTINGS_PROFILE_CURSOR_BLINK_MODE_KEY)));
             break;
         case SETTINGS_PROFILE_TITLE_KEY:
             updateDisplayText();
@@ -2367,7 +2367,7 @@ private:
             if (desc.getSize() == 0)
                 desc.setSize(10);
             // If we are drawing badges and using system font, invalidate badge font before setting new font
-            vte.setFont(desc);
+            _container.setFont(desc);
             updateBadgeFont();
             break;
         case SETTINGS_AUTO_HIDE_MOUSE_KEY:
@@ -2651,7 +2651,7 @@ private:
     void getHostnameAndDirectory(out string hostname, out string directory) {
         if (gpid <= 0)
             return;
-        string cwd = vte.getCurrentDirectoryUri();
+        string cwd = _container.currentDirectoryUri;
         if (cwd.length == 0) {
             return;
         }
@@ -3509,8 +3509,8 @@ private:
             contrast(0.40, vteFG, r, g, b);
             cr.setSourceRgba(r, g, b, 1.0);
             cr.setDash(marginDash, 0.0);
-            cr.moveTo(vte.getCharWidth() * margin, 0);
-            cr.lineTo(vte.getCharWidth() * margin, height);
+            cr.moveTo(_container.charWidth * margin, 0);
+            cr.lineTo(_container.charWidth * margin, height);
             cr.stroke();
         }
 
@@ -3731,19 +3731,19 @@ private:
 //Zoom
 private:
     void zoomIn() {
-        if (vte.getFontScale() < 5) {
-            vte.setFontScale(vte.getFontScale() + 0.1);
+        if (_container.fontScale < 5) {
+            _container.fontScale = _container.fontScale + 0.1;
         }
     }
 
     void zoomOut() {
-        if (vte.getFontScale() > 0.1) {
-            vte.setFontScale(vte.getFontScale() - 0.1);
+        if (_container.fontScale > 0.1) {
+            _container.fontScale = _container.fontScale - 0.1;
         }
     }
 
     void zoomNormal() {
-        vte.setFontScale(1.0);
+        _container.fontScale = 1.0;
     }
 
 public:
@@ -3967,7 +3967,7 @@ public:
         if (isFlatpak()) {
             childPid = getChildPidFromHost();
         } else {
-            childPid = vte.getChildPid();
+            childPid = _container.getChildPid();
         }
 
         tracef("childPid=%d gpid=%d", childPid, gpid);
@@ -4098,9 +4098,9 @@ public:
             _overrideCommand = value[NODE_OVERRIDE_CMD].str();
         }
         if (NODE_READONLY in value) {
-            vte.setInputEnabled(value[NODE_READONLY].type == JSONType.false_);
+            _container.inputEnabled = value[NODE_READONLY].type == JSONType.false_;
             SimpleAction action = cast(SimpleAction) sagTerminalActions.lookup(ACTION_READ_ONLY);
-            action.setState(new GVariant(!vte.getInputEnabled()));
+            action.setState(new GVariant(!_container.inputEnabled));
         }
         if (NODE_SYNCHRONIZED_INPUT in value) {
             _synchronizeInputOverride = (value[NODE_SYNCHRONIZED_INPUT].type == JSONType.true_);
