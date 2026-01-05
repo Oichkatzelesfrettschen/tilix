@@ -13,6 +13,14 @@ import core.time : dur;
 import std.algorithm : min;
 import std.experimental.logger;
 
+// POSIX select for non-blocking PTY reads
+import core.sys.posix.sys.select;
+import core.sys.posix.unistd : read;
+import core.sys.posix.sys.time : timeval;
+import core.stdc.errno;
+
+import gx.tilix.terminal.vtparser;
+
 /**
  * Message types for IO thread communication.
  * Uses tagged union pattern for type-safe message passing.
@@ -275,12 +283,16 @@ private:
     // PTY file descriptor (set externally)
     int _ptyFd = -1;
 
+    // VT parser for escape sequence processing
+    VTParser _vtParser;
+
 public:
     this() {
         _frameMutex = new Mutex();
         _frameCondition = new Condition(_frameMutex);
         _running = false;
         _frameReady = false;
+        _vtParser = new VTParser();
     }
 
     /**
@@ -384,18 +396,55 @@ private:
                 }
             }
 
-            // Read from PTY if available
+            // Read from PTY using select for non-blocking IO
+            bool hasData = false;
             if (_ptyFd >= 0) {
-                // TODO: Use select/poll for non-blocking read
-                // For now, this is a placeholder
+                fd_set readfds;
+                FD_ZERO(&readfds);
+                FD_SET(_ptyFd, &readfds);
+
+                // Timeout: 1ms to balance responsiveness vs CPU usage
+                timeval timeout;
+                timeout.tv_sec = 0;
+                timeout.tv_usec = 1000;  // 1ms
+
+                int result = select(_ptyFd + 1, &readfds, null, null, &timeout);
+
+                if (result > 0 && FD_ISSET(_ptyFd, &readfds)) {
+                    // Data available, read from PTY
+                    auto bytesRead = read(_ptyFd, readBuffer.ptr, readBuffer.length);
+
+                    if (bytesRead > 0) {
+                        // Parse PTY data through VT parser
+                        VTEvent[] events;
+                        _vtParser.parse(readBuffer[0..bytesRead], events);
+
+                        // Process parsed events and update buffer
+                        processVTEvents(events);
+                        hasData = true;
+                    } else if (bytesRead == 0) {
+                        // PTY closed (EOF)
+                        _eventQueue.push(IOMessage.makeClose());
+                        tracef("PTY closed (EOF)");
+                    } else if (bytesRead < 0) {
+                        import core.stdc.errno : errno, EAGAIN, EINTR;
+                        if (errno != EAGAIN && errno != EINTR) {
+                            // Real error, not just temporary
+                            errorf("PTY read error: errno=%d", errno);
+                        }
+                    }
+                } else if (result < 0) {
+                    import core.stdc.errno : errno, EINTR;
+                    if (errno != EINTR) {
+                        errorf("select() error: errno=%d", errno);
+                    }
+                }
             }
 
-            // Signal frame ready if we have updates
-            signalFrameReady();
-
-            // Brief sleep to avoid busy-waiting
-            // In production, use select/poll/epoll
-            Thread.sleep(dur!"msecs"(1));
+            // Signal frame ready only if we have updates
+            if (hasData) {
+                signalFrameReady();
+            }
         }
 
         trace("IO thread exiting");
@@ -409,6 +458,61 @@ private:
                 break;
             default:
                 break;
+        }
+    }
+
+    void processVTEvents(VTEvent[] events) {
+        foreach (ref event; events) {
+            final switch (event.type) {
+                case VTEvent.Type.Text:
+                    // Insert character at current cursor position
+                    // For now, delegate to VTE (full implementation requires buffer state)
+                    break;
+
+                case VTEvent.Type.SGR:
+                    // Set graphics rendition (colors, bold, etc.)
+                    // Delegate to VTE for now
+                    break;
+
+                case VTEvent.Type.CursorMove:
+                    // Move cursor to position
+                    // Delegate to VTE for now
+                    break;
+
+                case VTEvent.Type.EraseDisplay:
+                case VTEvent.Type.EraseLine:
+                case VTEvent.Type.InsertChars:
+                case VTEvent.Type.DeleteChars:
+                case VTEvent.Type.ScrollUp:
+                case VTEvent.Type.ScrollDown:
+                case VTEvent.Type.SetMode:
+                case VTEvent.Type.ResetMode:
+                    // All complex operations delegate to VTE for now
+                    break;
+
+                case VTEvent.Type.DelegateToVTE:
+                    // Send raw escape sequence to VTE for processing
+                    // This requires wiring back to main thread
+                    if (event.rawDataLength > 0) {
+                        IOMessage msg = IOMessage.makeData(
+                            event.rawData[0..event.rawDataLength].dup
+                        );
+                        _eventQueue.push(msg);
+                    }
+                    break;
+
+                case VTEvent.Type.BEL:
+                    _eventQueue.push(IOMessage.makeBell());
+                    break;
+
+                case VTEvent.Type.BS:
+                case VTEvent.Type.HT:
+                case VTEvent.Type.LF:
+                case VTEvent.Type.CR:
+                    // Basic control characters - delegate to VTE for now
+                    // Full implementation requires cursor state management
+                    break;
+            }
         }
     }
 

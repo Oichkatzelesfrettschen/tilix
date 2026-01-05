@@ -91,6 +91,23 @@ install_data(
     install_dir: pkgdatadir / 'schemes'
 )
 
+# Palettes (Ptyxis-compatible format)
+install_data(
+    [
+        'palettes/catppuccin-mocha.palette',
+        'palettes/dracula.palette',
+        'palettes/gruvbox-dark.palette',
+        'palettes/nord.palette',
+        'palettes/one-dark.palette',
+        'palettes/rose-pine.palette',
+        'palettes/solarized-dark.palette',
+        'palettes/solarized-light.palette',
+        'palettes/tango.palette',
+        'palettes/tokyo-night.palette',
+    ],
+    install_dir: pkgdatadir / 'palettes'
+)
+
 # Scripts
 install_data(
     'scripts/tilix_int.sh',

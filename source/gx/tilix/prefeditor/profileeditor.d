@@ -70,6 +70,7 @@ import gx.util.array;
 import gx.tilix.application;
 import gx.tilix.colorschemes;
 import gx.tilix.common;
+import gx.tilix.theme.palette : Palette, PaletteManager, PaletteColorScheme = ColorScheme;
 import gx.tilix.constants;
 import gx.tilix.encoding;
 import gx.tilix.preferences;
@@ -484,6 +485,12 @@ private:
     // Stop event handlers from updating settings when re-binding
     bool blockColorUpdates = false;
 
+    // Palette preset system (Ptyxis-compatible)
+    PaletteManager paletteManager;
+    ComboBoxText cbPalettePreset;
+    glong paletteOnChangedHandle;
+    bool paletteChangingLock = false;
+
     CheckButton cbUseThemeColors;
     ComboBoxText cbScheme;
     ColorButton cbFG;
@@ -510,6 +517,22 @@ private:
         grid.setRowSpacing(18);
 
         int row = 0;
+
+        // Palette preset selector (Ptyxis-compatible palettes)
+        Label lblPalettePreset = new Label(format("<b>%s</b>", _("Palette preset")));
+        lblPalettePreset.setUseMarkup(true);
+        lblPalettePreset.setHalign(GtkAlign.END);
+        grid.attach(lblPalettePreset, 0, row, 1, 1);
+
+        cbPalettePreset = new ComboBoxText(false);
+        cbPalettePreset.setFocusOnClick(false);
+        cbPalettePreset.setHalign(GtkAlign.FILL);
+        cbPalettePreset.setHexpand(true);
+        // Palettes populated in reload()
+        paletteOnChangedHandle = cbPalettePreset.addOnChanged(&onPalettePresetChanged);
+        grid.attach(cbPalettePreset, 1, row, 1, 1);
+        row++;
+
         Label lblScheme = new Label(format("<b>%s</b>", _("Color scheme")));
         lblScheme.setUseMarkup(true);
         lblScheme.setHalign(GtkAlign.END);
@@ -940,6 +963,99 @@ private:
         }
     }
 
+    /**
+     * Called when the palette preset combo changes.
+     * Applies the selected palette colors to the UI and settings.
+     */
+    void onPalettePresetChanged(ComboBoxText cb) {
+        if (paletteChangingLock || blockColorUpdates)
+            return;
+
+        string paletteId = cb.getActiveId();
+        if (paletteId is null || paletteId.length == 0)
+            return;
+
+        // Save the palette name to GSettings
+        if (gsProfile !is null) {
+            gsProfile.setString(SETTINGS_PROFILE_PALETTE_NAME_KEY, paletteId);
+        }
+
+        // Find and apply the palette
+        if (paletteManager !is null) {
+            auto palette = paletteManager.findById(paletteId);
+            if (palette !is null && palette.isValid) {
+                applyPalettePreset(*palette);
+            }
+        }
+    }
+
+    /**
+     * Applies a palette preset to the UI and settings.
+     * Uses the dark color scheme variant.
+     */
+    void applyPalettePreset(ref Palette palette) {
+        paletteChangingLock = true;
+        schemeChangingLock = true;
+        scope (exit) {
+            paletteChangingLock = false;
+            schemeChangingLock = false;
+        }
+
+        // Get colors from the dark scheme variant
+        RGBA[] paletteColors = palette.getColors(PaletteColorScheme.Dark);
+        RGBA fg = palette.getForeground(PaletteColorScheme.Dark);
+        RGBA bg = palette.getBackground(PaletteColorScheme.Dark);
+
+        // Update foreground/background
+        cbFG.setRgba(fg);
+        cbBG.setRgba(bg);
+        gsProfile.setString(SETTINGS_PROFILE_FG_COLOR_KEY, rgbaTo8bitHex(fg, false, true));
+        gsProfile.setString(SETTINGS_PROFILE_BG_COLOR_KEY, rgbaTo8bitHex(bg, false, true));
+
+        // Update the 16 palette colors
+        string[16] paletteStrings;
+        foreach (i; 0 .. 16) {
+            if (i < paletteColors.length) {
+                cbPalette[i].setRgba(paletteColors[i]);
+                paletteStrings[i] = rgbaTo8bitHex(paletteColors[i], false, true);
+            }
+        }
+        gsProfile.setStrv(SETTINGS_PROFILE_PALETTE_COLOR_KEY, paletteStrings);
+
+        // Set color scheme to Custom since we're using a palette preset
+        cbScheme.setActive(to!int(schemes.length));
+    }
+
+    /**
+     * Initializes the palette preset combo from GSettings.
+     */
+    void initPalettePresetCombo() {
+        if (gsProfile is null || paletteManager is null)
+            return;
+
+        string currentPaletteId = gsProfile.getString(SETTINGS_PROFILE_PALETTE_NAME_KEY);
+
+        import gobject.Signals;
+        Signals.handlerBlock(cbPalettePreset, paletteOnChangedHandle);
+        scope (exit) {
+            Signals.handlerUnblock(cbPalettePreset, paletteOnChangedHandle);
+        }
+
+        // Find the palette by ID and set the combo
+        int activeIndex = -1;
+        auto palettes = paletteManager.getAllPalettes();
+        foreach (i, ref p; palettes) {
+            if (p.id == currentPaletteId) {
+                activeIndex = cast(int) i;
+                break;
+            }
+        }
+
+        if (activeIndex >= 0) {
+            cbPalettePreset.setActive(activeIndex);
+        }
+    }
+
     void exportColorScheme(Button button) {
         FileChooserDialog fcd = new FileChooserDialog(
             _("Export Color Scheme"),
@@ -980,12 +1096,33 @@ private:
     }
 
     void reload() {
+        // Load color schemes
         schemes = loadColorSchemes();
         cbScheme.removeAll();
         foreach (scheme; schemes) {
             cbScheme.append(scheme.id, scheme.name);
         }
         cbScheme.append("custom", _("Custom"));
+
+        // Load palette presets from system and user directories
+        if (paletteManager is null) {
+            paletteManager = new PaletteManager();
+        }
+        // Load from system data directories and user config (same pattern as colorschemes)
+        string[] palettePaths = Util.getSystemDataDirs() ~ Util.getUserConfigDir();
+        foreach (path; palettePaths) {
+            string palettesDir = buildPath(path, APPLICATION_CONFIG_FOLDER, "palettes");
+            if (exists(palettesDir)) {
+                paletteManager.loadFromDirectory(palettesDir);
+            }
+        }
+
+        // Populate palette combo
+        cbPalettePreset.removeAll();
+        foreach (ref palette; paletteManager.getAllPalettes()) {
+            cbPalettePreset.append(palette.id, palette.name);
+        }
+
         import gtk.Main;
         Main.iterationDo(false);
         initColorSchemeCombo();
@@ -1007,6 +1144,7 @@ public:
         if (gsProfile !is null) {
             bindColorButtons();
             initColorSchemeCombo();
+            initPalettePresetCombo();
         }
     }
 }

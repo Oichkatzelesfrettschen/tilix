@@ -73,20 +73,10 @@ void activateX11Window(Window window) {
     }
 }
 
-private:
-
+// X11 GDK function declarations (linked at runtime)
 import gdk.c.functions;
 
-shared static this()
-{
-    // Link in some extra functions not provided by GtkD
-    Linker.link(gdk_x11_get_xatom_by_name, "gdk_x11_get_xatom_by_name", LIBRARY_GDK);
-    Linker.link(gdk_x11_get_default_xdisplay, "gdk_x11_get_default_xdisplay", LIBRARY_GDK);
-    Linker.link(gdk_x11_get_default_root_xwindow, "gdk_x11_get_default_root_xwindow", LIBRARY_GDK);
-    Linker.link(gdk_x11_get_server_time, "gdk_x11_get_server_time", LIBRARY_GDK);
-}
-
-__gshared extern(C)
+private __gshared extern(C)
 {
     Atom function(const(char)* atom_name) c_gdk_x11_get_xatom_by_name;
     Display* function() c_gdk_x11_get_default_xdisplay;
@@ -94,7 +84,17 @@ __gshared extern(C)
     uint function(GdkWindow* window) c_gdk_x11_get_server_time;
 }
 
-alias c_gdk_x11_get_xatom_by_name gdk_x11_get_xatom_by_name;
-alias c_gdk_x11_get_default_xdisplay gdk_x11_get_default_xdisplay;
-alias c_gdk_x11_get_default_root_xwindow gdk_x11_get_default_root_xwindow;
-alias c_gdk_x11_get_server_time gdk_x11_get_server_time;
+shared static this()
+{
+    // Link in some extra functions not provided by GtkD
+    Linker.link(c_gdk_x11_get_xatom_by_name, "gdk_x11_get_xatom_by_name", LIBRARY_GDK);
+    Linker.link(c_gdk_x11_get_default_xdisplay, "gdk_x11_get_default_xdisplay", LIBRARY_GDK);
+    Linker.link(c_gdk_x11_get_default_root_xwindow, "gdk_x11_get_default_root_xwindow", LIBRARY_GDK);
+    Linker.link(c_gdk_x11_get_server_time, "gdk_x11_get_server_time", LIBRARY_GDK);
+}
+
+// Public aliases for X11 GDK functions (used by opengl.d for XRandR)
+alias gdk_x11_get_xatom_by_name = c_gdk_x11_get_xatom_by_name;
+alias gdk_x11_get_default_xdisplay = c_gdk_x11_get_default_xdisplay;
+alias gdk_x11_get_default_root_xwindow = c_gdk_x11_get_default_root_xwindow;
+alias gdk_x11_get_server_time = c_gdk_x11_get_server_time;

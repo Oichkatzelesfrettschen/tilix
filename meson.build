@@ -7,10 +7,10 @@ project(
 
 compiler = meson.get_compiler('d')
 if compiler.get_id() == 'llvm'
-  d_extra_args = ['-vcolumns']
+  d_extra_args = ['-w', '-vcolumns']
   d_link_args = []
 else
-  d_extra_args = []
+  d_extra_args = ['-w']
   d_link_args = []
 endif
 
@@ -29,6 +29,12 @@ iconsdir = datadir / 'icons' / 'hicolor'
 appdir = datadir / 'applications'
 
 tilix_sources = [
+    'source/gx/tilix/backend/package.d',
+    'source/gx/tilix/backend/render.d',
+    'source/gx/tilix/backend/vte3.d',
+    'source/gx/tilix/backend/opengl.d',
+    'source/gx/tilix/backend/atlas.d',
+    'source/gx/tilix/backend/shaders.d',
     'source/gx/gtk/actions.d',
     'source/gx/gtk/cairo.d',
     'source/gx/gtk/clipboard.d',
@@ -56,6 +62,7 @@ tilix_sources = [
     'source/gx/tilix/terminal/advpaste.d',
     'source/gx/tilix/terminal/exvte.d',
     'source/gx/tilix/terminal/graph_verified.d',
+    'source/gx/tilix/terminal/iothread.d',
     'source/gx/tilix/terminal/layout.d',
     'source/gx/tilix/terminal/layout_bridge.d',
     'source/gx/tilix/terminal/layout_fuzz_test.d',
@@ -82,6 +89,7 @@ tilix_sources = [
     'source/gx/tilix/session.d',
     'source/gx/tilix/shortcuts.d',
     'source/gx/tilix/sidebar.d',
+    'source/gx/tilix/theme/palette.d',
     'source/gx/util/array.d',
     'source/gx/util/path.d',
     'source/gx/util/string.d',
@@ -97,6 +105,8 @@ tilix_sources = [
     'source/secretc/secrettypes.d',
     'source/x11/X.d',
     'source/x11/Xlib.d',
+    'source/x11/Xrandr.d',
+    'source/x11/Xpresent.d',
     'source/app.d'
 ]
 
@@ -106,6 +116,7 @@ sources_dir = include_directories('source/')
 gtkd_dep = dependency('gtkd-3', version: '>=3.10.0')
 vted_dep = dependency('vted-3', version: '>=3.10.0')
 xlib_dep = dependency('x11')
+xrandr_dep = dependency('xrandr')
 libsecret_dep = dependency('libsecret-1', required: false)
 
 subdir('po')
@@ -118,6 +129,7 @@ executable('tilix',
     dependencies : [gtkd_dep,
                     vted_dep,
                     xlib_dep,
+                    xrandr_dep,
                     libsecret_dep],
     d_args: d_extra_args,
     d_module_versions: ['StdLoggerDisableTrace'],
@@ -130,7 +142,8 @@ tilix_test_exe = executable('tilix_test',
     include_directories : [sources_dir],
     dependencies : [gtkd_dep,
                     vted_dep,
-                    xlib_dep],
+                    xlib_dep,
+                    xrandr_dep],
     d_args: d_extra_args,
     link_args: d_link_args,
     d_unittest: true

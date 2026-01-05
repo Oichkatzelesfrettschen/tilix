@@ -196,6 +196,7 @@ enum SETTINGS_PROFILE_BG_COLOR_KEY = "background-color";
 enum SETTINGS_PROFILE_FG_COLOR_KEY = "foreground-color";
 enum SETTINGS_PROFILE_BG_TRANSPARENCY_KEY = "background-transparency-percent";
 enum SETTINGS_PROFILE_PALETTE_COLOR_KEY = "palette";
+enum SETTINGS_PROFILE_PALETTE_NAME_KEY = "palette-name";
 enum SETTINGS_PROFILE_USE_THEME_COLORS_KEY = "use-theme-colors";
 enum SETTINGS_PROFILE_USE_HIGHLIGHT_COLOR_KEY = "highlight-colors-set";
 enum SETTINGS_PROFILE_HIGHLIGHT_FG_COLOR_KEY = "highlight-foreground-color";

@@ -8,13 +8,16 @@
     "buildRequirements": ["disallowDeprecations"],
     "dflags-ldc": ["-disable-linker-strip-dead","-link-defaultlib-shared=false"],
     "dependencies": {
-        "gtk-d:gtkd": {
-            "version": "3.11.0"
-        },
-        "gtk-d:vte": {
-            "version": "3.11.0"
-        }
+        "gtk-d:gtkd": "~>3.11.0",
+        "gtk-d:vte": "~>3.11.0",
+        "bindbc-opengl": "~>1.1.1",
+        "bindbc-loader": "~>1.1.5",
+        "bindbc-freetype": "~>1.3.3"
     },
+    "subConfigurations": {
+        "bindbc-freetype": "dynamic"
+    },
+    "versions": ["GL_33"],
     "buildTypes": {
         "release": {
         },
@@ -34,27 +37,27 @@
         {
             "name": "default",
             "targetType": "executable",
-            "libs-linux": ["X11"],
+            "libs-linux": ["X11", "Xrandr", "Xpresent", "Xext"],
             "versions": ["StdLoggerDisableTrace"]
         },
         {
             "name": "trace",
             "targetType": "executable",
-            "libs-linux": ["X11"],
+            "libs-linux": ["X11", "Xrandr", "Xpresent", "Xext"],
             "debugVersions": ["Destructors"]
         },
         {
             "name": "dynamic",
             "targetType": "executable",
             "libs": ["gtkd-3"],
-            "libs-linux": ["X11"],
+            "libs-linux": ["X11", "Xrandr", "Xpresent", "Xext"],
             "lflags": ["-defaultlib=libgtkd-3.so"],
             "versions": ["StdLoggerDisableTrace"]
         },
         {
             "name": "install",
             "targetType": "executable",
-            "libs-linux": ["X11"],
+            "libs-linux": ["X11", "Xrandr", "Xpresent", "Xext"],
             "versions": ["StdLoggerDisableTrace"],
             "postBuildCommands": ["./install.sh"]
         },

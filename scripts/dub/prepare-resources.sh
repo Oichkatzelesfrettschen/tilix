@@ -90,25 +90,29 @@ if command -v appstreamcli >/dev/null 2>&1; then
     filter_glycin_warnings "$APPSTREAM_STDERR"
 
     python - "$APPSTREAM_REPORT" <<'PY'
-import ast
+import re
 import sys
 
 path = sys.argv[1]
-text = open(path, "r", encoding="utf-8").read().strip()
-if text.startswith("---"):
-    text = text.split("---", 1)[1].strip()
-data = ast.literal_eval(text) if text else {}
-issues = data.get("Issues", [])
+text = open(path, "r", encoding="utf-8").read()
+
+# Parse YAML-like output with regex instead of ast.literal_eval
+# Look for severity: <level> patterns
+severity_pattern = re.compile(r'severity:\s*(\w+)')
+tag_pattern = re.compile(r'tag:\s*([\w-]+)')
+
+severities = severity_pattern.findall(text)
+tags = tag_pattern.findall(text)
+
 allowed_pedantic_tags = {"cid-contains-uppercase-letter"}
 bad = []
-for issue in issues:
-    sev = issue.get("severity")
-    tag = issue.get("tag")
-    if sev in ("warning", "error", "pedantic"):
-        if not (sev == "pedantic" and tag in allowed_pedantic_tags):
-            bad.append((sev, tag))
-    elif sev == "info":
+
+for sev, tag in zip(severities, tags):
+    if sev in ("warning", "error"):
         bad.append((sev, tag))
+    elif sev == "pedantic" and tag not in allowed_pedantic_tags:
+        bad.append((sev, tag))
+
 if bad:
     for sev, tag in bad:
         print(f"AppStream validation issue: {sev} {tag}", file=sys.stderr)

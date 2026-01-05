@@ -154,6 +154,13 @@
     <value nick='bottom' value = '1'/>
   </enum>
 
+  <!-- Render backend selection -->
+  <enum id='com.gexperts.Tilix.RenderBackend'>
+    <value nick='auto' value='0'/>
+    <value nick='vte3' value='1'/>
+    <value nick='opengl' value='2'/>
+  </enum>
+
   <!-- Global settings -->
   <schema id="com.gexperts.Tilix.Settings" path="/com/gexperts/Tilix/">
 
@@ -171,6 +178,11 @@
       <default>'normal'</default>
       <summary>Style to use for displaying the tilix window</summary>
       <description>The style to use for displaying the tilix window, enables disabling Client-Side_Decorations.</description>
+    </key>
+    <key name="render-backend" enum="com.gexperts.Tilix.RenderBackend">
+      <default>'auto'</default>
+      <summary>Render backend for terminal display</summary>
+      <description>Select the rendering backend: auto (detect best available), vte3 (VTE native, 40 FPS max), or opengl (GPU accelerated, high refresh). The TILIX_RENDERER environment variable overrides this setting.</description>
     </key>
     <key name="app-title" type="s">
       <default>'${appName}: ${sessionName}'</default>
@@ -710,6 +722,11 @@
     <key name="use-theme-colors" type="b">
       <default>true</default>
       <summary>Whether to use the colors from the theme for the terminal widget</summary>
+    </key>
+    <key name="palette-name" type="s">
+      <default>'tango'</default>
+      <summary>Selected color palette</summary>
+      <description>The ID of the color palette to use. Built-in palettes include: tango, solarized-dark, solarized-light, dracula, nord, one-dark, gruvbox-dark, catppuccin-mocha, tokyo-night, rose-pine. Additional palettes can be loaded from the palettes directory.</description>
     </key>
     <!-- Scroll Options -->
     <key name="show-scrollbar" type="b">
