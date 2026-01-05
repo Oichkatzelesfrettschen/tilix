@@ -4,6 +4,9 @@
     "copyright": "Copyright © 2016, Gerald Nunn",
     "authors": ["Gerald Nunn"],
     "mainSourceFile": "source/app.d",
+    "preBuildCommands": ["./scripts/dub/prepare-resources.sh"],
+    "buildRequirements": ["disallowDeprecations"],
+    "buildOptions": ["warningsAsErrors"],
     "dflags-ldc": ["-disable-linker-strip-dead","-link-defaultlib-shared=false"],
     "dependencies": {
         "gtk-d:gtkd": {
@@ -48,6 +51,25 @@
             "libs-linux": ["X11"],
             "lflags": ["-defaultlib=libgtkd-3.so"],
             "versions": ["StdLoggerDisableTrace"]
+        },
+        {
+            "name": "install",
+            "targetType": "executable",
+            "libs-linux": ["X11"],
+            "versions": ["StdLoggerDisableTrace"],
+            "postBuildCommands": ["./install.sh"]
+        },
+        {
+            "name": "uninstall",
+            "targetType": "none",
+            "preBuildCommands": ["./uninstall.sh"]
+        },
+        {
+            "name": "bench-scroll",
+            "targetType": "executable",
+            "mainSourceFile": "scripts/benchmark_scrolling.d",
+            "targetName": "benchmark_scrolling",
+            "targetPath": "build/dub/bench"
         }
     ]
 }

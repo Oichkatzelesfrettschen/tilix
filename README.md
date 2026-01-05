@@ -95,13 +95,33 @@ Once you have those installed, compiling the application is a one line command a
 dub build --build=release
 ```
 
-The application depends on various resources to function correctly, run `sudo ./install.sh` to build and copy all of the resources to the correct locations. Note this
-has only been tested on Arch Linux, use with caution.
+The build now prepares resource and metadata bundles via `scripts/dub/prepare-resources.sh` (invoked automatically by DUB). To install the app and resources, use the
+DUB install configuration or the install script:
+
+```
+dub build --build=release --config=install --force
+```
+
+Or:
+
+```
+sudo ./install.sh
+```
+
+The install workflow has only been tested on Arch Linux, use with caution.
 Note : `install.sh` will install Tilix to your `/usr` directory. If you are interested in installing Tilix to a custom location, you can specify the `PREFIX` as an
 argument to the `install.sh` script (e.g : `./install.sh $HOME/.local` will install Tilix into `$HOME/.local`). However, this requires you to add your `$PREFIX/share`
 directory to your `$XDG_DATA_DIRS` environment variable.
 
-Note there is also support for building with the Meson buildsystem, please see the wiki page on [Meson](https://github.com/gnunn1/tilix/wiki/Building-with-Meson)
+For the full DUB workflow, see `docs/BUILD_DUB.md`.
+
+You can also run the scrolling benchmark binary with:
+
+```
+dub run --build=release --config=bench-scroll
+```
+
+Note there is also support for building with the Meson buildsystem (packaging fallback), please see the wiki page on [Meson](https://github.com/gnunn1/tilix/wiki/Building-with-Meson)
 for more information.
 
 #### Build Dependencies

@@ -10,6 +10,10 @@ optional stacks for GTK4, Qt, and framebuffer/KMS/DRM exploration.
 - ldc (optional but recommended for optimized builds)
 - gcc-d (optional, GCC frontend)
 
+Tested toolchain baseline:
+- DMD 2.111.0
+- LDC 1.41.0 (based on DMD 2.111.0)
+
 ```sh
 sudo pacman -S --needed dlang-dmd dtools dub ldc gcc-d
 ```
@@ -106,11 +110,20 @@ The install script uses these commands directly:
 - glib-compile-resources (glib2)
 - msgfmt (gettext)
 - desktop-file-validate (desktop-file-utils)
+- update-desktop-database (desktop-file-utils)
 - gtk-update-icon-cache (gtk3)
 - xdg-desktop-menu (xdg-utils)
 
 ```sh
 sudo pacman -S --needed glib2 gettext desktop-file-utils gtk3 xdg-utils
+```
+
+## 11. Metadata + manpage tooling (optional but recommended)
+- appstreamcli (appstream) for AppStream metadata validation
+- po4a-translate (po4a) for localized man pages
+
+```sh
+sudo pacman -S --needed appstream po4a
 ```
 
 ## Notes

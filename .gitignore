@@ -19,6 +19,7 @@ data/man/man
 *~
 *.xdgapp
 build/builddir
+build/dub/
 .xdg-app-builder
 
 ABOUT-NLS
