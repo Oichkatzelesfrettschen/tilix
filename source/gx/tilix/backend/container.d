@@ -277,6 +277,11 @@ interface IRenderingContainer {
     void searchSetWrapAround(bool wrap);
 
     /**
+     * Get search wrap-around behavior.
+     */
+    bool searchGetWrapAround();
+
+    /**
      * Search for next occurrence of current pattern.
      */
     bool searchFindNext();

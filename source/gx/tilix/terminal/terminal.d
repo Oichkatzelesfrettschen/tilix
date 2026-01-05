@@ -444,7 +444,7 @@ private:
                     SimpleAction close = cast(SimpleAction) sagTerminalActions.lookupAction(ACTION_CLOSE);
                     close.activate(null);
                 } else {
-                    vte.grabFocus();
+                    _container.widget.grabFocus();
                 }
             }
             return false;
@@ -501,22 +501,22 @@ private:
             rFind.focusSearchEntry();
         });
         registerActionWithSettings(group, ACTION_PREFIX, ACTION_FIND_PREVIOUS, gsShortcuts, delegate(GVariant, SimpleAction) {
-            bool result = vte.searchFindPrevious();
-            if (!result && !vte.searchGetWrapAround) {
-                vte.searchFindNext();
+            bool result = _container.searchFindPrevious();
+            if (!result && !_container.searchGetWrapAround()) {
+                _container.searchFindNext();
             }
         });
         registerActionWithSettings(group, ACTION_PREFIX, ACTION_FIND_NEXT, gsShortcuts, delegate(GVariant, SimpleAction) {
-            bool result = vte.searchFindNext();
-            if (!result && !vte.searchGetWrapAround) {
-                vte.searchFindPrevious();
+            bool result = _container.searchFindNext();
+            if (!result && !_container.searchGetWrapAround()) {
+                _container.searchFindPrevious();
             }
         });
 
         //Clipboard actions
         saCopy = registerActionWithSettings(group, ACTION_PREFIX, ACTION_COPY, gsShortcuts, delegate(GVariant, SimpleAction) {
             if (_container.hasSelection) {
-                vte.copyClipboard();
+                _container.copyClipboard();
             }
         });
         if (checkVTEVersion(VTE_VERSION_COPY_AS_HTML)) {
@@ -720,7 +720,7 @@ private:
                 pdm.showAll();
                 if (pdm.run() == ResponseType.APPLY) {
                     string password = pdm.password;
-                    vte.feedChild(password);
+                    _container.feedChild(password);
                     static if (!USE_COMMIT_SYNCHRONIZATION) {
                         if (isSynchronizedInput()) {
                             SyncInputEvent se = SyncInputEvent(_terminalUUID, SyncInputEventType.INSERT_TEXT, null, password);
@@ -775,28 +775,28 @@ private:
 
         // Scroll Up
         registerActionWithSettings(group, ACTION_PREFIX, ACTION_SCROLL_UP, gsShortcuts, delegate(GVariant value, SimpleAction sa) {
-            vte.getVadjustment().setValue(vte.getVadjustment().getValue() - 1);
+            _container.scrollLines(-1);
         }, null, null);
 
         // Scroll Down
         registerActionWithSettings(group, ACTION_PREFIX, ACTION_SCROLL_DOWN, gsShortcuts, delegate(GVariant value, SimpleAction sa) {
-            vte.getVadjustment().setValue(vte.getVadjustment().getValue() + 1);
+            _container.scrollLines(1);
         }, null, null);
 
         // Page Up
         registerActionWithSettings(group, ACTION_PREFIX, ACTION_PAGE_UP, gsShortcuts, delegate(GVariant value, SimpleAction sa) {
-            vte.getVadjustment().setValue(vte.getVadjustment().getValue() - vte.getVadjustment().getPageSize());
+            _container.scrollPages(-1);
         }, null, null);
 
         // Page Down
         registerActionWithSettings(group, ACTION_PREFIX, ACTION_PAGE_DOWN, gsShortcuts, delegate(GVariant value, SimpleAction sa) {
-            vte.getVadjustment().setValue(vte.getVadjustment().getValue() + vte.getVadjustment().getPageSize());
+            _container.scrollPages(1);
         }, null, null);
 
         // Toggle margin
         registerActionWithSettings(group, ACTION_PREFIX, ACTION_TOGGLE_MARGIN, gsShortcuts, delegate(GVariant value, SimpleAction sa) {
             marginEnabled = !marginEnabled;
-            vte.queueDraw();
+            _container.queueDraw();
         }, null, null);
 
         //Insert Terminal Actions
@@ -814,10 +814,10 @@ private:
         Popover pm = new Popover(parent);
         // Force VTE to redraw on showing/hiding of popover if dimUnfocused is active
         pm.addOnMap(delegate(Widget) {
-           if (dimPercent > 0) vte.queueDraw();
+           if (dimPercent > 0) _container.queueDraw();
         });
         pm.addOnUnmap(delegate(Widget) {
-           if (dimPercent > 0) vte.queueDraw();
+           if (dimPercent > 0) _container.queueDraw();
         });
         pm.bindModel(model, null);
         return pm;
@@ -900,28 +900,28 @@ private:
         vte = new ExtendedVTE();
         _container = new VTE3Container(vte);  // Phase 1: Wrap VTE in container abstraction
         // Basic widget properties
-        vte.setHexpand(true);
-        vte.setVexpand(true);
+        _container.widget.setHexpand(true);
+        _container.widget.setVexpand(true);
         //Search Properties
-        vte.searchSetWrapAround(gsSettings.getValue(SETTINGS_SEARCH_DEFAULT_WRAP_AROUND).getBoolean());
+        _container.searchSetWrapAround(gsSettings.getValue(SETTINGS_SEARCH_DEFAULT_WRAP_AROUND).getBoolean());
         if (checkVTEVersion(VTE_VERSION_HYPERLINK)) {
             vte.setAllowHyperlink(true);
         }
         //Event handlers
-        vteHandlers ~= vte.addOnChildExited(&onTerminalChildExited);
-        vte.addOnBell(delegate(VTE) {
+        vteHandlers ~= _container.addOnChildExited(delegate(int status) { onTerminalChildExited(status, vte); });
+        _container.addOnBell(delegate() {
             // Originally planned on not showing bell when window is not active but too many edge cases
             // like window is active in different monitor, window is visible but not active, just a message
             // to deal with IMHO. Notifications right solution for that
             // Window window = cast(Window)getToplevel();
-            if (vte.getMapped()) { //&& (window !is null && window.isVisible() && window.isActive())) {
+            if (_container.widget.getMapped()) { //&& (window !is null && window.isVisible() && window.isActive())) {
                 showBell();
             } else {
                 deferShowBell = true;
             }
         });
 
-        vteHandlers ~= vte.addOnWindowTitleChanged(delegate(VTE terminal) {
+        vteHandlers ~= _container.addOnWindowTitleChanged(delegate() {
             if (vte !is null) {
                 trace("Window title changed");
                 gst.updateState();
@@ -933,7 +933,7 @@ private:
                 updateDisplayText();
             }
         });
-        vteHandlers ~= vte.addOnCurrentDirectoryUriChanged(delegate(VTE terminal) {
+        vteHandlers ~= _container.addOnCurrentDirectoryUriChanged(delegate() {
             if (vte is null) return;
 
             string hostname, directory;
@@ -953,7 +953,7 @@ private:
                 notifyProcessNotification(summary, _body, uuid);
             }
         });
-        vteHandlers ~= vte.addOnContentsChanged(delegate(VTE) {
+        vteHandlers ~= _container.addOnContentsChanged(delegate() {
             if (vte is null) return;
 
             // VTE configuration problem, Issue #34
@@ -1009,7 +1009,7 @@ private:
          * Monitor changes in the VTE to test for triggers
          */
         if (checkVTEFeature(TerminalFeature.EVENT_SCREEN_CHANGED)) {
-            vteHandlers ~= vte.addOnContentsChanged(&onVTECheckTriggers, GConnectFlags.AFTER);
+            vteHandlers ~= _container.addOnContentsChanged(delegate() { onVTECheckTriggers(vte); });
             vteHandlers ~= vte.addOnTerminalScreenChanged(&onVTEScreenChanged);
         }
 
@@ -1020,7 +1020,7 @@ private:
             if (vte is null) return false;
 
             if (gsSettings.getBoolean(SETTINGS_TERMINAL_FOCUS_FOLLOWS_MOUSE_KEY)) {
-                vte.grabFocus();
+                _container.widget.grabFocus();
             }
             return false;
         }, GConnectFlags.AFTER);
@@ -1039,7 +1039,7 @@ private:
                    (actions[0] == getActionDetailedName(ACTION_PREFIX,ACTION_COPY) || actions[0] == getActionDetailedName(ACTION_PREFIX,ACTION_COPY_AS_HTML)) &&
                    !_container.hasSelection) {
                     string controlc = "\u0003";
-                    vte.feedChild(controlc);
+                    _container.feedChild(controlc);
                     return true;
                 }
             }
@@ -1067,16 +1067,16 @@ private:
             return false;
         });
 
-        vteHandlers ~= vte.addOnSelectionChanged(delegate(VTE) {
+        vteHandlers ~= _container.addOnSelectionChanged(delegate() {
             if (vte is null) return;
 
             if (_container.hasSelection && gsSettings.getBoolean(SETTINGS_COPY_ON_SELECT_KEY)) {
-                vte.copyClipboard();
+                _container.copyClipboard();
             }
         });
 
         static if (USE_COMMIT_SYNCHRONIZATION) {
-            _commitHandlerId = vte.addOnCommit(delegate(string text, uint length, VTE) {
+            _commitHandlerId = _container.addOnCommit(delegate(string text, uint length) {
                 //tracef("%d Terminal Commit: %s", _terminalID, text);
                 if (vte !is null && isSynchronizedInput() && length > 0) {
                     // Workaround for #888
@@ -1101,10 +1101,10 @@ private:
         pmContext.setPosition(PositionType.BOTTOM);
         // Force VTE to redraw on showing/hiding of popover if dimUnfocused is active
         pmContext.addOnMap(delegate(Widget) {
-           if (dimPercent > 0) vte.queueDraw();
+           if (dimPercent > 0) _container.queueDraw();
         });
         pmContext.addOnUnmap(delegate(Widget) {
-           if (dimPercent > 0) vte.queueDraw();
+           if (dimPercent > 0) _container.queueDraw();
         });
         pmContext.addOnClosed(delegate(Popover) {
             // See #305 for more info on why this is here
@@ -1128,14 +1128,14 @@ private:
 
         terminalOverlay = new Overlay();
         if (useOverlayScrollbar) {
-            sw = new ScrolledWindow(vte);
+            sw = new ScrolledWindow(_container.widget);
             sw.getStyleContext.addClass("tilix-terminal-scrolledwindow");
             sw.setPropagateNaturalHeight(true);
             sw.setPropagateNaturalWidth(true);
             sw.getVadjustment().addOnValueChanged(&updateNewOutputIndicator);
             terminalOverlay.add(sw);
         } else {
-            terminalOverlay.add(vte);
+            terminalOverlay.add(_container.widget);
         }
 
         Box terminalBox = new Box(Orientation.HORIZONTAL, 0);
@@ -1145,7 +1145,7 @@ private:
         // a Scrollbar instead of a ScrolledWindow. It's pity considering the
         // overlay scrollbars look awesome with VTE
         if (!useOverlayScrollbar) {
-            sb = new Scrollbar(Orientation.VERTICAL, vte.getVadjustment());
+            sb = new Scrollbar(Orientation.VERTICAL, _container.getAdjustment());
             sb.getStyleContext().addClass("tilix-terminal-scrollbar");
             sb.getAdjustment().addOnValueChanged(&updateNewOutputIndicator);
             terminalBox.add(sb);
@@ -1267,7 +1267,7 @@ private:
         badge = getDisplayText(badge);
         if (badge != _cachedBadge) {
             _cachedBadge = badge;
-            vte.queueDraw();
+            _container.queueDraw();
         }
     }
 
@@ -1393,14 +1393,14 @@ private:
                 trace("Add new line");
                 text ~= '\n';
             }
-            vte.feedChild(text);
+            _container.feedChild(text);
             static if (!USE_COMMIT_SYNCHRONIZATION) {
                 if (isSynchronizedInput()) {
                     SyncInputEvent se = SyncInputEvent(_terminalUUID, SyncInputEventType.INSERT_TEXT, null, text);
                     onSyncInput.emit(this, se);
                 }
             }
-            vte.grabFocus();
+            _container.widget.grabFocus();
         }
     }
 
@@ -1496,9 +1496,9 @@ private:
         } else if (stripTrailingWhitespace) {
             vte.pasteText(pasteText);
         } else if (source == GDK_SELECTION_CLIPBOARD) {
-            vte.pasteClipboard();
+            _container.pasteClipboard();
         } else {
-            vte.pastePrimary();
+            _container.pastePrimary();
         }
 
         if (gsProfile.getBoolean(SETTINGS_PROFILE_SCROLL_ON_INPUT_KEY)) {
@@ -1541,14 +1541,14 @@ private:
 
     void moveToPrompt(int direction) {
         if (!checkVTEFeature(TerminalFeature.EVENT_SCREEN_CHANGED) || currentScreen != TerminalScreen.NORMAL) return;
-        long lower = to!long(vte.getVadjustment.getLower());
-        long upper = to!long(vte.getVadjustment.getUpper());
+        long lower = to!long(_container.getAdjustment().getLower());
+        long upper = to!long(_container.getAdjustment().getUpper());
         long result;
 
         //debugPromptPositions();
 
         //tracef("promptPosition length %d, lower bound %d, upper bound %d",promptPosition.length, lower, upper);
-        long row = to!long(vte.getVadjustment().getValue());
+        long row = to!long(_container.getAdjustment().getValue());
         ReturnType!(promptPosition.lowerBound) range;
         if (direction < 0) {
             range = promptPosition.lowerBound(row);
@@ -1561,7 +1561,7 @@ private:
         }
         if (result >= lower) {
             //tracef("Current row %d, Moving to command prompt at %d", row, result);
-            vte.getVadjustment.setValue(to!double(result));
+            _container.getAdjustment().setValue(to!double(result));
         } else {
             //tracef("Cannot move to command prompt at %d, buffer doesn't go that far back", result);
             //debugPromptPositions();
@@ -1583,8 +1583,8 @@ private:
         //debugPromptPositions();
 
         // If upper bound of last recorded prompt is bigger then current upper bound of rows user must have cleared buffer, i.e. clear command
-        //tracef("Check position %d against buffer size %f", promptPosition.back, vte.getVadjustment().getLower());
-        if (promptPosition.back < to!long(vte.getVadjustment().getLower())) {
+        //tracef("Check position %d against buffer size %f", promptPosition.back, _container.getAdjustment().getLower());
+        if (promptPosition.back < to!long(_container.getAdjustment().getLower())) {
             promptPosition.clear();
             //trace("Cleared prompt positions");
         }
@@ -1728,13 +1728,13 @@ private:
                 updateTitle();
                 break;
             case TriggerAction.PLAY_BELL:
-                if (vte.getWindow() !is null) {
-                    vte.getWindow().beep();
+                if (_container.widget.getWindow() !is null) {
+                    _container.widget.getWindow().beep();
                 }
                 break;
             case TriggerAction.SEND_TEXT:
                 string value = replaceMatchTokens(trigger.parameters, groups);
-                vte.feedChild(value);
+                _container.feedChild(value);
                 break;
             case TriggerAction.INSERT_PASSWORD:
                 trace("Processing insert password trigger");
@@ -1746,7 +1746,7 @@ private:
             case TriggerAction.RUN_PROCESS:
                 string process = replaceMatchTokens(trigger.parameters, groups);
                 auto response = executeShell(process);
-                vte.feedChild(response.output);
+                _container.feedChild(response.output);
                 break;
         }
     }
@@ -2254,8 +2254,8 @@ private:
         case SETTINGS_PROFILE_FG_COLOR_KEY, SETTINGS_PROFILE_BG_COLOR_KEY, SETTINGS_PROFILE_PALETTE_COLOR_KEY, SETTINGS_PROFILE_USE_THEME_COLORS_KEY,
         SETTINGS_PROFILE_BG_TRANSPARENCY_KEY, SETTINGS_PROFILE_DIM_TRANSPARENCY_KEY:
             if (gsProfile.getBoolean(SETTINGS_PROFILE_USE_THEME_COLORS_KEY)) {
-                getStyleColor(vte.getStyleContext(), StateFlags.ACTIVE, vteFG);
-                getStyleBackgroundColor(vte.getStyleContext(), StateFlags.ACTIVE, vteBG);
+                getStyleColor(_container.widget.getStyleContext(), StateFlags.ACTIVE, vteFG);
+                getStyleBackgroundColor(_container.widget.getStyleContext(), StateFlags.ACTIVE, vteBG);
             } else {
             if (!vteFG.parse(gsProfile.getString(SETTINGS_PROFILE_FG_COLOR_KEY)))
                 trace("Parsing foreground color failed");
@@ -2459,7 +2459,7 @@ private:
         case SETTINGS_PROFILE_MARGIN_KEY:
             if (vte !is null && isVTEBackgroundDrawEnabled()) {
                 margin = gsProfile.getInt(SETTINGS_PROFILE_MARGIN_KEY);
-                vte.queueDraw();
+                _container.queueDraw();
             }
             break;
         case SETTINGS_PROFILE_BADGE_USE_SYSTEM_FONT_KEY, SETTINGS_PROFILE_BADGE_FONT_KEY:
@@ -2627,7 +2627,7 @@ private:
                 Signals.handlerBlock(vte, _commitHandlerId);
             }
         }
-        vte.feedChild(text);
+        _container.feedChild(text);
         if (USE_COMMIT_SYNCHRONIZATION) {
             if (ignoreCommit) {
                 Signals.handlerUnblock(vte, _commitHandlerId);
@@ -2786,7 +2786,7 @@ private:
             outputError(msg, workingDir, args, envv);
             showInfoBarMessage(msg);
         }
-        vte.grabFocus();
+        _container.widget.grabFocus();
     }
 
     enum O_CLOEXEC = 0x80000;
@@ -2895,7 +2895,7 @@ private:
 
             return result;
         } else {
-            return vte.spawnSync(VtePtyFlags.DEFAULT, workingDir, args, envv, flags, null, null, gpid, null);
+            return _container.spawnSync(VtePtyFlags.DEFAULT, workingDir, args, envv, flags, gpid);
         }
     }
 
@@ -3332,7 +3332,7 @@ private:
         DragQuadrant dq = getDragQuadrant(x, y, vte);
 
         dragInfo = DragInfo(true, dq);
-        vte.queueDraw();
+        _container.queueDraw();
         //Uncomment this if debugging motion otherwise generates annoying amount of trace noise
         tracef("Drag motion: %s %d, %d, %d", _terminalUUID, x, y, dq);
 
@@ -3342,7 +3342,7 @@ private:
     void onVTEDragLeave(DragContext, uint, Widget) {
         trace("Drag Leave " ~ _terminalUUID);
         dragInfo = DragInfo(false, DragQuadrant.LEFT);
-        vte.queueDraw();
+        _container.queueDraw();
     }
 
     /**
@@ -3416,7 +3416,7 @@ private:
                         filename = URI.filenameFromUri(uri, hostname);
                     }
                     string quoted = ShellUtils.shellQuote(filename) ~ " ";
-                    vte.feedChild(quoted);
+                    _container.feedChild(quoted);
                 }
             }
             break;
@@ -3424,7 +3424,7 @@ private:
             string text = data.getText();
             tracef("Text dropped %s,%d,%d", text, text.length, data.getLength);
             if (text.length > 0) {
-                vte.feedChild(text);
+                _container.feedChild(text);
             }
             break;
         case DropTargets.COLOR:
@@ -3475,7 +3475,7 @@ private:
             badgeFont = PgFontDescription.fromString(gsProfile.getString(SETTINGS_PROFILE_BADGE_FONT_KEY));
         }
         tracef("Badge font is %s:%d", badgeFont.getFamily(), badgeFont.getSize());
-        vte.queueDraw();
+        _container.queueDraw();
     }
 
     bool onVTEDrawBadge(Scoped!Context cr, Widget w) {
@@ -3606,7 +3606,7 @@ private:
         if (dimPercent > 0) {
             Window window = cast(Window) getToplevel();
             bool windowActive = (window is null)?false:window.isActive();
-            if (!windowActive || (!vte.isFocus() && !rFind.isSearchEntryFocus() && !pmContext.isVisible() && !mbTitle.getPopover().isVisible())) {
+            if (!windowActive || (!_container.widget.isFocus() && !rFind.isSearchEntryFocus() && !pmContext.isVisible() && !mbTitle.getPopover().isVisible())) {
                 cr.setSourceRgba(vteDimBG.red, vteDimBG.green, vteDimBG.blue, dimPercent);
                 cr.setOperator(cairo_operator_t.ATOP);
                 cr.paint();
@@ -3619,8 +3619,8 @@ private:
 
         RGBA color;
 
-        if (!vte.getStyleContext().lookupColor("theme_selected_bg_color", color)) {
-            getStyleBackgroundColor(vte.getStyleContext(), StateFlags.SELECTED, color);
+        if (!_container.widget.getStyleContext().lookupColor("theme_selected_bg_color", color)) {
+            getStyleBackgroundColor(_container.widget.getStyleContext(), StateFlags.SELECTED, color);
         }
         cr.setSourceRgba(color.red, color.green, color.blue, 1.0);
         cr.setLineWidth(STROKE_WIDTH);
@@ -3879,9 +3879,9 @@ public:
         if (vte !is null && !inDestruction()) {
             //Workaround for #589
             import gtk.Bin;
-            Bin bin = cast(Bin)vte.getParent();
+            Bin bin = cast(Bin)_container.widget.getParent();
             if (bin !is null) {
-                bin.remove(vte);
+                bin.remove(_container.widget);
             }
         }
         vte = null;
@@ -3925,7 +3925,7 @@ public:
      */
     void focusTerminal() {
         trace("Terminal grabbing focus");
-        vte.grabFocus();
+        _container.widget.grabFocus();
     }
 
     /**
@@ -3942,7 +3942,7 @@ public:
     }
 
     pid_t getChildPidFromHost() {
-        string result = captureHostToolboxCommand("get-child-pid", "", [vte.getPty().getFd()]);
+        string result = captureHostToolboxCommand("get-child-pid", "", [_container.getPty().getFd()]);
         if (result == null) {
             warning("Failed to get child pid from host");
             return -1;
@@ -3961,7 +3961,7 @@ public:
      * and returns the pid
      */
     bool isProcessRunning(out pid_t childPid) {
-        if (vte.getPty() is null)
+        if (_container.getPty() is null)
             return false;
 
         if (isFlatpak()) {
@@ -3982,7 +3982,7 @@ public:
      * due to PID namespace isolation. Flatpak apps see their own PID namespace.
      */
     bool isProcessRunning(out string name) {
-        if (vte.getPty() is null)
+        if (_container.getPty() is null)
             return false;
         pid_t childPid;
         bool result = isProcessRunning(childPid);

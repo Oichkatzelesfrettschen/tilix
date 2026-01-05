@@ -271,6 +271,10 @@ public:
         _vte.searchSetWrapAround(wrap);
     }
 
+    bool searchGetWrapAround() {
+        return _vte.searchGetWrapAround();
+    }
+
     bool searchFindNext() {
         return _vte.searchFindNext();
     }
