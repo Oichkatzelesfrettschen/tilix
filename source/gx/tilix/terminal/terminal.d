@@ -146,6 +146,7 @@ import gx.tilix.terminal.advpaste;
 import gx.tilix.terminal.exvte;
 import gx.tilix.backend.container;
 import gx.tilix.backend.vte3container;
+import gx.tilix.backend.openglcontainer;
 import gx.tilix.terminal.layout;
 import gx.tilix.terminal.password;
 import gx.tilix.terminal.regex;
@@ -201,6 +202,22 @@ struct SyncInputEvent {
  * various event handlers defined in this Terminal widget. Note these event handlers
  * do not correspond to GTK signals, they are pure D code.
  */
+
+/**
+ * Phase 6: Backend selection enum for rendering implementation.
+ *
+ * Determines which IRenderingContainer implementation to use:
+ * - VTE3: Production backend using VTE3 library (CPU-based rendering)
+ * - OpenGL: Future backend using OpenGL (hardware-accelerated rendering)
+ */
+enum RenderingBackend {
+    VTE3 = 0,      ///< VTE3 library-based rendering (production)
+    OpenGL = 1,    ///< OpenGL hardware-accelerated rendering (Phase 6+)
+}
+
+/// Module-level backend selection (default: VTE3 for production)
+private immutable RenderingBackend ACTIVE_BACKEND = RenderingBackend.VTE3;
+
 class Terminal : EventBox, ITerminal {
 
 private:
@@ -903,7 +920,19 @@ private:
      */
     Widget createVTE() {
         vte = new ExtendedVTE();
-        _container = new VTE3Container(vte);  // Phase 1: Wrap VTE in container abstraction
+
+        // Phase 6: Backend selection - instantiate appropriate IRenderingContainer
+        final switch (ACTIVE_BACKEND) {
+            case RenderingBackend.VTE3:
+                _container = new VTE3Container(vte);
+                trace("Using VTE3 rendering backend");
+                break;
+            case RenderingBackend.OpenGL:
+                _container = new OpenGLContainer(vte);
+                trace("Using OpenGL rendering backend (stub)");
+                break;
+        }
+
         _stateManager = new TerminalStateManager(_container);  // Phase 5: Create state coordinator
         // Basic widget properties
         _container.widget.setHexpand(true);
