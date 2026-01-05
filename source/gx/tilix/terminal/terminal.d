@@ -3839,6 +3839,9 @@ public:
             tracef("Set VTE Size for columns=%d, rows=%d", width, height);
             vte.setSize(width, height);
         }
+        // Phase 5: Wire PTY fd to IO thread
+        int ptyFd = _container.getPty().getFd();
+        _stateManager.ioThreadManager.setPtyFd(ptyFd);
         // Phase 5: Start IO thread state manager
         _stateManager.start();
         trace("Terminal initialized");
