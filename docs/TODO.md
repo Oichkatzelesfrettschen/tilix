@@ -1,5 +1,17 @@
 # Tilix DUB-First TODO
 
+## Phase 0-4 Status (COMPLETE - 2026-01-05)
+- [x] Backend abstraction layer (IRenderBackend, VTE3, OpenGL)
+- [x] Palette system (Ptyxis-compatible, 10 palettes, profile editor)
+- [x] X11 bindings (XRandR refresh detection, XPresent prepared)
+- [x] IO thread infrastructure (lock-free queue, message protocol)
+- [x] Frame pacing (arbitrary Hz, adaptive timing)
+- [x] Font atlas (atomic versioning, lock-free GPU sync)
+- [x] Meson build fixes (XRandR linking, palette installation)
+- [x] Both builds pass with -w (warnings as errors)
+
+Next: Phase 5 (process indicators), Phase 6 (vi-mode), IO thread hookup
+
 ## Repo Governance and Sync
 - [x] Disable upstream push URLs (block accidental PRs)
 - [ ] Create upstream tracking branch notes (upstream/master)
@@ -66,6 +78,6 @@
 - [x] Draft backend interface boundaries (GTK3/GTK4/Qt/KMS)
 - [x] Identify candidate features from ghostty/alacritty/kitty
 - [x] Produce feature matrix mapped to proposed D modules
-- [ ] Prototype a minimal backend abstraction layer
-- [ ] Implement no-op backends for testing
-- [ ] Define VTE interop layer or deprecation plan
+- [x] Prototype a minimal backend abstraction layer (Phase 0-4 complete)
+- [x] Implement VTE3 and OpenGL backends with render abstraction
+- [x] Define VTE interop layer (VTE3RenderBackend as compatibility fallback)
