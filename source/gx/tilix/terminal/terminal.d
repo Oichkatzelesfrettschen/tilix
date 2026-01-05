@@ -152,6 +152,8 @@ import gx.tilix.terminal.search;
 import gx.tilix.terminal.util;
 import gx.tilix.terminal.monitor;
 import gx.tilix.terminal.activeprocess;
+import gx.tilix.terminal.state;
+import gx.tilix.terminal.iothread;
 
 /**
 * When dragging over VTE, specifies which quandrant new terminal
@@ -215,6 +217,7 @@ private:
 
     ExtendedVTE vte;  // DEPRECATED: Will be removed after migration to _container
     IRenderingContainer _container;  // New abstraction layer
+    TerminalStateManager _stateManager;  // Phase 5: IO thread state coordinator
     gulong[] vteHandlers;
     Overlay terminalOverlay;
     ScrolledWindow sw;
@@ -899,6 +902,7 @@ private:
     Widget createVTE() {
         vte = new ExtendedVTE();
         _container = new VTE3Container(vte);  // Phase 1: Wrap VTE in container abstraction
+        _stateManager = new TerminalStateManager(_container);  // Phase 5: Create state coordinator
         // Basic widget properties
         _container.widget.setHexpand(true);
         _container.widget.setVexpand(true);
@@ -3835,6 +3839,8 @@ public:
             tracef("Set VTE Size for columns=%d, rows=%d", width, height);
             vte.setSize(width, height);
         }
+        // Phase 5: Start IO thread state manager
+        _stateManager.start();
         trace("Terminal initialized");
         updateDisplayText();
     }
@@ -3858,6 +3864,10 @@ public:
             ProcessMonitor.instance.onChildProcess.disconnect(&childProcessEvent);
         }
         stopProcess();
+        // Phase 5: Stop IO thread state manager
+        if (_stateManager !is null) {
+            _stateManager.stop();
+        }
         tilix.onThemeChange.disconnect(&onThemeChanged);
         prfMgr.onDelete.disconnect(&onProfileDeleted);
         if (timeoutID > 0) {
