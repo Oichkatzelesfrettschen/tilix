@@ -1,0 +1,102 @@
+{
+    "comment": "DUB configuration file for Address Sanitizer (ASAN) memory testing. Usage: dub build --recipe=dub-asan.json --build=asan --compiler=ldc2 To use the ASAN builds, you must have the LDC D compiler installed (LLVM-based D compiler). The asan and asan-debug build types require LDC. The standard debug build works with both DMD and LDC.",
+    "name": "tilix",
+    "description": "A VTE based terminal emulator for Linux",
+    "copyright": "Copyright © 2016, Gerald Nunn",
+    "authors": ["Gerald Nunn"],
+    "mainSourceFile": "source/app.d",
+    "preBuildCommands": ["./scripts/dub/strict-check.sh", "./scripts/dub/prepare-resources.sh"],
+    "buildRequirements": ["disallowDeprecations"],
+    "dflags-ldc": ["-disable-linker-strip-dead","-link-defaultlib-shared=false"],
+    "dependencies": {
+        "gtk-d:gtkd": "~>3.11.0",
+        "gtk-d:vte": "~>3.11.0",
+        "bindbc-opengl": "~>1.1.1",
+        "bindbc-loader": "~>1.1.5",
+        "bindbc-freetype": "~>1.3.3"
+    },
+    "subConfigurations": {
+        "bindbc-freetype": "dynamic"
+    },
+    "versions": ["GL_33"],
+    "buildTypes": {
+        "release": {
+        },
+        "debug": {
+            "debugVersions": ["GC"],
+            "dflags": ["-g"]
+        },
+        "asan": {
+            "debugVersions": ["GC"],
+            "dflags": ["-g"],
+            "dflags-ldc": ["-g", "-fsanitize=address", "-fno-omit-frame-pointer"],
+            "lflags-ldc": ["-fsanitize=address"]
+        },
+        "asan-debug": {
+            "debugVersions": ["GC", "ASAN_DEBUG"],
+            "dflags": ["-g"],
+            "dflags-ldc": ["-g", "-O0", "-fsanitize=address", "-fno-omit-frame-pointer"],
+            "lflags-ldc": ["-fsanitize=address"]
+        },
+        "localize": {
+            "versions": ["Localize"]
+        },
+        "i686": {
+            "dflags": ["-m32", "-c"]
+        }
+    },
+    "configurations": [
+        {
+            "name": "default",
+            "targetType": "executable",
+            "libs-linux": ["X11", "Xrandr", "Xpresent", "Xext"],
+            "versions": ["StdLoggerDisableTrace"]
+        },
+        {
+            "name": "trace",
+            "targetType": "executable",
+            "libs-linux": ["X11", "Xrandr", "Xpresent", "Xext"],
+            "debugVersions": ["Destructors"]
+        },
+        {
+            "name": "dynamic",
+            "targetType": "executable",
+            "libs": ["gtkd-3"],
+            "libs-linux": ["X11", "Xrandr", "Xpresent", "Xext"],
+            "lflags": ["-defaultlib=libgtkd-3.so"],
+            "versions": ["StdLoggerDisableTrace"]
+        },
+        {
+            "name": "asan",
+            "targetType": "executable",
+            "libs-linux": ["X11", "Xrandr", "Xpresent", "Xext"],
+            "versions": ["StdLoggerDisableTrace"],
+            "comment": "Address Sanitizer build for memory error detection"
+        },
+        {
+            "name": "asan-debug",
+            "targetType": "executable",
+            "libs-linux": ["X11", "Xrandr", "Xpresent", "Xext"],
+            "comment": "Address Sanitizer with debug logging and optimizations disabled"
+        },
+        {
+            "name": "install",
+            "targetType": "executable",
+            "libs-linux": ["X11", "Xrandr", "Xpresent", "Xext"],
+            "versions": ["StdLoggerDisableTrace"],
+            "postBuildCommands": ["./install.sh"]
+        },
+        {
+            "name": "uninstall",
+            "targetType": "none",
+            "preBuildCommands": ["./uninstall.sh"]
+        },
+        {
+            "name": "bench-scroll",
+            "targetType": "executable",
+            "mainSourceFile": "scripts/benchmark_scrolling.d",
+            "targetName": "benchmark_scrolling",
+            "targetPath": "build/dub/bench"
+        }
+    ]
+}
