@@ -28,3 +28,14 @@ Source:
 ## Notes
 - These references justify the strict build requirements and checks.
 - The HTML copies are preserved for traceability when the docs move URLs.
+
+## Feature harvest
+- Feature inventory: docs/research/feature-harvest.md
+
+Sources:
+- /home/eirikr/Github/ghostty/README.md
+- https://raw.githubusercontent.com/alacritty/alacritty/master/docs/features.md
+- https://sw.kovidgoyal.net/kitty/overview/
+
+## XPRA investigation
+- Crash notes: docs/research/xpra-crash.md

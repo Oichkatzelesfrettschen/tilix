@@ -40,6 +40,17 @@ metadata, and install steps.
 - DUB now runs resource preparation before builds.
 - Install uses staged artifacts to avoid polluting the source tree.
 
+## XPRA Crash Findings
+- xpra server aborts with a pygobject assertion in pygi-invoke.c during
+  gstreamer encoder selftest initialization.
+- Running xpra with `--gstreamer=no` avoids the crash and keeps the session up.
+- Debug logs include environment variables; treat them as sensitive artifacts.
+
+## Feature Harvest Status
+- Initial inventory captured in docs/research/feature-harvest.md.
+- Backend interface draft captured in docs/architecture/backend-interface-map.md.
+- Alacritty and kitty sources were pulled from upstream docs (no local repos).
+
 ## Testable Hypotheses and Validation Notes
 - Tilix is GTK3 + VTE3 based: verified via dub.json dependencies.
 - DUB supports preBuildCommands/postBuildCommands: verified in dub-docs.

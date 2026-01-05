@@ -21,6 +21,7 @@ data/man/man
 build/builddir
 build/dub/
 .xdg-app-builder
+/term_analysis/
 
 ABOUT-NLS
 Makefile
