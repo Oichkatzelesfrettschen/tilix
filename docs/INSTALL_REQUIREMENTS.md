@@ -75,14 +75,24 @@ For direct rendering without GTK/Qt:
 sudo pacman -S --needed libdrm mesa libxkbcommon libinput seatd
 ```
 
-## 7. OpenGL/EGL (optional)
+## 7. OpenGL/EGL and X11 (required for high-refresh rendering)
+For the OpenGL render backend (bypasses VTE3's 40 FPS cap):
 - mesa
 - libglvnd
 - libepoxy (OpenGL loader)
+- freetype2 (font rasterization)
+- fontconfig (font discovery)
+- libxrandr (X11 refresh rate detection)
+- libxpresent (X11 VSync support, future)
 
 ```sh
-sudo pacman -S --needed mesa libglvnd libepoxy
+sudo pacman -S --needed mesa libglvnd libepoxy freetype2 fontconfig libxrandr libxpresent
 ```
+
+D bindings (automatically fetched by DUB):
+- bindbc-opengl 1.1.1
+- bindbc-loader 1.1.5
+- bindbc-freetype 1.3.3
 
 ## 8. Vulkan (optional)
 - vulkan-icd-loader
