@@ -92,7 +92,7 @@ Note that D supports three [compilers](https://wiki.dlang.org/Compilers) (DMD, G
 Once you have those installed, compiling the application is a one line command as follows:
 
 ```
-dub build --build=release
+DFLAGS="-w" dub build --build=release
 ```
 
 The build now prepares resource and metadata bundles via `scripts/dub/prepare-resources.sh` (invoked automatically by DUB). To install the app and resources, use the

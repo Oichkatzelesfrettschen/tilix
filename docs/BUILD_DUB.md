@@ -2,17 +2,17 @@
 
 ## Build
 ```
-dub build --build=release
+DFLAGS="-w" dub build --build=release
 ```
 
 ## Tests
 ```
-dub test --force
+DFLAGS="-w" dub test --force
 ```
 
 ## Install
 ```
-dub build --build=release --config=install --force
+DFLAGS="-w" dub build --build=release --config=install --force
 ```
 
 Or:
@@ -22,7 +22,7 @@ sudo ./install.sh
 
 ## Uninstall
 ```
-dub build --config=uninstall --force
+DFLAGS="-w" dub build --config=uninstall --force
 ```
 
 Or:
@@ -40,4 +40,5 @@ dub run --build=release --config=bench-scroll
 
 ## Notes
 - Warnings are treated as errors via DUB build options.
+- Strict builds require `DFLAGS="-w"`; set `TILIX_ALLOW_WARNINGS=1` to bypass.
 - Use `--force` to ensure DUB executes post-build commands.

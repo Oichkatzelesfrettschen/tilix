@@ -4,9 +4,8 @@
     "copyright": "Copyright © 2016, Gerald Nunn",
     "authors": ["Gerald Nunn"],
     "mainSourceFile": "source/app.d",
-    "preBuildCommands": ["./scripts/dub/prepare-resources.sh"],
+    "preBuildCommands": ["./scripts/dub/strict-check.sh", "./scripts/dub/prepare-resources.sh"],
     "buildRequirements": ["disallowDeprecations"],
-    "buildOptions": ["warningsAsErrors"],
     "dflags-ldc": ["-disable-linker-strip-dead","-link-defaultlib-shared=false"],
     "dependencies": {
         "gtk-d:gtkd": {

@@ -10,6 +10,9 @@ This folder captures upstream documentation used for the DUB-first refactor.
 - Sub-packages: docs/research/dub-subpackages.md
 - Package format redirects: docs/research/dub-package-format.html
 - Package format upgrades: docs/research/dub-package-format-upgrades.html
+- Environment variables: docs/research/dub-environment-variables.md
+- Recipe reference: docs/research/dub-recipe.md
+- Settings reference: docs/research/dub-settings.md
 
 Sources:
 - https://github.com/dlang/dub-docs (raw files under docs/dub-reference)
@@ -17,11 +20,11 @@ Sources:
 
 ## DMD compiler flags
 - DMD switch reference: docs/research/dmd.html
-- Key switches used: -w (warnings as errors via DUB buildRequirements) and -de
+- Key switches used: -w (warnings as errors via DFLAGS) and -de
 
 Source:
 - https://dlang.org/dmd.html
 
 ## Notes
-- These references justify the buildRequirements added to dub.json.
+- These references justify the strict build requirements and checks.
 - The HTML copies are preserved for traceability when the docs move URLs.

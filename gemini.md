@@ -32,7 +32,7 @@ metadata, and install steps.
 - D-Bus service file was hardcoded to /usr/bin; prefix variance was not handled.
 - Optional tooling (appstreamcli, po4a) was not documented alongside install.
 - Warnings/deprecations were not enforced; now treated as errors via DUB.
-- DUB emits a warning about warningsAsErrors needing buildRequirements support.
+- Strict builds require `DFLAGS=-w` enforced by `scripts/dub/strict-check.sh`.
 - .claude directory permissions cause noisy git status warnings.
 
 ## Sanity Check
