@@ -48,10 +48,13 @@ This roadmap synthesizes findings from four parallel analysis efforts:
 - IPC schema + local UNIX socket listener (capnproto-dlang) + DUB IPC client
 - Accessibility presets (high-contrast/low-vision) + theme preset examples
 - Strict `pure-d-nogc` build profile with non-alloc glyph lookups
+- SIMD delimiter scan + scrollback search unit tests
+- Capnp bindings regenerated via capnpc-dlang
+- Pure D headless test harness (`pure-d-tests`)
 
 **Open**:
 - Search UI beyond selection-only flow
-- IPC command coverage
+- IPC command coverage beyond spawn-new-process placeholder
 - IME implementation + preedit overlay
 - Tab/split UI model
 - Renderer perf handoff (PBO/triple buffer)

@@ -83,3 +83,14 @@ size_t findDelimiter(const(ubyte)[] data, ubyte delimA, ubyte delimB) nothrow @n
         return size_t.max;
     }
 }
+
+version (PURE_D_BACKEND) unittest {
+    const(ubyte)[] data = cast(const(ubyte)[])"abc\nxyz";
+    assert(findDelimiter(data, '\n', 0x1B) == 3);
+    assert(findDelimiter(data, '\r', '\n') == 3);
+    assert(findDelimiter(data, 0x1B, 0x7F) == size_t.max);
+    assert(findDelimiter(cast(const(ubyte)[])"", '\n', 0x1B) == size_t.max);
+
+    const(ubyte)[] esc = cast(const(ubyte)[])"\x1B[31m";
+    assert(findDelimiter(esc, '\n', 0x1B) == 0);
+}

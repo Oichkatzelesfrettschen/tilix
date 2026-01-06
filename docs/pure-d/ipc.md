@@ -27,4 +27,5 @@ Commands:
 
 Notes:
 - IPC server runs inside the Pure D backend and queues commands for the main loop.
-- `newTab` and `spawnProfile` are queued but not implemented yet.
+- `newTab` spawns a new Pure D process (tab UI is still pending).
+- `spawnProfile` spawns a new process with `--profile <name>` if provided.

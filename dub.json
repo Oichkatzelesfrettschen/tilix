@@ -119,6 +119,18 @@
             "excludedSourceFiles": ["source/*"]
         },
         {
+            "name": "pure-d-tests",
+            "targetType": "executable",
+            "mainSourceFile": "scripts/pure-d/headless_tests.d",
+            "targetName": "tilix-pure-tests",
+            "targetPath": "build/pure",
+            "versions": ["PURE_D_BACKEND", "GL_45", "GLFW_33", "StdLoggerDisableTrace", "with_24_bit_color", "HB_with_freetype", "Have_bindbc_freetype"],
+            "libs-linux": ["glfw", "GL", "freetype", "X11"],
+            "sourcePaths": ["scripts/pure-d", "pured"],
+            "importPaths": ["scripts/pure-d", "pured"],
+            "excludedSourceFiles": ["source/*", "scripts/pure-d/ipc_client.d"]
+        },
+        {
             "name": "ipc-client",
             "targetType": "executable",
             "mainSourceFile": "scripts/pure-d/ipc_client.d",

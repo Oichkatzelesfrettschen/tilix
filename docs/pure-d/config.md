@@ -57,6 +57,7 @@ Notes:
 - `cursorThickness`: pixels at 1x scale (0 uses adaptive thickness).
 - `accessibilityPreset`: `high-contrast` or `low-vision`. Presets only fill unset fields.
 - `selectionBg`: RGBA highlight color (0.0 to 1.0, clamped).
+- `selectionBg` alpha blends with the underlying cell background.
 - `selectionFg`: RGBA selection text color (0.0 to 1.0, clamped). Defaults to high-contrast black/white based on `selectionBg`.
 - `searchBg`: RGBA search highlight color (0.0 to 1.0, clamped).
 - `searchFg`: RGBA search text color (0.0 to 1.0, clamped). Defaults to high-contrast black/white based on `searchBg`.

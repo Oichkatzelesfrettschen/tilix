@@ -46,7 +46,7 @@ import core.thread : Thread;
 import core.time : MonoTime, dur;
 import core.sync.mutex : Mutex;
 import std.datetime : SysTime;
-import std.file : exists, timeLastModified;
+import std.file : exists, timeLastModified, thisExePath;
 import bindbc.glfw;
 
 /**
@@ -373,6 +373,31 @@ public:
         writefln("IPC: listening on %s", socketPath);
     }
 
+    void spawnNewInstance(string[] extraArgs = null) {
+        string exePath;
+        try {
+            exePath = thisExePath();
+        } catch (Exception ex) {
+            stderr.writefln("IPC: failed to resolve executable path: %s", ex.msg);
+            return;
+        }
+        if (exePath.length == 0) {
+            stderr.writefln("IPC: executable path unavailable");
+            return;
+        }
+
+        string[] cmd = [exePath];
+        if (extraArgs !is null && extraArgs.length != 0) {
+            cmd ~= extraArgs;
+        }
+
+        try {
+            spawnProcess(cmd);
+        } catch (Exception ex) {
+            stderr.writefln("IPC: spawn failed: %s", ex.msg);
+        }
+    }
+
     void applyIpcCommands() {
         if (_ipcServer is null) {
             return;
@@ -381,7 +406,7 @@ public:
         while (_ipcServer.pollCommand(cmd)) {
             final switch (cmd.type) {
                 case IpcCommandType.newTab:
-                    stderr.writefln("IPC: newTab not implemented yet");
+                    spawnNewInstance();
                     break;
                 case IpcCommandType.pasteText:
                     pasteText(cmd.payload);
@@ -390,7 +415,12 @@ public:
                     onTitleChanged(cmd.payload);
                     break;
                 case IpcCommandType.spawnProfile:
-                    stderr.writefln("IPC: spawnProfile not implemented yet");
+                    auto profile = strip(cmd.payload);
+                    if (profile.length != 0) {
+                        spawnNewInstance(["--profile", profile]);
+                    } else {
+                        spawnNewInstance();
+                    }
                     break;
             }
         }

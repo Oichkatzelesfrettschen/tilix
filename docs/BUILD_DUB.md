@@ -25,6 +25,12 @@ DFLAGS="-w" dub build --build=release --config=pure-d-nogc
 DFLAGS="-w" dub test --force
 ```
 
+## Pure D headless tests
+```
+DFLAGS="-w" dub build --config=pure-d-tests
+./build/pure/tilix-pure-tests
+```
+
 ## Install
 ```
 DFLAGS="-w" dub build --build=release --config=install --force

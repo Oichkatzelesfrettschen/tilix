@@ -78,6 +78,8 @@ private:
     uint _foregroundColor = 0xFFFFFFFF;
     uint _backgroundColor = 0xFF000000;
     uint _selectionColor = 0x80FFFFFF;
+    uint _selectionTextColor = 0x00000000;
+    bool _selectionTextOverride;
     uint _cursorColor = 0xFFFFFFFF;
 
     // Callbacks for PTY communication
@@ -156,6 +158,47 @@ public:
     @property uint backgroundColor() const { return _backgroundColor; }
     @property void backgroundColor(uint value) {
         _backgroundColor = value;
+        invalidateVisual();
+    }
+
+    /// Selection highlight color (ARGB)
+    @property uint selectionColor() const { return _selectionColor; }
+    @property void selectionColor(uint value) {
+        _selectionColor = value;
+        invalidateVisual();
+    }
+
+    /// Selection text override color (ARGB)
+    @property bool selectionTextOverride() const { return _selectionTextOverride; }
+    @property uint selectionTextColor() const { return _selectionTextColor; }
+    @property void selectionTextColor(uint value) {
+        _selectionTextColor = value;
+        _selectionTextOverride = true;
+        invalidateVisual();
+    }
+
+    void clearSelectionTextColor() {
+        _selectionTextOverride = false;
+        invalidateVisual();
+    }
+
+    /**
+     * Set selection colors from RGBA floats (0..1).
+     * If selectionFg is omitted or invalid, selection uses existing fg.
+     */
+    void setSelectionColors(const(float)[] selectionBg,
+                            const(float)[] selectionFg = null) {
+        if (selectionBg.length == 4) {
+            _selectionColor = rgbaToArgb([selectionBg[0], selectionBg[1],
+                                          selectionBg[2], selectionBg[3]]);
+        }
+        if (selectionFg.length == 4) {
+            _selectionTextColor = rgbaToArgb([selectionFg[0], selectionFg[1],
+                                              selectionFg[2], selectionFg[3]]);
+            _selectionTextOverride = true;
+        } else {
+            _selectionTextOverride = false;
+        }
         invalidateVisual();
     }
 
@@ -448,6 +491,9 @@ protected:
                 // Selection highlight
                 if (_selection.isSelected(col, row)) {
                     bg = blendColors(bg, _selectionColor);
+                    if (_selectionTextOverride) {
+                        fg = _selectionTextColor;
+                    }
                 }
 
                 // Render cell background

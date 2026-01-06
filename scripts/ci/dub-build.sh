@@ -18,4 +18,18 @@ DFLAGS="$DFLAGS" dub test --force
 if [ "${TILIX_CI_PURE_D:-0}" = "1" ]; then
     printf '%s\n' "==> DUB build (pure-d)"
     DFLAGS="$DFLAGS" dub build --build=release --config=pure-d --force
+
+    printf '%s\n' "==> DUB build (pure-d-nogc)"
+    DFLAGS="$DFLAGS" dub build --build=release --config=pure-d-nogc --force
+
+    printf '%s\n' "==> DUB build (pure-d-tests)"
+    DFLAGS="$DFLAGS" dub build --build=release --config=pure-d-tests --force
+
+    printf '%s\n' "==> Pure D headless tests"
+    ./build/pure/tilix-pure-tests
+fi
+
+if [ "${TILIX_CI_PERF:-0}" = "1" ]; then
+    printf '%s\n' "==> Pure D perf harness (build + instructions)"
+    scripts/pure-d/run_perf_harness.sh
 fi

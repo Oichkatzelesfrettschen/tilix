@@ -67,6 +67,14 @@ DUB/OS additions for advanced features (optional):
 sudo pacman -S --needed harfbuzz fontconfig libxkbcommon libxcb xcb-util-wm
 ```
 
+Wayland (optional; GLFW Wayland builds or future Wayland backend):
+- wayland
+- wayland-protocols
+
+```sh
+sudo pacman -S --needed wayland wayland-protocols
+```
+
 DUB dependencies (pulled automatically; versions from code.dlang.org /latest):
 - bindbc-glfw 1.1.2 (configured static in dub.json; ensure libglfw3.a exists)
 - bindbc-opengl 1.1.1
@@ -82,6 +90,9 @@ DUB dependencies (pulled automatically; versions from code.dlang.org /latest):
 - xkbcommon-d 0.5.1 (optional)
 - xcb-d 2.1.1+1.11.1 (optional)
 - xcb-util-wm-d 0.5.0+0.4.1 (optional)
+- wayland-client-d 1.8.90 (optional)
+- wayland-scanner-d 1.0.0 (optional; protocol generation)
+- fswatch 0.6.1 or dinotify 0.5.0 (optional; config file watching)
 
 ## 5. GTK4 + VTE4 (optional future backend)
 - gtk4

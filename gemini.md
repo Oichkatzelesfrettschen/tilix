@@ -36,14 +36,15 @@ metadata, and install steps.
 - .claude directory permissions cause noisy git status warnings.
 - OpenGLContainer remains a stub (metrics, selection, snapshot, encoding).
 - Backend abstraction is still not wired through Terminal (per architectural audit).
-- Pure D backend still missing: richer search UI, IPC command coverage, IME implementation, tab/split UI, perf handoff (triple buffer/PBO).
+- Pure D backend still missing: richer search UI, IPC command coverage beyond spawn-new-process placeholder, IME implementation, tab/split UI, perf handoff (triple buffer/PBO).
 - Pure D theme import is best-effort parsing (no full YAML/Xresources grammar coverage).
+- Wayland/XCB bindings are documented but not yet integrated into the runtime.
 
 ## Sanity Check
 - DUB build succeeds with `DFLAGS=-w` after vendoring arsd-official and patching warnings.
 - DUB runs resource preparation before builds via `scripts/dub/prepare-resources.sh`.
 - Install uses staged artifacts to avoid polluting the source tree.
-- Pure D backend now includes: clipboard/PRIMARY, true color, bell flash, cursor styles (incl. outline), selection + search highlights, hyperlink detection + Ctrl+click, HarfBuzz shaping + fallback, selection-driven search, hot-reloadable config, accessibility presets, IPC schema + local UNIX socket listener + DUB IPC client, and a strict `pure-d-nogc` build profile.
+- Pure D backend now includes: clipboard/PRIMARY, true color, bell flash, cursor styles (incl. outline), selection + search highlights (configurable), hyperlink detection + Ctrl+click, HarfBuzz shaping + fallback, selection-driven search, hot-reloadable config, accessibility presets, IPC schema + local UNIX socket listener + DUB IPC client, strict `pure-d-nogc` build profile, SIMD delimiter/search unit tests, and a headless test harness.
 
 ## XPRA Crash Findings
 - xpra server aborts with a pygobject assertion in pygi-invoke.c during
