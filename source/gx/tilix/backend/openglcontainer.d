@@ -17,11 +17,13 @@ import gtk.Adjustment;
 import glib.Str;
 import pango.PgFontDescription;
 import vte.Pty;
+import vte.Terminal;
 import vtec.vtetypes : VtePtyFlags, VteCursorShape, VteCursorBlinkMode;
 import glib.c.types : GSpawnFlags;
 
 import gx.tilix.backend.container;
 import gx.tilix.backend.render;
+import gx.tilix.terminal.exvte;
 
 /**
  * Phase 6: OpenGL-based terminal rendering container.
@@ -35,6 +37,7 @@ import gx.tilix.backend.render;
 class OpenGLContainer : IRenderingContainer {
 private:
     Widget _widget;
+    ExtendedVTE _vte;
     Adjustment _adjustment;
     bool _isReady;
 
@@ -45,8 +48,9 @@ public:
      * Params:
      *   widget = GTK widget to attach OpenGL context to
      */
-    this(Widget widget) {
-        _widget = widget;
+    this(ExtendedVTE vte) {
+        _vte = vte;
+        _widget = vte;
         _adjustment = null;
         _isReady = false;
         trace("OpenGLContainer created (Phase 6 stub)");
@@ -65,167 +69,192 @@ public:
     // === TERMINAL STATE QUERIES ===
 
     @property ulong columnCount() {
-        // TODO: Return actual column count from render state
-        return 80;
+        return _vte is null ? 80 : _vte.getColumnCount();
     }
 
     @property ulong rowCount() {
-        // TODO: Return actual row count from render state
-        return 24;
+        return _vte is null ? 24 : _vte.getRowCount();
     }
 
     void getCursorPosition(out long column, out long row) {
-        column = 0;
-        row = 0;
+        if (_vte is null) {
+            column = 0;
+            row = 0;
+            return;
+        }
+        _vte.getCursorPosition(column, row);
     }
 
     @property bool hasSelection() {
-        // TODO: Check if text is selected
-        return false;
+        return _vte !is null && _vte.getHasSelection();
     }
 
     // === WINDOW TITLE AND METADATA ===
 
     @property string windowTitle() {
-        // TODO: Return window title
-        return "";
+        return _vte is null ? "" : _vte.getWindowTitle();
     }
 
     @property string currentDirectoryUri() {
-        // TODO: Return current directory URI
-        return "";
+        return _vte is null ? "" : _vte.getCurrentDirectoryUri();
     }
 
     // === FONT AND COLORS ===
 
     void setFont(PgFontDescription font) {
-        trace("OpenGL: setFont()");
+        if (_vte is null) return;
+        _vte.setFont(font);
     }
 
     @property double fontScale() {
-        // TODO: Get font scale
-        return 1.0;
+        return _vte is null ? 1.0 : _vte.getFontScale();
     }
 
     @property void fontScale(double scale) {
-        // TODO: Set font scale
+        if (_vte is null) return;
+        _vte.setFontScale(scale);
     }
 
     void setColors(RGBA foreground, RGBA background, RGBA[] palette) {
-        trace("OpenGL: setColors()");
+        if (_vte is null) return;
+        _vte.setColors(foreground, background, palette);
     }
 
     void setColorCursor(RGBA bg, RGBA fg) {
-        trace("OpenGL: setColorCursor()");
+        if (_vte is null) return;
+        _vte.setColorCursor(bg);
+        _vte.setColorCursorForeground(fg);
     }
 
     void setColorHighlight(RGBA bg, RGBA fg) {
-        trace("OpenGL: setColorHighlight()");
+        if (_vte is null) return;
+        _vte.setColorHighlight(bg);
+        _vte.setColorHighlightForeground(fg);
     }
 
     void setCursorShape(VteCursorShape shape) {
-        trace("OpenGL: setCursorShape()");
+        if (_vte is null) return;
+        _vte.setCursorShape(shape);
     }
 
     void setCursorBlinkMode(VteCursorBlinkMode mode) {
-        trace("OpenGL: setCursorBlinkMode()");
+        if (_vte is null) return;
+        _vte.setCursorBlinkMode(mode);
     }
 
     @property uint charWidth() {
-        // TODO: Return character cell width in pixels
-        return 8;
+        return _vte is null ? 8 : cast(uint)_vte.getCharWidth();
     }
 
     @property uint charHeight() {
-        // TODO: Return character cell height in pixels
-        return 16;
+        return _vte is null ? 16 : cast(uint)_vte.getCharHeight();
     }
 
     // === TERMINAL BEHAVIOR ===
 
     @property void inputEnabled(bool enabled) {
-        // TODO: Enable/disable input
+        if (_vte is null) return;
+        _vte.setInputEnabled(enabled);
     }
 
     @property bool inputEnabled() {
-        // TODO: Check if input is enabled
-        return true;
+        return _vte is null ? true : _vte.getInputEnabled();
     }
 
     void setAudibleBell(bool enabled) {
-        trace("OpenGL: setAudibleBell()");
+        if (_vte is null) return;
+        _vte.setAudibleBell(enabled);
     }
 
     void setAllowBold(bool enabled) {
-        trace("OpenGL: setAllowBold()");
+        if (_vte is null) return;
+        _vte.setAllowBold(enabled);
     }
 
     void setRewrapOnResize(bool enabled) {
-        trace("OpenGL: setRewrapOnResize()");
+        if (_vte is null) return;
+        _vte.setRewrapOnResize(enabled);
     }
 
     void setEncoding(string encoding) {
-        trace("OpenGL: setEncoding()");
+        if (_vte is null) return;
+        _vte.setEncoding(encoding);
     }
 
     @property string encoding() {
-        // TODO: Return current encoding
-        return "UTF-8";
+        return _vte is null ? "UTF-8" : _vte.getEncoding();
     }
 
     // === SCROLLING ===
 
     Adjustment getAdjustment() {
-        if (_adjustment is null) {
-            _adjustment = new Adjustment(0.0, 0.0, 100.0, 1.0, 10.0, 10.0);
+        if (_vte is null) {
+            if (_adjustment is null) {
+                _adjustment = new Adjustment(0.0, 0.0, 100.0, 1.0, 10.0, 10.0);
+            }
+            return _adjustment;
         }
-        return _adjustment;
+        return _vte.getVadjustment();
     }
 
     void scrollLines(int lines) {
-        trace("OpenGL: scrollLines(" ~ to!string(lines) ~ ")");
+        if (_vte is null) return;
+        auto adj = _vte.getVadjustment();
+        if (adj is null) return;
+        double value = adj.getValue();
+        double newValue = value + (lines * _vte.getCharHeight());
+        adj.setValue(newValue);
     }
 
     void scrollPages(int pages) {
-        trace("OpenGL: scrollPages(" ~ to!string(pages) ~ ")");
+        if (_vte is null) return;
+        auto adj = _vte.getVadjustment();
+        if (adj is null) return;
+        double pageSize = adj.getPageSize();
+        double value = adj.getValue();
+        double newValue = value + (pages * pageSize);
+        adj.setValue(newValue);
     }
 
     // === CLIPBOARD ===
 
     void copyClipboard() {
-        trace("OpenGL: copyClipboard()");
+        if (_vte is null) return;
+        _vte.copyClipboard();
     }
 
     void copyPrimary() {
-        trace("OpenGL: copyPrimary()");
+        if (_vte is null) return;
+        _vte.copyPrimary();
     }
 
     void pasteClipboard() {
-        trace("OpenGL: pasteClipboard()");
+        if (_vte is null) return;
+        _vte.pasteClipboard();
     }
 
     void pastePrimary() {
-        trace("OpenGL: pastePrimary()");
+        if (_vte is null) return;
+        _vte.pastePrimary();
     }
 
     // === SEARCH ===
 
     void searchSetWrapAround(bool wrap) {
-        trace("OpenGL: searchSetWrapAround()");
+        if (_vte is null) return;
+        _vte.searchSetWrapAround(wrap);
     }
 
     bool searchGetWrapAround() {
-        return false;
+        return _vte is null ? false : _vte.searchGetWrapAround();
     }
 
     bool searchFindNext() {
-        trace("OpenGL: searchFindNext()");
-        return false;
+        return _vte is null ? false : _vte.searchFindNext();
     }
 
     bool searchFindPrevious() {
-        trace("OpenGL: searchFindPrevious()");
-        return false;
+        return _vte is null ? false : _vte.searchFindPrevious();
     }
 
     // === RENDERING AND SNAPSHOTS ===
@@ -237,8 +266,8 @@ public:
     }
 
     Pixbuf captureSnapshot(double scale) {
-        trace("OpenGL: captureSnapshot()");
-        return null;  // TODO: Implement snapshot capture
+        trace("OpenGL: captureSnapshot() not implemented");
+        return null;
     }
 
     // === PTY AND PROCESS MANAGEMENT ===
@@ -251,66 +280,91 @@ public:
         GSpawnFlags spawnFlags,
         out int childPid
     ) {
-        trace("OpenGL: spawnSync()");
-        childPid = -1;
-        return false;
+        if (_vte is null) {
+            childPid = -1;
+            return false;
+        }
+        return _vte.spawnSync(
+            ptyFlags,
+            workingDir,
+            argv,
+            envv,
+            spawnFlags,
+            null,
+            null,
+            childPid,
+            null
+        );
     }
 
     Pty getPty() {
-        return null;
+        return _vte is null ? null : _vte.getPty();
     }
 
     void feedChild(string data) {
-        trace("OpenGL: feedChild()");
+        if (_vte is null) return;
+        _vte.feedChild(data);
     }
 
     int getChildPid() {
-        return -1;
+        return _vte is null ? -1 : _vte.getChildPid();
     }
 
     string getText(long startRow, long startCol, long endRow, long endCol) {
-        trace("OpenGL: getText()");
-        return "";
+        if (_vte is null) return "";
+        import glib.ArrayG;
+        ArrayG attrs;
+        return _vte.getText(null, null, attrs);
     }
 
     // === SIGNAL CONNECTION ===
 
     gulong addOnBell(BellHandler handler) {
-        return 0;
+        if (_vte is null) return 0;
+        return _vte.addOnBell((Terminal t) { handler(); });
     }
 
     gulong addOnChildExited(ChildExitedHandler handler) {
-        return 0;
+        if (_vte is null) return 0;
+        return _vte.addOnChildExited((int status, Terminal t) { handler(status); });
     }
 
     gulong addOnWindowTitleChanged(StringHandler handler) {
-        return 0;
+        if (_vte is null) return 0;
+        return _vte.addOnWindowTitleChanged((Terminal t) { handler(); });
     }
 
     gulong addOnCurrentDirectoryUriChanged(StringHandler handler) {
-        return 0;
+        if (_vte is null) return 0;
+        return _vte.addOnCurrentDirectoryUriChanged((Terminal t) { handler(); });
     }
 
     gulong addOnContentsChanged(StringHandler handler) {
-        return 0;
+        if (_vte is null) return 0;
+        return _vte.addOnContentsChanged((Terminal t) { handler(); });
     }
 
     gulong addOnSelectionChanged(StringHandler handler) {
-        return 0;
+        if (_vte is null) return 0;
+        return _vte.addOnSelectionChanged((Terminal t) { handler(); });
     }
 
     gulong addOnCommit(CommitHandler handler) {
-        return 0;
+        if (_vte is null) return 0;
+        return _vte.addOnCommit((string text, uint length, Terminal t) {
+            handler(text, length);
+        });
     }
 
     void disconnect(gulong handlerId) {
-        // Stub: no signals to disconnect
+        if (_vte is null) return;
+        import gobject.Signals;
+        Signals.handlerDisconnect(_vte, handlerId);
     }
 
     // === LIFECYCLE ===
 
     void initialize() {
-        trace("OpenGL: initialize()");
         _isReady = true;
     }
 
@@ -319,7 +373,7 @@ public:
     }
 
     void dispose() {
-        trace("OpenGL: dispose()");
         _isReady = false;
+        _vte = null;
     }
 }

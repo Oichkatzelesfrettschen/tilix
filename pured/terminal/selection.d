@@ -22,12 +22,12 @@ struct BufferPoint {
     int col;
     int row;  // Row in buffer (including scrollback)
 
-    int opCmp(ref const BufferPoint other) const {
+    int opCmp(ref const BufferPoint other) const @nogc nothrow {
         if (row != other.row) return row - other.row;
         return col - other.col;
     }
 
-    bool opEquals(ref const BufferPoint other) const {
+    bool opEquals(ref const BufferPoint other) const @nogc nothrow {
         return col == other.col && row == other.row;
     }
 }
@@ -146,7 +146,7 @@ public:
     /**
      * Check if a cell is within the selection.
      */
-    bool isSelected(int col, int row) const {
+    bool isSelected(int col, int row) const @nogc nothrow {
         if (_type == SelectionType.none)
             return false;
 
@@ -226,20 +226,20 @@ public:
     }
 
     /// Get normalized start point (whichever is first)
-    @property BufferPoint selectionStart() const {
+    @property BufferPoint selectionStart() const @nogc nothrow {
         return _anchor < _cursor ? _anchor : _cursor;
     }
 
     /// Get normalized end point
-    @property BufferPoint selectionEnd() const {
+    @property BufferPoint selectionEnd() const @nogc nothrow {
         return _anchor < _cursor ? _cursor : _anchor;
     }
 
     /// True if selection is active (dragging)
-    @property bool active() const { return _active; }
+    @property bool active() const @nogc nothrow { return _active; }
 
-    /// True if there is a selection
-    @property bool hasSelection() const { return _type != SelectionType.none; }
+    /// True if selection is active (non-empty)
+    @property bool hasSelection() const @nogc nothrow { return _type != SelectionType.none; }
 
     /// Current selection type
     @property SelectionType type() const { return _type; }

@@ -95,7 +95,7 @@ modules:
       - type: archive
         url: https://github.com/mquinson/po4a/releases/download/v0.54/po4a-0.54.tar.gz
         sha256: 596f7621697f9dd12709958c229e256b56683d25997ac73c9625a2cc0c603d51
-# TODO: Use shared module from flathub.
+# NOTE: Keep local module for now to avoid external Flathub dependency drift.
   - name: intltool
     cleanup:
       - "*"

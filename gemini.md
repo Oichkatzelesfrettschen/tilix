@@ -34,11 +34,16 @@ metadata, and install steps.
 - Warnings/deprecations were not enforced; now treated as errors via DUB.
 - Strict builds require `DFLAGS=-w` enforced by `scripts/dub/strict-check.sh`.
 - .claude directory permissions cause noisy git status warnings.
+- OpenGLContainer remains a stub (metrics, selection, snapshot, encoding).
+- Backend abstraction is still not wired through Terminal (per architectural audit).
+- Pure D backend still missing: richer search UI, IPC command coverage, IME implementation, tab/split UI, perf handoff (triple buffer/PBO).
+- Pure D theme import is best-effort parsing (no full YAML/Xresources grammar coverage).
 
 ## Sanity Check
-- DUB build and tests pass with the verified layout tests enabled.
-- DUB now runs resource preparation before builds.
+- DUB build succeeds with `DFLAGS=-w` after vendoring arsd-official and patching warnings.
+- DUB runs resource preparation before builds via `scripts/dub/prepare-resources.sh`.
 - Install uses staged artifacts to avoid polluting the source tree.
+- Pure D backend now includes: clipboard/PRIMARY, true color, bell flash, cursor styles (incl. outline), selection + search highlights, hyperlink detection + Ctrl+click, HarfBuzz shaping + fallback, selection-driven search, hot-reloadable config, accessibility presets, IPC schema + local UNIX socket listener + DUB IPC client, and a strict `pure-d-nogc` build profile.
 
 ## XPRA Crash Findings
 - xpra server aborts with a pygobject assertion in pygi-invoke.c during
@@ -53,11 +58,11 @@ metadata, and install steps.
 
 ## Testable Hypotheses and Validation Notes
 - Tilix is GTK3 + VTE3 based: verified via dub.json dependencies.
-- DUB supports preBuildCommands/postBuildCommands: verified in dub-docs.
-- warningsAsErrors and deprecationErrors map to -w/-de: verified in dub-docs
-  and dmd.html.
-- targetType=none is supported: verified in dub-docs target_types.
-- gtk-d 3.11.0 is latest: validated via `dub search gtk-d`.
+- DUB supports preBuildCommands/postBuildCommands/buildRequirements/targetType=none: verify via DUB build settings reference: https://dub.pm/dub-reference/build_settings/
+- warningsAsErrors and deprecationErrors map to -w/-de: verify via DMD compiler docs: https://dlang.org/dmd.html
+- gtk-d 3.11.0 is latest: verify via https://code.dlang.org/api/packages/gtk-d/latest
+- IOThread uses non-blocking select() loop: verified in iothread.d:399-439.
+- Cursor visibility/contrast meets WCAG non-text contrast guidance: verify via WCAG 2.2 SC 1.4.11: https://www.w3.org/WAI/WCAG22/Understanding/non-text-contrast.html
 
 ## Roadmap (Phased)
 - Phase 1: DUB-first build parity for resources/i18n/schemas/metadata.

@@ -21,7 +21,7 @@ This roadmap synthesizes findings from four parallel analysis efforts:
 - Threading model mismatch (single-threaded reality vs multi-threaded design)
 
 **Technical Debt (22 Items)**:
-- 4 Critical: Regex caching, 4677-line file, unresolved TODO, hardcoded metrics
+- 2 Critical: Regex caching, 4677-line file; resolved: non-blocking PTY read, layout metrics
 - 4 High: Error handling gaps, massive methods, resource leaks, GC pressure
 - 7 Medium: Queue overflow, singletons, missing tests
 - 5 Low: Code smells, typos, magic numbers
@@ -32,6 +32,29 @@ This roadmap synthesizes findings from four parallel analysis efforts:
 - Backend abstraction must work before OpenGL rendering can be deployed
 - IOThread integration blocks high-refresh-rate rendering
 - State consolidation required before reliable multi-backend support
+
+### Pure D Backend Snapshot (2026-01-07)
+
+**Completed**:
+- Clipboard + PRIMARY selection (GLFW/X11 bridge)
+- Truecolor mapping and per-cell colors
+- Cursor styles (block/underline/bar/outline) with configurable selection highlight
+- HarfBuzz shaping + font fallback
+- Config + theme import (Xresources/Alacritty) with hot reload
+- Selection-driven search (Ctrl+Shift+F + F3 cycling)
+- Search highlight overlay + configurable search colors
+- Hyperlink detection overlay + Ctrl+click activation
+- Config schema (JSON Schema) + performance harness scripts
+- IPC schema + local UNIX socket listener (capnproto-dlang) + DUB IPC client
+- Accessibility presets (high-contrast/low-vision) + theme preset examples
+- Strict `pure-d-nogc` build profile with non-alloc glyph lookups
+
+**Open**:
+- Search UI beyond selection-only flow
+- IPC command coverage
+- IME implementation + preedit overlay
+- Tab/split UI model
+- Renderer perf handoff (PBO/triple buffer)
 
 ---
 
@@ -263,81 +286,28 @@ GRegex regex = getCompiledRegex(tr);  // Cached
 
 ---
 
-#### 0.4.2 Hardcoded Layout Metrics (session.d:1465-1466)
+#### 0.4.2 Layout Metrics (resolved)
 
-**File**: `source/gx/tilix/session.d:1465-1466`
+**File**: `source/gx/tilix/session.d:1465-1475`
 
-**Problem**: Hardcoded 50 cols, 8x16 char dimensions → layout calculations wrong for non-default fonts.
+**Status**: LayoutConfig now uses `terminal.charWidth` and `terminal.charHeight`.
 
-**Solution**:
-```d
-// REMOVE:
-LayoutConfig cfg = LayoutConfig(50, 1, 8, 16);  // Hardcoded
-
-// REPLACE:
-LayoutConfig cfg = LayoutConfig(
-    currentTerminal.getColumnCount(),
-    1,
-    currentTerminal.getCharWidth(),
-    currentTerminal.getCharHeight()
-);
-```
-
-**Dependencies**: Requires Terminal expose char dimensions (add to IRenderingContainer).
-
-**Effort**: 2-3 hours
-
-**Verification**:
+**Follow-up**:
 - [ ] Layout calculations correct for 6pt font
 - [ ] Layout calculations correct for 24pt font
 - [ ] Layout adapts when font changed at runtime
 
 ---
 
-#### 0.4.3 Blocking Read TODO (iothread.d:389)
+#### 0.4.3 Non-blocking PTY Read (resolved)
 
-**File**: `source/gx/tilix/terminal/iothread.d:389`
+**File**: `source/gx/tilix/terminal/iothread.d:399-439`
 
-**Problem**: `// TODO: Use select/poll for non-blocking read` → blocking PTY reads freeze IO thread.
+**Status**: Implemented with `select()` and a 1ms timeout in the IO loop.
 
-**Solution**:
-```d
-import core.sys.posix.sys.select;
-
-void ioLoop() {
-    while (!_stopRequested) {
-        fd_set readfds;
-        FD_ZERO(&readfds);
-        FD_SET(_ptyFd, &readfds);
-
-        timeval timeout;
-        timeout.tv_sec = 0;
-        timeout.tv_usec = 16666;  // ~60 FPS
-
-        int result = select(_ptyFd + 1, &readfds, null, null, &timeout);
-
-        if (result > 0 && FD_ISSET(_ptyFd, &readfds)) {
-            // Non-blocking read
-            ubyte[4096] buffer;
-            ssize_t bytesRead = read(_ptyFd, buffer.ptr, buffer.length);
-
-            if (bytesRead > 0) {
-                parseVTSequences(buffer[0..bytesRead]);
-            }
-        }
-
-        // Check control queue, swap buffers, signal frame ready
-    }
-}
-```
-
-**Effort**: 5-8 hours
-
-**Verification**:
-- [ ] IO thread never blocks indefinitely
-- [ ] PTY data processed within 16ms
-- [ ] No missed PTY output under high bandwidth
-- [ ] Clean shutdown without race conditions
+**Follow-up**:
+- [ ] Verify IOThreadManager is instantiated per terminal
+- [ ] Validate frame-ready signaling under high bandwidth
 
 ---
 
@@ -966,8 +936,8 @@ Phase 0.3 (State consolidation) ← [CRITICAL BLOCKER]
 
 Phase 0.4 (Tech debt) ← [CRITICAL BLOCKER]
   ├─→ 0.4.1 (Regex cache) - Independent
-  ├─→ 0.4.2 (Layout metrics) - Needs 0.1
-  ├─→ 0.4.3 (IO thread TODO) - Needs 0.2
+  ├─→ 0.4.2 (Layout metrics, resolved) - Verify
+  ├─→ 0.4.3 (PTY read verification) - Needs 0.2
   └─→ 0.4.4 (Decompose terminal.d) - After 0.1-0.3
 
 Phase 1 (Architectural repair) ← Blocked by Phase 0
@@ -992,8 +962,8 @@ Phase 3 (Quality) ← Can run in parallel with Phase 2
 | 0.2 | IOThread integration | 4-5 days | BLOCKER |
 | 0.3 | State consolidation | 3-4 days | BLOCKER |
 | 0.4.1 | Regex cache | 2 hours | BLOCKER |
-| 0.4.2 | Layout metrics | 2-3 hours | BLOCKER |
-| 0.4.3 | IO thread TODO | 5-8 hours | BLOCKER |
+| 0.4.2 | Layout metrics | 2-3 hours | RESOLVED |
+| 0.4.3 | PTY read verification (resolved) | 1-2 hours | VERIFY |
 | 0.4.4 | Decompose terminal.d | 4-6 days | BLOCKER |
 | **Phase 0 Total** | | **~3 weeks** | |
 | 1.1 | Remove VTE imports | 2-3 days | HIGH |

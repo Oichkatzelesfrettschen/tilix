@@ -14,9 +14,19 @@
         "bindbc-loader": "~>1.1.5",
         "bindbc-freetype": "~>1.3.3",
         "bindbc-glfw": "~>1.1.0",
-        "arsd-official:terminalemulator": "~>12.1.0",
-        "mir-algorithm": "~>3.21.0",
-        "intel-intrinsics": "~>1.13.0"
+        "bindbc-harfbuzz": {
+            "path": "vendor/bindbc-harfbuzz",
+            "version": "~>0.2.1"
+        },
+        "bindbc-fontconfig": "~>1.0.0",
+        "arsd-official:terminalemulator": {
+            "path": "vendor/arsd-official",
+            "version": "~>12.1.0"
+        },
+        "mir-ion": "~>2.3.5",
+        "mir-algorithm": "~>3.22.4",
+        "intel-intrinsics": "~>1.13.0",
+        "capnproto-dlang": "~>0.1.2"
     },
     "subConfigurations": {
         "bindbc-freetype": "dynamic",
@@ -25,6 +35,10 @@
     "versions": ["GL_33"],
     "buildTypes": {
         "release": {
+        },
+        "pure-lto": {
+            "dflags-ldc": ["-O3", "-mcpu=native", "-flto=thin"],
+            "lflags-ldc": ["-flto=thin"]
         },
         "debug": {
             "debugVersions": ["GC"],
@@ -84,11 +98,36 @@
             "mainSourceFile": "pured/main.d",
             "targetName": "tilix-pure",
             "targetPath": "build/pure",
-            "versions": ["PURE_D_BACKEND", "GL_45", "StdLoggerDisableTrace"],
+            "versions": ["PURE_D_BACKEND", "GL_45", "GLFW_33", "StdLoggerDisableTrace", "with_24_bit_color", "HB_with_freetype", "Have_bindbc_freetype"],
             "libs-linux": ["glfw", "GL", "freetype", "X11"],
             "dflags-ldc": ["-mcpu=native", "-O3"],
             "sourcePaths": ["pured"],
             "importPaths": ["pured"],
+            "excludedSourceFiles": ["source/*"]
+        },
+        {
+            "name": "pure-d-nogc",
+            "targetType": "executable",
+            "mainSourceFile": "pured/main.d",
+            "targetName": "tilix-pure-nogc",
+            "targetPath": "build/pure",
+            "versions": ["PURE_D_BACKEND", "PURE_D_STRICT_NOGC", "GL_45", "GLFW_33", "StdLoggerDisableTrace", "with_24_bit_color", "HB_with_freetype", "Have_bindbc_freetype"],
+            "libs-linux": ["glfw", "GL", "freetype", "X11"],
+            "dflags-ldc": ["-mcpu=native", "-O3"],
+            "sourcePaths": ["pured"],
+            "importPaths": ["pured"],
+            "excludedSourceFiles": ["source/*"]
+        },
+        {
+            "name": "ipc-client",
+            "targetType": "executable",
+            "mainSourceFile": "scripts/pure-d/ipc_client.d",
+            "targetName": "tilix-ipc-client",
+            "targetPath": "build/pure",
+            "versions": ["PURE_D_BACKEND"],
+            "sourcePaths": ["scripts/pure-d"],
+            "importPaths": ["pured", "scripts/pure-d"],
+            "sourceFiles": ["pured/ipc/tilix_capnp.d"],
             "excludedSourceFiles": ["source/*"]
         }
     ]

@@ -1,0 +1,1395 @@
+{
+	"authors": [
+		"Adam D. Ruppe"
+	],
+	"configurations": [
+		{
+			"name": "library",
+			"targetType": "library"
+		}
+	],
+	"description": "Subpackage collection for web, database, terminal ui, gui, scripting, and more with a commitment to long-term compatibility and stability. Use individual subpackages instead of the overall package to avoid bringing in things you don't need/want!",
+	"license": "BSL-1.0",
+	"name": "arsd-official",
+	"sourceFiles": [
+		"package.d"
+	],
+	"subPackages": [
+		{
+			"description": "Shared components across other arsd modules",
+			"dflags-dmd": [
+				"-mv=arsd.core=$PACKAGE_DIR/core.d"
+			],
+			"dflags-gdc": [
+				"-fmodule-file=arsd.core=$PACKAGE_DIR/core.d"
+			],
+			"dflags-ldc": [
+				"--mv=arsd.core=$PACKAGE_DIR/core.d"
+			],
+			"libs-windows": [
+				"user32",
+				"ws2_32"
+			],
+			"name": "core",
+			"sourceFiles": [
+				"core.d"
+			],
+			"importPaths": [
+				"."
+			],
+			"targetType": "library"
+		},
+		{
+			"configurations": [
+				{
+					"libs-windows": [
+						"dwmapi",
+						"gdi32",
+						"ole32"
+					],
+					"name": "normal",
+					"targetType": "library"
+				},
+				{
+					"libs-windows": [
+						"dwmapi",
+						"gdi32",
+						"ole32"
+					],
+					"name": "without-opengl",
+					"targetType": "library",
+					"versions": [
+						"without_opengl"
+					]
+				},
+				{
+					"lflags-osx": [
+						"-framework",
+						"Cocoa"
+					],
+					"name": "cocoa",
+					"targetType": "library",
+					"versions-osx": [
+						"OSXCocoa",
+						"allow_unimplemented_features",
+						"without_opengl"
+					]
+				}
+			],
+			"dependencies": {
+				"arsd-official:color_base": "*"
+			},
+			"description": "Window creation and basic drawing",
+			"dflags-dmd": [
+				"-mv=arsd.simpledisplay=$PACKAGE_DIR/simpledisplay.d"
+			],
+			"dflags-gdc": [
+				"-fmodule-file=arsd.simpledisplay=$PACKAGE_DIR/simpledisplay.d"
+			],
+			"dflags-ldc": [
+				"--mv=arsd.simpledisplay=$PACKAGE_DIR/simpledisplay.d"
+			],
+			"lflags-osx": [
+				"-L/usr/X11/lib"
+			],
+			"name": "simpledisplay",
+			"sourceFiles": [
+				"simpledisplay.d"
+			],
+			"targetType": "library"
+		},
+		{
+			"dependencies": {
+				"arsd-official:simpledisplay": "*",
+				"arsd-official:textlayouter": "*"
+			},
+			"description": "Small GUI widget library for Windows and Linux",
+			"dflags-dmd": [
+				"-mv=arsd.minigui=$PACKAGE_DIR/minigui.d"
+			],
+			"dflags-gdc": [
+				"-fmodule-file=arsd.minigui=$PACKAGE_DIR/minigui.d"
+			],
+			"dflags-ldc": [
+				"--mv=arsd.minigui=$PACKAGE_DIR/minigui.d"
+			],
+			"name": "minigui",
+			"sourceFiles": [
+				"minigui.d"
+			],
+			"targetType": "library"
+		},
+		{
+			"dependencies": {
+				"arsd-official:image_files": "*",
+				"arsd-official:simpledisplay": "*",
+				"arsd-official:svg": "*",
+				"arsd-official:ttf": "*",
+				"bindbc-freetype": {
+					"optional": true,
+					"version": "*"
+				},
+				"bindbc-opengl": {
+					"optional": true,
+					"version": "*"
+				}
+			},
+			"description": "Vector graphics library",
+			"dflags-dmd": [
+				"-mv=arsd.nanovega=$PACKAGE_DIR/nanovega.d"
+			],
+			"dflags-ldc": [
+				"--mv=arsd.nanovega=$PACKAGE_DIR/nanovega.d"
+			],
+			"libs-posix": [
+				"freetype",
+				"fontconfig"
+			],
+			"name": "nanovega",
+			"sourceFiles": [
+				"nanovega.d",
+				"blendish.d"
+			],
+			"targetType": "library"
+		},
+		{
+			"dependencies": {
+				"arsd-official:minigui": "*",
+				"arsd-official:nanovega": "*"
+			},
+			"description": "Nanovega widget add-on for minigui. New in v9.2.",
+			"dflags-dmd": [
+				"-mv=arsd.minigui_addons.nanovega=$PACKAGE_DIR/minigui_addons/nanovega.d"
+			],
+			"dflags-gdc": [
+				"-fmodule-file=arsd.minigui_addons.nanovega=$PACKAGE_DIR/minigui_addons/nanovega.d"
+			],
+			"dflags-ldc": [
+				"--mv=arsd.minigui_addons.nanovega=$PACKAGE_DIR/minigui_addons/nanovega.d"
+			],
+			"name": "minigui-nanovega",
+			"sourceFiles": [
+				"minigui_addons/nanovega.d"
+			],
+			"targetType": "library"
+		},
+		{
+			"dependencies": {
+				"arsd-official:minigui": "*",
+				"arsd-official:terminalemulator": "*"
+			},
+			"description": "Terminal emulator widget add-on for minigui. New to dub in v10.5.",
+			"dflags-dmd": [
+				"-mv=arsd.minigui_addons.terminal_emulator_widget=$PACKAGE_DIR/minigui_addons/terminal_emulator_widget.d"
+			],
+			"dflags-gdc": [
+				"-fmodule-file=arsd.minigui_addons.terminal_emulator_widget=$PACKAGE_DIR/minigui_addons/terminal_emulator_widget.d"
+			],
+			"dflags-ldc": [
+				"--mv=arsd.minigui_addons.terminal_emulator_widget=$PACKAGE_DIR/minigui_addons/terminal_emulator_widget.d"
+			],
+			"name": "minigui-terminal_emulator_widget",
+			"sourceFiles": [
+				"minigui_addons/terminal_emulator_widget.d"
+			],
+			"targetType": "library"
+		},
+		{
+			"dependencies": {
+				"arsd-official:minigui": "*"
+			},
+			"description": "Color picker dialog add-on for minigui. New to dub in v10.5.",
+			"dflags-dmd": [
+				"-mv=arsd.minigui_addons.color_dialog=$PACKAGE_DIR/minigui_addons/color_dialog.d"
+			],
+			"dflags-gdc": [
+				"-fmodule-file=arsd.minigui_addons.color_dialog=$PACKAGE_DIR/minigui_addons/color_dialog.d"
+			],
+			"dflags-ldc": [
+				"--mv=arsd.minigui_addons.color_dialog=$PACKAGE_DIR/minigui_addons/color_dialog.d"
+			],
+			"name": "minigui-color_dialog",
+			"sourceFiles": [
+				"minigui_addons/color_dialog.d"
+			],
+			"targetType": "library"
+		},
+		{
+			"dependencies": {
+				"arsd-official:minigui": "*"
+			},
+			"description": "Date and time picker widget add-on for minigui. New in v10.7.",
+			"dflags-dmd": [
+				"-mv=arsd.minigui_addons.datetime_picker=$PACKAGE_DIR/minigui_addons/datetime_picker.d"
+			],
+			"dflags-gdc": [
+				"-fmodule-file=arsd.minigui_addons.datetime_picker=$PACKAGE_DIR/minigui_addons/datetime_picker.d"
+			],
+			"dflags-ldc": [
+				"--mv=arsd.minigui_addons.datetime_picker=$PACKAGE_DIR/minigui_addons/datetime_picker.d"
+			],
+			"name": "minigui-datetime_picker",
+			"sourceFiles": [
+				"minigui_addons/datetime_picker.d"
+			],
+			"targetType": "library"
+		},
+		{
+			"dependencies": {
+				"arsd-official:minigui": "*"
+			},
+			"description": "Webview widget add-on for minigui. New to dub in v10.5 but NOT STABLE in that release and it will break at random without notice until I say it is stable.",
+			"dflags-dmd": [
+				"-mv=arsd.minigui_addons.webview=$PACKAGE_DIR/minigui_addons/webview.d",
+				"-mv=arsd.webview=$PACKAGE_DIR/webview.d"
+			],
+			"dflags-gdc": [
+				"-fmodule-file=arsd.minigui_addons.webview=$PACKAGE_DIR/minigui_addons/webview.d",
+				"-fmodule-file=arsd.webview=$PACKAGE_DIR/webview.d"
+			],
+			"dflags-ldc": [
+				"--mv=arsd.minigui_addons.webview=$PACKAGE_DIR/minigui_addons/webview.d",
+				"--mv=arsd.webview=$PACKAGE_DIR/webview.d"
+			],
+			"name": "minigui-webview",
+			"sourceFiles": [
+				"minigui_addons/webview.d",
+				"webview.d"
+			],
+			"targetType": "library"
+		},
+		{
+			"dependencies": {
+				"arsd-official:simpledisplay": "*"
+			},
+			"description": "A text layouter that can be used for a variety of tasks",
+			"dflags-dmd": [
+				"-mv=arsd.textlayouter=$PACKAGE_DIR/textlayouter.d"
+			],
+			"dflags-gdc": [
+				"-fmodule-file=arsd.textlayouter=$PACKAGE_DIR/textlayouter.d"
+			],
+			"dflags-ldc": [
+				"--mv=arsd.textlayouter=$PACKAGE_DIR/textlayouter.d"
+			],
+			"name": "textlayouter",
+			"sourceFiles": [
+				"textlayouter.d"
+			],
+			"targetType": "library"
+		},
+		{
+			"dependencies": {
+				"arsd-official:color_base": "*",
+				"arsd-official:core": "*"
+			},
+			"description": "Assorted game-related structs and algorithms",
+			"dflags-dmd": [
+				"-mv=arsd.gamehelpers=$PACKAGE_DIR/gamehelpers.d"
+			],
+			"dflags-gdc": [
+				"-fmodule-file=arsd.gamehelpers=$PACKAGE_DIR/gamehelpers.d"
+			],
+			"dflags-ldc": [
+				"--mv=arsd.gamehelpers=$PACKAGE_DIR/gamehelpers.d"
+			],
+			"name": "gamehelpers",
+			"sourceFiles": [
+				"gamehelpers.d"
+			],
+			"targetType": "library"
+		},
+		{
+			"dependencies": {
+				"arsd-official:core": "*",
+				"arsd-official:gamehelpers": "*",
+				"arsd-official:joystick": "*",
+				"arsd-official:minigui": "*",
+				"arsd-official:simpleaudio": "*",
+				"arsd-official:ttf": "*"
+			},
+			"description": "Basic game helper classes (work in progress)",
+			"dflags-dmd": [
+				"-mv=arsd.game=$PACKAGE_DIR/game.d"
+			],
+			"dflags-gdc": [
+				"-fmodule-file=arsd.game=$PACKAGE_DIR/game.d"
+			],
+			"dflags-ldc": [
+				"--mv=arsd.game=$PACKAGE_DIR/game.d"
+			],
+			"name": "game",
+			"sourceFiles": [
+				"game.d"
+			],
+			"targetType": "library"
+		},
+		{
+			"dependencies": {
+				"arsd-official:core": "*"
+			},
+			"description": "joystick reading for Windows XInput and Linux",
+			"dflags-dmd": [
+				"-mv=arsd.joystick=$PACKAGE_DIR/joystick.d"
+			],
+			"dflags-gdc": [
+				"-fmodule-file=arsd.joystick=$PACKAGE_DIR/joystick.d"
+			],
+			"dflags-ldc": [
+				"--mv=arsd.joystick=$PACKAGE_DIR/joystick.d"
+			],
+			"name": "joystick",
+			"sourceFiles": [
+				"joystick.d"
+			],
+			"targetType": "library"
+		},
+		{
+			"description": "Phobos-based fiber socket async i/o subclass",
+			"dflags-dmd": [
+				"-mv=arsd.fibersocket=$PACKAGE_DIR/fibersocket.d"
+			],
+			"dflags-gdc": [
+				"-fmodule-file=arsd.fibersocket=$PACKAGE_DIR/fibersocket.d"
+			],
+			"dflags-ldc": [
+				"--mv=arsd.fibersocket=$PACKAGE_DIR/fibersocket.d"
+			],
+			"name": "fibersocket",
+			"sourceFiles": [
+				"fibersocket.d"
+			],
+			"targetType": "library"
+		},
+		{
+			"dependencies": {
+				"arsd-official:core": "*",
+				"arsd-official:htmltotext": "*"
+			},
+			"description": "Email helper library, both sending MIME messages and parsing incoming mbox/maildir messages",
+			"dflags-dmd": [
+				"-mv=arsd.email=$PACKAGE_DIR/email.d"
+			],
+			"dflags-gdc": [
+				"-fmodule-file=arsd.email=$PACKAGE_DIR/email.d"
+			],
+			"dflags-ldc": [
+				"--mv=arsd.email=$PACKAGE_DIR/email.d"
+			],
+			"name": "email",
+			"sourceFiles": [
+				"email.d"
+			],
+			"targetType": "library"
+		},
+		{
+			"dependencies": {
+				"arsd-official:core": "*",
+				"arsd-official:email": "*"
+			},
+			"description": "Bare-bones incoming-only smtp server",
+			"dflags-dmd": [
+				"-mv=arsd.mailserver=$PACKAGE_DIR/mailserver.d"
+			],
+			"dflags-gdc": [
+				"-fmodule-file=arsd.mailserver=$PACKAGE_DIR/mailserver.d"
+			],
+			"dflags-ldc": [
+				"--mv=arsd.mailserver=$PACKAGE_DIR/mailserver.d"
+			],
+			"name": "mailserver",
+			"sourceFiles": [
+				"mailserver.d"
+			],
+			"targetType": "library"
+		},
+		{
+			"dependencies": {
+				"arsd-official:bmp": "*",
+				"arsd-official:color_base": "*",
+				"arsd-official:imageresize": "*",
+				"arsd-official:jpeg": "*",
+				"arsd-official:png": "*",
+				"arsd-official:svg": "*"
+			},
+			"description": "Various image file format support - PNG read/write, JPEG, TGA, BMP, PCX, TGA, DDS read and SVG rasterization.",
+			"dflags-dmd": [
+				"-mv=arsd.image=$PACKAGE_DIR/image.d",
+				"-mv=arsd.targa=$PACKAGE_DIR/targa.d",
+				"-mv=arsd.pcx=$PACKAGE_DIR/pcx.d",
+				"-mv=arsd.dds=$PACKAGE_DIR/dds.d"
+			],
+			"dflags-gdc": [
+				"--fmodule-file=arsd.image=$PACKAGE_DIR/image.d",
+				"--fmodule-file=arsd.targa=$PACKAGE_DIR/targa.d",
+				"--fmodule-file=arsd.pcx=$PACKAGE_DIR/pcx.d",
+				"--fmodule-file=arsd.dds=$PACKAGE_DIR/dds.d"
+			],
+			"dflags-ldc": [
+				"--mv=arsd.image=$PACKAGE_DIR/image.d",
+				"--mv=arsd.targa=$PACKAGE_DIR/targa.d",
+				"--mv=arsd.pcx=$PACKAGE_DIR/pcx.d",
+				"--mv=arsd.dds=$PACKAGE_DIR/dds.d"
+			],
+			"name": "image_files",
+			"sourceFiles": [
+				"image.d",
+				"targa.d",
+				"pcx.d",
+				"dds.d"
+			],
+			"targetType": "library"
+		},
+		{
+			"dependencies": {
+				"arsd-official:color_base": "*"
+			},
+			"description": "Image resizer for color.d's MemoryImage",
+			"dflags-dmd": [
+				"-mv=arsd.imageresize=$PACKAGE_DIR/imageresize.d"
+			],
+			"dflags-gdc": [
+				"-fmodule-file=arsd.imageresize=$PACKAGE_DIR/imageresize.d"
+			],
+			"dflags-ldc": [
+				"--mv=arsd.imageresize=$PACKAGE_DIR/imageresize.d"
+			],
+			"name": "imageresize",
+			"sourceFiles": [
+				"imageresize.d"
+			],
+			"targetType": "library"
+		},
+		{
+			"dependencies": {
+				"arsd-official:core": "*"
+			},
+			"description": "Simple audio+midi playback and capture for Windows and Linux",
+			"dflags-dmd": [
+				"-mv=arsd.simpleaudio=$PACKAGE_DIR/simpleaudio.d"
+			],
+			"dflags-gdc": [
+				"-fmodule-file=arsd.simpleaudio=$PACKAGE_DIR/simpleaudio.d"
+			],
+			"dflags-ldc": [
+				"--mv=arsd.simpleaudio=$PACKAGE_DIR/simpleaudio.d"
+			],
+			"libs-linux": [
+				"asound"
+			],
+			"libs-windows": [
+				"winmm"
+			],
+			"name": "simpleaudio",
+			"sourceFiles": [
+				"simpleaudio.d"
+			],
+			"targetType": "library"
+		},
+		{
+			"dependencies": {
+				"arsd-official:core": "*"
+			},
+			"description": "midi file format classes",
+			"dflags-dmd": [
+				"-mv=arsd.midi=$PACKAGE_DIR/midi.d"
+			],
+			"dflags-gdc": [
+				"-fmodule-file=arsd.midi=$PACKAGE_DIR/midi.d"
+			],
+			"dflags-ldc": [
+				"--mv=arsd.midi=$PACKAGE_DIR/midi.d"
+			],
+			"name": "midi",
+			"sourceFiles": [
+				"midi.d"
+			],
+			"targetType": "library"
+		},
+		{
+			"dependencies": {
+				"arsd-official:midi": "*",
+				"arsd-official:simpleaudio": "*"
+			},
+			"description": "turn-key midi player library",
+			"dflags-dmd": [
+				"-mv=arsd.midiplayer=$PACKAGE_DIR/midiplayer.d"
+			],
+			"dflags-gdc": [
+				"-fmodule-file=arsd.midiplayer=$PACKAGE_DIR/midiplayer.d"
+			],
+			"dflags-ldc": [
+				"--mv=arsd.midiplayer=$PACKAGE_DIR/midiplayer.d"
+			],
+			"name": "midiplayer",
+			"sourceFiles": [
+				"midiplayer.d"
+			],
+			"targetType": "library"
+		},
+		{
+			"description": "nukedopl3 emulator port, required by simpleaudio's playEmulatedOpl3Midi functio",
+			"dflags-dmd": [
+				"-mv=arsd.nukedopl3=$PACKAGE_DIR/nukedopl3.d"
+			],
+			"dflags-gdc": [
+				"-fmodule-file=arsd.nukedopl3=$PACKAGE_DIR/nukedopl3.d"
+			],
+			"dflags-ldc": [
+				"--mv=arsd.nukedopl3=$PACKAGE_DIR/nukedopl3.d"
+			],
+			"license": "GPL",
+			"name": "nukedopl3",
+			"sourceFiles": [
+				"nukedopl3.d"
+			],
+			"targetType": "library"
+		},
+		{
+			"description": "MP3 decoder. Required if you use simpleaudio's playMp3 function",
+			"dflags-dmd": [
+				"-mv=arsd.mp3=$PACKAGE_DIR/mp3.d"
+			],
+			"dflags-gdc": [
+				"-fmodule-file=arsd.mp3=$PACKAGE_DIR/mp3.d"
+			],
+			"dflags-ldc": [
+				"--mv=arsd.mp3=$PACKAGE_DIR/mp3.d"
+			],
+			"license": "GPL",
+			"name": "mp3",
+			"sourceFiles": [
+				"mp3.d"
+			],
+			"targetType": "library"
+		},
+		{
+			"description": "Ogg vorbis decoder. Required if you use simpleaudio's playOgg function",
+			"dflags-dmd": [
+				"-mv=arsd.vorbis=$PACKAGE_DIR/vorbis.d"
+			],
+			"dflags-gdc": [
+				"-fmodule-file=arsd.vorbis=$PACKAGE_DIR/vorbis.d"
+			],
+			"dflags-ldc": [
+				"--mv=arsd.vorbis=$PACKAGE_DIR/vorbis.d"
+			],
+			"name": "vorbis",
+			"sourceFiles": [
+				"vorbis.d"
+			],
+			"targetType": "library"
+		},
+		{
+			"description": "wav file format read and write",
+			"dflags-dmd": [
+				"-mv=arsd.wav=$PACKAGE_DIR/wav.d"
+			],
+			"dflags-gdc": [
+				"-fmodule-file=arsd.wav=$PACKAGE_DIR/wav.d"
+			],
+			"dflags-ldc": [
+				"--mv=arsd.wav=$PACKAGE_DIR/wav.d"
+			],
+			"name": "wav",
+			"sourceFiles": [
+				"wav.d"
+			],
+			"targetType": "library"
+		},
+		{
+			"description": "Dependency-free partial SVG file format read support",
+			"dflags-dmd": [
+				"-mv=arsd.svg=$PACKAGE_DIR/svg.d"
+			],
+			"dflags-gdc": [
+				"-fmodule-file=arsd.svg=$PACKAGE_DIR/svg.d"
+			],
+			"dflags-ldc": [
+				"--mv=arsd.svg=$PACKAGE_DIR/svg.d"
+			],
+			"name": "svg",
+			"sourceFiles": [
+				"svg.d"
+			],
+			"targetType": "library"
+		},
+		{
+			"dependencies": {
+				"arsd-official:color_base": "*"
+			},
+			"description": "Dependency-free (except for arsd.core and arsd.color) partial JPEG file format read and write support",
+			"dflags-dmd": [
+				"-mv=arsd.jpeg=$PACKAGE_DIR/jpeg.d"
+			],
+			"dflags-gdc": [
+				"-fmodule-file=arsd.jpeg=$PACKAGE_DIR/jpeg.d"
+			],
+			"dflags-ldc": [
+				"--mv=arsd.jpeg=$PACKAGE_DIR/jpeg.d"
+			],
+			"name": "jpeg",
+			"sourceFiles": [
+				"jpeg.d"
+			],
+			"targetType": "library"
+		},
+		{
+			"dependencies": {
+				"arsd-official:color_base": "*",
+				"arsd-official:core": "*"
+			},
+			"description": "PNG file format support",
+			"dflags-dmd": [
+				"-mv=arsd.png=$PACKAGE_DIR/png.d"
+			],
+			"dflags-gdc": [
+				"-fmodule-file=arsd.png=$PACKAGE_DIR/png.d"
+			],
+			"dflags-ldc": [
+				"--mv=arsd.png=$PACKAGE_DIR/png.d"
+			],
+			"name": "png",
+			"sourceFiles": [
+				"png.d"
+			],
+			"targetType": "library"
+		},
+		{
+			"dependencies": {
+				"arsd-official:color_base": "*",
+				"arsd-official:core": "*"
+			},
+			"description": "BMP file format support",
+			"dflags-dmd": [
+				"-mv=arsd.bmp=$PACKAGE_DIR/bmp.d"
+			],
+			"dflags-gdc": [
+				"-fmodule-file=arsd.bmp=$PACKAGE_DIR/bmp.d"
+			],
+			"dflags-ldc": [
+				"--mv=arsd.bmp=$PACKAGE_DIR/bmp.d"
+			],
+			"name": "bmp",
+			"sourceFiles": [
+				"bmp.d"
+			],
+			"targetType": "library"
+		},
+		{
+			"dependencies": {
+				"arsd-official:color_base": "*",
+				"arsd-official:core": "*"
+			},
+			"description": "Windows icon and crsor file format support",
+			"dflags-dmd": [
+				"-mv=arsd.ico=$PACKAGE_DIR/ico.d"
+			],
+			"dflags-gdc": [
+				"-fmodule-file=arsd.ico=$PACKAGE_DIR/ico.d"
+			],
+			"dflags-ldc": [
+				"--mv=arsd.ico=$PACKAGE_DIR/ico.d"
+			],
+			"name": "ico",
+			"sourceFiles": [
+				"ico.d"
+			],
+			"targetType": "library"
+		},
+		{
+			"dependencies": {
+				"arsd-official:color_base": "*",
+				"arsd-official:dom": "*"
+			},
+			"description": "HTML to plain text conversion",
+			"dflags-dmd": [
+				"-mv=arsd.htmltotext=$PACKAGE_DIR/htmltotext.d"
+			],
+			"dflags-gdc": [
+				"-fmodule-file=arsd.htmltotext=$PACKAGE_DIR/htmltotext.d"
+			],
+			"dflags-ldc": [
+				"--mv=arsd.htmltotext=$PACKAGE_DIR/htmltotext.d"
+			],
+			"name": "htmltotext",
+			"sourceFiles": [
+				"htmltotext.d"
+			],
+			"targetType": "library"
+		},
+		{
+			"dependencies": {
+				"arsd-official:characterencodings": "*"
+			},
+			"description": "HTML tag soup DOM library",
+			"dflags-dmd": [
+				"-mv=arsd.dom=$PACKAGE_DIR/dom.d"
+			],
+			"dflags-gdc": [
+				"-fmodule-file=arsd.dom=$PACKAGE_DIR/dom.d"
+			],
+			"dflags-ldc": [
+				"--mv=arsd.dom=$PACKAGE_DIR/dom.d"
+			],
+			"name": "dom",
+			"sourceFiles": [
+				"dom.d"
+			],
+			"targetType": "library"
+		},
+		{
+			"dependencies": {
+				"arsd-official:dom": "*"
+			},
+			"description": "RSS/Atom parsing",
+			"dflags-dmd": [
+				"-mv=arsd.rss=$PACKAGE_DIR/rss.d"
+			],
+			"dflags-gdc": [
+				"-fmodule-file=arsd.rss=$PACKAGE_DIR/rss.d"
+			],
+			"dflags-ldc": [
+				"--mv=arsd.rss=$PACKAGE_DIR/rss.d"
+			],
+			"name": "rss",
+			"sourceFiles": [
+				"rss.d"
+			],
+			"targetType": "library"
+		},
+		{
+			"dependencies": {
+				"arsd-official:core": "*"
+			},
+			"description": "Character encodings to UTF-8",
+			"dflags-dmd": [
+				"-mv=arsd.characterencodings=$PACKAGE_DIR/characterencodings.d"
+			],
+			"dflags-gdc": [
+				"-fmodule-file=arsd.characterencodings=$PACKAGE_DIR/characterencodings.d"
+			],
+			"dflags-ldc": [
+				"--mv=arsd.characterencodings=$PACKAGE_DIR/characterencodings.d"
+			],
+			"name": "characterencodings",
+			"sourceFiles": [
+				"characterencodings.d"
+			],
+			"targetType": "library"
+		},
+		{
+			"dependencies": {
+				"arsd-official:core": "*"
+			},
+			"description": "Binding to the argon2 password hashing C library",
+			"dflags-dmd": [
+				"-mv=arsd.argon2=$PACKAGE_DIR/argon2.d"
+			],
+			"dflags-gdc": [
+				"-fmodule-file=arsd.argon2=$PACKAGE_DIR/argon2.d"
+			],
+			"dflags-ldc": [
+				"--mv=arsd.argon2=$PACKAGE_DIR/argon2.d"
+			],
+			"libs": [
+				"argon2"
+			],
+			"name": "argon2",
+			"sourceFiles": [
+				"argon2.d"
+			],
+			"targetType": "library"
+		},
+		{
+			"configurations": [
+				{
+					"name": "embedded_httpd",
+					"targetType": "library",
+					"versions": [
+						"embedded_httpd"
+					]
+				},
+				{
+					"name": "embedded_httpd_threads",
+					"targetType": "library",
+					"versions": [
+						"embedded_httpd_threads"
+					]
+				},
+				{
+					"name": "embedded_httpd_processes",
+					"targetType": "library",
+					"versions": [
+						"embedded_httpd_processes"
+					]
+				},
+				{
+					"name": "embedded_httpd_hybrid",
+					"targetType": "library",
+					"versions": [
+						"embedded_httpd_hybrid"
+					]
+				},
+				{
+					"name": "cgi",
+					"targetType": "library",
+					"versions": [
+						"traditional_cgi"
+					]
+				},
+				{
+					"libs": [
+						"fcgi"
+					],
+					"name": "fastcgi",
+					"targetType": "library",
+					"versions": [
+						"fastcgi"
+					]
+				},
+				{
+					"name": "scgi",
+					"targetType": "library",
+					"versions": [
+						"scgi"
+					]
+				},
+				{
+					"name": "stdio_http",
+					"targetType": "library",
+					"versions": [
+						"stdio_http"
+					]
+				}
+			],
+			"dependencies": {
+				"arsd-official:core": "*"
+			},
+			"description": "web server library with cgi, fastcgi, scgi, and embedded http server support",
+			"dflags-dmd": [
+				"-mv=arsd.cgi=$PACKAGE_DIR/cgi.d"
+			],
+			"dflags-gdc": [
+				"-fmodule-file=arsd.cgi=$PACKAGE_DIR/cgi.d"
+			],
+			"dflags-ldc": [
+				"--mv=arsd.cgi=$PACKAGE_DIR/cgi.d"
+			],
+			"name": "cgi",
+			"sourceFiles": [
+				"cgi.d"
+			],
+			"targetType": "library"
+		},
+		{
+			"dependencies": {
+				"arsd-official:database_base": "*"
+			},
+			"description": "MySQL client library. Wraps the official C library with my database.d interface.",
+			"dflags-dmd": [
+				"-mv=arsd.mysql=$PACKAGE_DIR/mysql.d"
+			],
+			"dflags-gdc": [
+				"-fmodule-file=arsd.mysql=$PACKAGE_DIR/mysql.d"
+			],
+			"dflags-ldc": [
+				"--mv=arsd.mysql=$PACKAGE_DIR/mysql.d"
+			],
+			"libs-posix": [
+				"mysqlclient"
+			],
+			"libs-windows": [
+				"libmysql"
+			],
+			"license": "GPL-2.0 or later",
+			"name": "mysql",
+			"sourceFiles": [
+				"mysql.d"
+			],
+			"targetType": "library"
+		},
+		{
+			"dependencies": {
+				"arsd-official:database_base": "*"
+			},
+			"description": "Postgresql client library. Wraps the libpq C library with my database.d interface.",
+			"dflags-dmd": [
+				"-mv=arsd.postgres=$PACKAGE_DIR/postgres.d"
+			],
+			"dflags-gdc": [
+				"-fmodule-file=arsd.postgres=$PACKAGE_DIR/postgres.d"
+			],
+			"dflags-ldc": [
+				"--mv=arsd.postgres=$PACKAGE_DIR/postgres.d"
+			],
+			"libs-posix": [
+				"pq"
+			],
+			"libs-windows": [
+				"libpq"
+			],
+			"name": "postgres",
+			"sourceFiles": [
+				"postgres.d"
+			],
+			"targetType": "library"
+		},
+		{
+			"dependencies": {
+				"arsd-official:database_base": "*"
+			},
+			"description": "sqlite wrapper. Wraps the official C library with my database.d interface.",
+			"dflags-dmd": [
+				"-mv=arsd.sqlite=$PACKAGE_DIR/sqlite.d"
+			],
+			"dflags-gdc": [
+				"-fmodule-file=arsd.sqlite=$PACKAGE_DIR/sqlite.d"
+			],
+			"dflags-ldc": [
+				"--mv=arsd.sqlite=$PACKAGE_DIR/sqlite.d"
+			],
+			"libs": [
+				"sqlite3"
+			],
+			"libs-posix": [
+				"dl"
+			],
+			"name": "sqlite",
+			"sourceFiles": [
+				"sqlite.d"
+			],
+			"targetType": "library"
+		},
+		{
+			"dependencies": {
+				"arsd-official:database_base": "*"
+			},
+			"description": "Microsoft SQL Server client library. Wraps the official ODBC library with my database.d interface.",
+			"dflags-dmd": [
+				"-mv=arsd.mssql=$PACKAGE_DIR/mssql.d"
+			],
+			"dflags-gdc": [
+				"-fmodule-file=arsd.mssql=$PACKAGE_DIR/mssql.d"
+			],
+			"dflags-ldc": [
+				"--mv=arsd.mssql=$PACKAGE_DIR/mssql.d"
+			],
+			"libs-windows": [
+				"odbc32"
+			],
+			"name": "mssql",
+			"sourceFiles": [
+				"mssql.d"
+			],
+			"targetType": "library"
+		},
+		{
+			"configurations": [
+				{
+					"name": "with_openssl",
+					"targetType": "library",
+					"versions": [
+						"with_openssl"
+					]
+				},
+				{
+					"name": "without_openssl",
+					"targetType": "library",
+					"versions": [
+						"without_openssl"
+					]
+				},
+				{
+					"name": "no_openssl_applink",
+					"targetType": "library",
+					"versions": [
+						"no_openssl_applink"
+					]
+				}
+			],
+			"dependencies": {
+				"arsd-official:core": "*"
+			},
+			"description": "HTTP client library. Depends on OpenSSL right now on all platforms. On 32 bit Windows, you may need to get OMF openssl lib and dlls (ask me if you can't find it)",
+			"dflags-dmd": [
+				"-mv=arsd.http2=$PACKAGE_DIR/http2.d"
+			],
+			"dflags-gdc": [
+				"-fmodule-file=arsd.http2=$PACKAGE_DIR/http2.d"
+			],
+			"dflags-ldc": [
+				"--mv=arsd.http2=$PACKAGE_DIR/http2.d"
+			],
+			"name": "http",
+			"sourceFiles": [
+				"http2.d"
+			],
+			"targetType": "library"
+		},
+		{
+			"dependencies": {
+				"arsd-official:core": "*"
+			},
+			"description": "Javascript-like object in D, capable of json read/write/manipulation.",
+			"dflags-dmd": [
+				"-mv=arsd.jsvar=$PACKAGE_DIR/jsvar.d"
+			],
+			"dflags-gdc": [
+				"-fmodule-file=arsd.jsvar=$PACKAGE_DIR/jsvar.d"
+			],
+			"dflags-ldc": [
+				"--mv=arsd.jsvar=$PACKAGE_DIR/jsvar.d"
+			],
+			"name": "jsvar",
+			"sourceFiles": [
+				"jsvar.d"
+			],
+			"targetType": "library"
+		},
+		{
+			"dependencies": {
+				"arsd-official:core": "*"
+			},
+			"description": "Provides easy interop with Java via JNI.",
+			"dflags-dmd": [
+				"-mv=arsd.jni=$PACKAGE_DIR/jni.d"
+			],
+			"dflags-gdc": [
+				"-fmodule-file=arsd.jni=$PACKAGE_DIR/jni.d"
+			],
+			"dflags-ldc": [
+				"--mv=arsd.jni=$PACKAGE_DIR/jni.d"
+			],
+			"name": "jni",
+			"sourceFiles": [
+				"jni.d"
+			],
+			"targetType": "sourceLibrary"
+		},
+		{
+			"dependencies": {
+				"arsd-official:jsvar": "*"
+			},
+			"description": "Small Javascript-like script interpreter with easy D API",
+			"dflags-dmd": [
+				"-mv=arsd.script=$PACKAGE_DIR/script.d"
+			],
+			"dflags-gdc": [
+				"-fmodule-file=arsd.script=$PACKAGE_DIR/script.d"
+			],
+			"dflags-ldc": [
+				"--mv=arsd.script=$PACKAGE_DIR/script.d"
+			],
+			"name": "script",
+			"sourceFiles": [
+				"script.d"
+			],
+			"targetType": "library"
+		},
+		{
+			"dependencies": {
+				"arsd-official:cgi": "*",
+				"arsd-official:dom": "*",
+				"arsd-official:jsvar": "*",
+				"arsd-official:script": "*"
+			},
+			"description": "A dom and script based web template system",
+			"dflags-dmd": [
+				"-mv=arsd.webtemplate=$PACKAGE_DIR/webtemplate.d"
+			],
+			"dflags-gdc": [
+				"-fmodule-file=arsd.webtemplate=$PACKAGE_DIR/webtemplate.d"
+			],
+			"dflags-ldc": [
+				"--mv=arsd.webtemplate=$PACKAGE_DIR/webtemplate.d"
+			],
+			"name": "webtemplate",
+			"sourceFiles": [
+				"webtemplate.d"
+			],
+			"targetType": "library"
+		},
+		{
+			"configurations": [
+				{
+					"name": "normal",
+					"targetType": "library"
+				},
+				{
+					"dependencies": {
+						"arsd-official:bmp": "*",
+						"arsd-official:jpeg": "*",
+						"arsd-official:minigui": "*",
+						"arsd-official:png": "*",
+						"arsd-official:svg": "*",
+						"arsd-official:terminalemulator": "*"
+					},
+					"name": "builtin_emulator",
+					"targetType": "library",
+					"versions": [
+						"TerminalDirectToEmulator"
+					]
+				}
+			],
+			"dependencies": {
+				"arsd-official:core": "*"
+			},
+			"description": "Cross-platform Terminal I/O with color, mouse support, real time input, etc.",
+			"dflags-dmd": [
+				"-mv=arsd.terminal=$PACKAGE_DIR/terminal.d"
+			],
+			"dflags-gdc": [
+				"-fmodule-file=arsd.terminal=$PACKAGE_DIR/terminal.d"
+			],
+			"dflags-ldc": [
+				"--mv=arsd.terminal=$PACKAGE_DIR/terminal.d"
+			],
+			"libs-windows": [
+				"user32"
+			],
+			"name": "terminal",
+			"sourceFiles": [
+				"terminal.d"
+			],
+			"targetType": "library"
+		},
+		{
+			"dependencies": {
+				"arsd-official:color_base": "*"
+			},
+			"description": "A terminal emulation core as an in-memory library. Also includes mixin templates to assist with creating UIs, etc.",
+			"dflags-dmd": [
+				"-mv=arsd.terminalemulator=$PACKAGE_DIR/terminalemulator.d"
+			],
+			"dflags-gdc": [
+				"-fmodule-file=arsd.terminalemulator=$PACKAGE_DIR/terminalemulator.d"
+			],
+			"dflags-ldc": [
+				"--mv=arsd.terminalemulator=$PACKAGE_DIR/terminalemulator.d"
+			],
+			"libs-posix": [
+				"util"
+			],
+			"name": "terminalemulator",
+			"sourceFiles": [
+				"terminalemulator.d"
+			],
+			"importPaths": [
+				"."
+			],
+			"targetType": "library"
+		},
+		{
+			"dependencies": {
+				"arsd-official:color_base": "*",
+				"arsd-official:core": "*"
+			},
+			"description": "2D drawing companion library of Pixmap Presenter.",
+			"dflags-dmd": [
+				"-mv=arsd.pixmappaint=$PACKAGE_DIR/pixmappaint.d"
+			],
+			"dflags-gdc": [
+				"-fmodule-file=arsd.pixmappaint=$PACKAGE_DIR/pixmappaint.d"
+			],
+			"dflags-ldc": [
+				"--mv=arsd.pixmappaint=$PACKAGE_DIR/pixmappaint.d"
+			],
+			"name": "pixmappaint",
+			"sourceFiles": [
+				"pixmappaint.d"
+			],
+			"targetType": "library"
+		},
+		{
+			"dependencies": {
+				"arsd-official:pixmappaint": "*"
+			},
+			"description": "Video rendering extension for Pixmap Paint. Fancy wrapper for piping frame data to FFmpeg.",
+			"dflags-dmd": [
+				"-mv=arsd.pixmaprecorder=$PACKAGE_DIR/pixmaprecorder.d"
+			],
+			"dflags-gdc": [
+				"-fmodule-file=arsd.pixmaprecorder=$PACKAGE_DIR/pixmaprecorder.d"
+			],
+			"dflags-ldc": [
+				"--mv=arsd.pixmaprecorder=$PACKAGE_DIR/pixmaprecorder.d"
+			],
+			"name": "pixmaprecorder",
+			"sourceFiles": [
+				"pixmaprecorder.d"
+			],
+			"targetType": "library"
+		},
+		{
+			"dependencies": {
+				"arsd-official:core": "*",
+				"arsd-official:pixmappaint": "*",
+				"arsd-official:simpledisplay": "*"
+			},
+			"description": "High-level display library. Designed to blit fully-rendered frames to the screen.",
+			"dflags-dmd": [
+				"-mv=arsd.pixmappresenter=$PACKAGE_DIR/pixmappresenter.d"
+			],
+			"dflags-gdc": [
+				"-fmodule-file=arsd.pixmappresenter=$PACKAGE_DIR/pixmappresenter.d"
+			],
+			"dflags-ldc": [
+				"--mv=arsd.pixmappresenter=$PACKAGE_DIR/pixmappresenter.d"
+			],
+			"name": "pixmappresenter",
+			"sourceFiles": [
+				"pixmappresenter.d"
+			],
+			"targetType": "library"
+		},
+		{
+			"dependencies": {
+				"arsd-official:core": "*"
+			},
+			"description": "port of stb_ttf to D",
+			"dflags-dmd": [
+				"-mv=arsd.ttf=$PACKAGE_DIR/ttf.d"
+			],
+			"dflags-gdc": [
+				"-fmodule-file=arsd.ttf=$PACKAGE_DIR/ttf.d"
+			],
+			"dflags-ldc": [
+				"--mv=arsd.ttf=$PACKAGE_DIR/ttf.d"
+			],
+			"name": "ttf",
+			"sourceFiles": [
+				"ttf.d"
+			],
+			"targetType": "library"
+		},
+		{
+			"dependencies": {
+				"arsd-official:core": "*"
+			},
+			"description": "Base color, point, image interface definitions",
+			"dflags-dmd": [
+				"-mv=arsd.color=$PACKAGE_DIR/color.d"
+			],
+			"dflags-gdc": [
+				"-fmodule-file=arsd.color=$PACKAGE_DIR/color.d"
+			],
+			"dflags-ldc": [
+				"--mv=arsd.color=$PACKAGE_DIR/color.d"
+			],
+			"name": "color_base",
+			"sourceFiles": [
+				"color.d"
+			],
+			"importPaths": [
+				"."
+			],
+			"targetType": "library"
+		},
+		{
+			"dependencies": {
+				"arsd-official:core": "*"
+			},
+			"description": "Basic database interface definitions. Use one (or more) of the drivers like arsd-official:mysql or arsd-official:postgres instead",
+			"dflags-dmd": [
+				"-mv=arsd.database=$PACKAGE_DIR/database.d"
+			],
+			"dflags-gdc": [
+				"-fmodule-file=arsd.database=$PACKAGE_DIR/database.d"
+			],
+			"dflags-ldc": [
+				"--mv=arsd.database=$PACKAGE_DIR/database.d"
+			],
+			"name": "database_base",
+			"sourceFiles": [
+				"database.d"
+			],
+			"targetType": "library"
+		},
+		{
+			"description": "My bindings to libssh2",
+			"dflags-dmd": [
+				"-mv=arsd.libssh2=$PACKAGE_DIR/libssh2.d"
+			],
+			"dflags-gdc": [
+				"-fmodule-file=arsd.libssh2=$PACKAGE_DIR/libssh2.d"
+			],
+			"dflags-ldc": [
+				"--mv=arsd.libssh2=$PACKAGE_DIR/libssh2.d"
+			],
+			"libs-posix": [
+				"ssh2"
+			],
+			"libs-windows": [
+				"libssh2"
+			],
+			"name": "libssh2_bindings",
+			"sourceFiles": [
+				"libssh2.d"
+			],
+			"targetType": "library"
+		},
+		{
+			"description": "My DEPRECATED event loop. Do NOT use in new programs, only offered here because I use it in a lot of old programs. The core package has a new unified event loop.",
+			"dflags-dmd": [
+				"-mv=arsd.eventloop=$PACKAGE_DIR/eventloop.d"
+			],
+			"dflags-gdc": [
+				"-fmodule-file=arsd.eventloop=$PACKAGE_DIR/eventloop.d"
+			],
+			"dflags-ldc": [
+				"--mv=arsd.eventloop=$PACKAGE_DIR/eventloop.d"
+			],
+			"name": "eventloop",
+			"sourceFiles": [
+				"eventloop.d"
+			],
+			"targetType": "sourceLibrary",
+			"versions": [
+				"with_eventloop"
+			]
+		},
+		{
+			"dependencies": {
+				"arsd-official:core": "*"
+			},
+			"description": "Archive file support - tar, tar.xz decoders, and custom format \"arcz\" encoding and decoding. Self-contained (except for arsd.core).",
+			"dflags-dmd": [
+				"-mv=arsd.archive=$PACKAGE_DIR/archive.d"
+			],
+			"dflags-gdc": [
+				"-fmodule-file=arsd.archive=$PACKAGE_DIR/archive.d"
+			],
+			"dflags-ldc": [
+				"--mv=arsd.archive=$PACKAGE_DIR/archive.d"
+			],
+			"name": "archive",
+			"sourceFiles": [
+				"archive.d"
+			],
+			"targetType": "library"
+		},
+		{
+			"dependencies": {
+				"arsd-official:core": "*"
+			},
+			"description": "INI configuration file support - configurable INI parser and serializer with support for various dialects.",
+			"dflags-dmd": [
+				"-mv=arsd.ini=$PACKAGE_DIR/ini.d"
+			],
+			"dflags-gdc": [
+				"-fmodule-file=arsd.ini=$PACKAGE_DIR/ini.d"
+			],
+			"dflags-ldc": [
+				"--mv=arsd.ini=$PACKAGE_DIR/ini.d"
+			],
+			"name": "ini",
+			"sourceFiles": [
+				"ini.d"
+			],
+			"targetType": "library"
+		}
+	],
+	"targetType": "library",
+	"version": "12.1.0"
+}

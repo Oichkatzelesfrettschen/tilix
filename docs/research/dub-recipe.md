@@ -2,7 +2,8 @@
 
 ## Formats
 
-TODO: [JSON](https://www.json.org/json-en.html) and [SDLang](https://sdlang.org) format.
+DUB recipes are supported in either [JSON](https://www.json.org/json-en.html)
+(`dub.json`) or [SDLang](https://sdlang.org) (`dub.sdl`).
 
 You can convert between the available formats using [`dub convert`](../cli-reference/dub-convert.md).
 

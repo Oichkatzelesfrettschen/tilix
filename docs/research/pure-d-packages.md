@@ -1,0 +1,33 @@
+# Pure D Package Audit (2026-01-05)
+
+This document lists DUB packages relevant to the Pure D rebuild and their
+latest versions as reported by `https://code.dlang.org/api/packages/<pkg>/latest`.
+
+## Core packages in use
+- mir-algorithm 3.22.4 (ndslice, numeric core)
+- intel-intrinsics 1.13.0 (SIMD)
+- bindbc-opengl 1.1.1 (OpenGL)
+- bindbc-glfw 1.1.2 (windowing/input)
+- bindbc-freetype 1.3.3 (glyph rasterization)
+- bindbc-harfbuzz 0.2.1 (text shaping)
+- bindbc-fontconfig 1.0.0 (font discovery)
+- bindbc-loader 1.1.5 (OpenGL loader)
+- arsd-official:terminalemulator 12.1.0 (terminal state machine)
+
+## Additional candidates
+- mir-glas 0.2.4 (BLAS/LAPACK-style math)
+- mir-ion 2.3.5 (fast JSON/YAML/Msgpack)
+- mir-toml 0.1.1 (TOML frontend)
+- capnproto-dlang 0.1.2 (IPC serialization)
+- xkbcommon-d 0.5.1 (keymap handling)
+- xcb-d 2.1.1+1.11.1 (XCB binding)
+- xcb-util-wm-d 0.5.0+0.4.1 (EWMH/ICCCM)
+
+## Not found (via code.dlang.org API)
+- bindbc-xcb
+- bindbc-xkbcommon
+- bindbc-x11
+
+## Notes
+- For XPresent/low-latency swaps, use xcb-d + xcb-util-wm-d.
+- HarfBuzz + Fontconfig are recommended for shaping + fallback fonts.

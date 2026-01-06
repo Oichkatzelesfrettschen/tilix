@@ -1,0 +1,54 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://tilix.dev/schemas/pure-d-config.schema.json",
+  "title": "Tilix Pure D Config",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "fontPath": { "type": "string" },
+    "fontSize": { "type": "integer", "minimum": 1 },
+    "windowWidth": { "type": "integer", "minimum": 1 },
+    "windowHeight": { "type": "integer", "minimum": 1 },
+    "scrollbackMaxLines": { "type": "integer", "minimum": 1000 },
+    "swapInterval": { "type": "integer", "minimum": 0 },
+    "themePath": { "type": "string" },
+    "themeFormat": { "type": "string" },
+    "cursorStyle": {
+      "type": "string",
+      "enum": ["", "block", "underline", "bar", "outline", "block-outline", "box", "under", "beam"]
+    },
+    "cursorThickness": { "type": "number", "minimum": 0 },
+    "accessibilityPreset": {
+      "type": "string",
+      "enum": ["", "high-contrast", "low-vision"]
+    },
+    "selectionBg": { "$ref": "#/$defs/rgba" },
+    "selectionFg": { "$ref": "#/$defs/rgba" },
+    "searchBg": { "$ref": "#/$defs/rgba" },
+    "searchFg": { "$ref": "#/$defs/rgba" },
+    "linkFg": { "$ref": "#/$defs/rgba" },
+    "theme": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "foreground": { "$ref": "#/$defs/rgba" },
+        "background": { "$ref": "#/$defs/rgba" },
+        "palette": { "$ref": "#/$defs/palette16" }
+      }
+    }
+  },
+  "$defs": {
+    "rgba": {
+      "type": "array",
+      "minItems": 4,
+      "maxItems": 4,
+      "items": { "type": "number", "minimum": 0, "maximum": 1 }
+    },
+    "palette16": {
+      "type": "array",
+      "minItems": 16,
+      "maxItems": 16,
+      "items": { "$ref": "#/$defs/rgba" }
+    }
+  }
+}

@@ -20,7 +20,8 @@ import pured.util.signal;
 import pured.platform.input;
 import pured.terminal.selection;
 import pured.terminal.scrollback : ScrollbackViewport, calculateScrollbar;
-import pured.emulator : PureDEmulator;
+import pured.config : ResolvedTheme, defaultResolvedTheme;
+import pured.emulator : PureDEmulator, attributesToColors;
 import pured.fontatlas : FontAtlas;
 import pured.renderer : CellRenderer;
 import arsd.terminalemulator : TerminalEmulator;
@@ -415,6 +416,10 @@ protected:
         int startRow = _scrollback.offset;
         int endRow = startRow + _rows;
 
+        ResolvedTheme theme = *defaultResolvedTheme();
+        theme.foreground = argbToRgba(_foregroundColor);
+        theme.background = argbToRgba(_backgroundColor);
+
         // Render cells
         foreach (row; startRow .. endRow) {
             int screenY = (row - startRow) * _cellHeight;
@@ -431,8 +436,11 @@ protected:
                 if (_emulator !is null) {
                     auto cell = _emulator.getCell(col, row);
                     ch = cell.ch;
-                    // TODO: Extract colors from cell.attributes for true color
-                    // For now using default colors
+                    float[4] fgRgba;
+                    float[4] bgRgba;
+                    attributesToColors(cell.attributes, fgRgba, bgRgba, &theme);
+                    fg = rgbaToArgb(fgRgba);
+                    bg = rgbaToArgb(bgRgba);
                 } else {
                     ch = ' ';
                 }
@@ -521,6 +529,22 @@ private:
         uint b = cast(uint)(ob * alpha + bb * (1 - alpha));
 
         return (0xFF << 24) | (r << 16) | (g << 8) | b;
+    }
+
+    float[4] argbToRgba(uint color) {
+        float a = ((color >> 24) & 0xFF) / 255.0f;
+        float r = ((color >> 16) & 0xFF) / 255.0f;
+        float g = ((color >> 8) & 0xFF) / 255.0f;
+        float b = (color & 0xFF) / 255.0f;
+        return [r, g, b, a];
+    }
+
+    uint rgbaToArgb(in float[4] color) {
+        uint a = cast(uint)clamp(color[3] * 255.0f, 0.0f, 255.0f);
+        uint r = cast(uint)clamp(color[0] * 255.0f, 0.0f, 255.0f);
+        uint g = cast(uint)clamp(color[1] * 255.0f, 0.0f, 255.0f);
+        uint b = cast(uint)clamp(color[2] * 255.0f, 0.0f, 255.0f);
+        return (a << 24) | (r << 16) | (g << 8) | b;
     }
 
     void renderScrollbar(RenderContext ctx) {

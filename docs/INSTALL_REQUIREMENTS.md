@@ -43,7 +43,47 @@ sudo pacman -S --needed git meson ninja pkgconf python
 sudo pacman -S --needed gtk3 vte3 vte-common gsettings-desktop-schemas libsecret
 ```
 
-## 4. GTK4 + VTE4 (optional future backend)
+## 4. Pure D backend (GLFW/OpenGL)
+Pure D uses `dub --config=pure-d` and bypasses GTK/VTE.
+
+System packages (X11-focused; GLFW may also be built with Wayland):
+- glfw (window/input)
+- freetype2 (glyph rasterization)
+- mesa or libglvnd (libGL)
+- libx11 libxrandr libxinerama libxcursor libxi (GLFW X11 deps)
+
+```sh
+sudo pacman -S --needed glfw freetype2 mesa libx11 libxrandr libxinerama libxcursor libxi
+```
+
+DUB/OS additions for advanced features (optional):
+- harfbuzz (text shaping; required for ligatures/combining marks)
+- fontconfig (fallback font discovery)
+- libxkbcommon (keymap handling)
+- libxcb + xcb-util-wm (optional; XCB window hints/Quake mode; PRIMARY selection uses GLFW X11 native access)
+- xdg-utils (hyperlink activation via xdg-open)
+
+```sh
+sudo pacman -S --needed harfbuzz fontconfig libxkbcommon libxcb xcb-util-wm
+```
+
+DUB dependencies (pulled automatically; versions from code.dlang.org /latest):
+- bindbc-glfw 1.1.2 (configured static in dub.json; ensure libglfw3.a exists)
+- bindbc-opengl 1.1.1
+- bindbc-loader 1.1.5
+- bindbc-freetype 1.3.3
+- arsd-official:terminalemulator 12.1.0
+- mir-algorithm 3.22.4
+- mir-ion 2.3.5 (JSON config)
+- intel-intrinsics 1.13.0
+- capnproto-dlang 0.1.2 (IPC schema + client)
+- bindbc-harfbuzz 0.2.1 (shaping)
+- bindbc-fontconfig 1.0.0 (fallback discovery)
+- xkbcommon-d 0.5.1 (optional)
+- xcb-d 2.1.1+1.11.1 (optional)
+- xcb-util-wm-d 0.5.0+0.4.1 (optional)
+
+## 5. GTK4 + VTE4 (optional future backend)
 - gtk4
 - vte4
 - vte4-utils (optional; debugging tools)
@@ -52,7 +92,7 @@ sudo pacman -S --needed gtk3 vte3 vte-common gsettings-desktop-schemas libsecret
 sudo pacman -S --needed gtk4 vte4 vte4-utils
 ```
 
-## 5. Qt backend (optional)
+## 6. Qt backend (optional)
 Tilix does not ship a Qt backend yet, but a future port can target QTermWidget.
 
 - qt6-base
@@ -63,7 +103,7 @@ Tilix does not ship a Qt backend yet, but a future port can target QTermWidget.
 sudo pacman -S --needed qt6-base qtermwidget cmake
 ```
 
-## 6. Framebuffer / KMS / DRM (optional)
+## 7. Framebuffer / KMS / DRM (optional)
 For direct rendering without GTK/Qt:
 - libdrm
 - mesa (GBM/EGL)
@@ -75,7 +115,7 @@ For direct rendering without GTK/Qt:
 sudo pacman -S --needed libdrm mesa libxkbcommon libinput seatd
 ```
 
-## 7. OpenGL/EGL and X11 (required for high-refresh rendering)
+## 8. OpenGL/EGL and X11 (required for high-refresh rendering)
 For the OpenGL render backend (bypasses VTE3's 40 FPS cap):
 - mesa
 - libglvnd
@@ -94,7 +134,7 @@ D bindings (automatically fetched by DUB):
 - bindbc-loader 1.1.5
 - bindbc-freetype 1.3.3
 
-## 8. Vulkan (optional)
+## 9. Vulkan (optional)
 - vulkan-icd-loader
 - vulkan-headers
 - shaderc
@@ -104,7 +144,7 @@ D bindings (automatically fetched by DUB):
 sudo pacman -S --needed vulkan-icd-loader vulkan-headers shaderc glslang
 ```
 
-## 9. Formal verification toolchain (optional)
+## 10. Formal verification toolchain (optional)
 Used for `verification/` specs and extraction workflows.
 
 - coq
@@ -117,7 +157,7 @@ Used for `verification/` specs and extraction workflows.
 sudo pacman -S --needed coq ocaml z3 python tlaplus tla-toolbox
 ```
 
-## 10. Install-time utilities (required for install.sh)
+## 11. Install-time utilities (required for install.sh)
 The install script uses these commands directly:
 - glib-compile-schemas (glib2)
 - glib-compile-resources (glib2)
@@ -127,12 +167,14 @@ The install script uses these commands directly:
 - gtk-update-icon-cache (gtk3)
 - xdg-desktop-menu (xdg-utils)
 - python (used by scripts/dub/prepare-resources.sh)
+- gdk-pixbuf-pixdata (gdk-pixbuf2; used by resource compilation)
+- realpath, install, find, sed, gzip (coreutils, findutils, sed, gzip)
 
 ```sh
-sudo pacman -S --needed glib2 gettext desktop-file-utils gtk3 xdg-utils python
+sudo pacman -S --needed glib2 gettext desktop-file-utils gtk3 xdg-utils python gdk-pixbuf2 coreutils findutils sed gzip
 ```
 
-## 11. Metadata + manpage tooling (optional but recommended)
+## 12. Metadata + manpage tooling (optional but recommended)
 - appstreamcli (appstream) for AppStream metadata validation
 - po4a-translate (po4a) for localized man pages
 
@@ -140,7 +182,39 @@ sudo pacman -S --needed glib2 gettext desktop-file-utils gtk3 xdg-utils python
 sudo pacman -S --needed appstream po4a
 ```
 
+## 13. IPC + automation (optional)
+For IPC control plane and schema-driven commands:
+- capnproto (capnp compiler for schema generation; used with capnproto-dlang)
+- capnproto-dlang (capnpc-dlang plugin; AUR on Arch)
+- socat (useful for PTY/IPC testing)
+
+```sh
+sudo pacman -S --needed capnproto socat
+yay -S --needed capnproto-dlang
+```
+
+## 14. Testing + benchmarking (optional)
+- vttest (terminal correctness suite)
+- hyperfine (benchmark runner)
+- perf (linux-tools; profiling)
+
+```sh
+sudo pacman -S --needed vttest hyperfine perf
+```
+
+## 15. IME/input method stacks (optional)
+If IME support is needed for non-Latin input:
+- ibus, ibus-gtk
+- fcitx5, fcitx5-gtk
+
+```sh
+sudo pacman -S --needed ibus ibus-gtk fcitx5 fcitx5-gtk
+```
+
 ## Notes
 - For non-Arch distributions, map the packages above to your distro
   equivalents (Fedora, Debian/Ubuntu, etc.).
 - The GTK3/VTE3 stack is required for the current Tilix codebase.
+- `dub-asan.json` ASAN builds require LDC and a compiler-rt/libasan package.
+- `bindbc-glfw` is set to static in `dub.json`; ensure libglfw3.a exists or switch to dynamic.
+- `scripts/dub/prepare-resources.sh` runs `appstreamcli validate` when present and treats warnings as errors.

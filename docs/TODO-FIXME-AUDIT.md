@@ -1,17 +1,30 @@
 # TODO/FIXME Audit
 
-Generated: 2026-01-05T02:26:40.287681+00:00
+Generated: 2026-01-06T11:16:05-08:00
 
-## Counts by file
-- docs/research/dub-hooks.md: 2
-- docs/research/dub-recipe.md: 1
-- source/gx/tilix/session.d: 1
-- experimental/flatpak/com.gexperts.Tilix.yaml: 1
+## Scope
+- Includes: source/, pured/, experimental/, docs/research.
+- Excludes: vendor/ (third-party), docs/TODO.md, and audit/roadmap docs (narrative references to TODO).
 
-## Raw matches
-docs/TODO.md:1:# Tilix DUB-First TODO
-docs/research/dub-hooks.md:63:TODO: need to document how this works with dependencies of dependencies
-docs/research/dub-hooks.md:65:TODO: need to document if there is any use-case paired with `targetType "sourceLibrary"`
-docs/research/dub-recipe.md:5:TODO: [JSON](https://www.json.org/json-en.html) and [SDLang](https://sdlang.org) format.
-source/gx/tilix/session.d:1465:                        // TODO: Fetch real char metrics from terminal
-experimental/flatpak/com.gexperts.Tilix.yaml:98:# TODO: Use shared module from flathub.
+## Counts by top-level area
+- source: 0
+- pured: 0
+- docs/research: 0
+- experimental: 0
+
+## Classification (subsystem, severity, action)
+
+### GTK/VTE core (source/)
+- No open TODO/FIXME items in GTK/VTE modules.
+
+### Pure D backend (pured/)
+- No open TODO/FIXME items in Pure D modules.
+
+### Packaging and docs
+- No open TODO/FIXME items in docs or packaging manifests.
+
+## Actionable task list (owners TBD)
+- No open TODO/FIXME tasks in the current scan.
+
+## Resolved in this audit
+- `source/gx/tilix/session.d` layout metrics now use terminal char dimensions.

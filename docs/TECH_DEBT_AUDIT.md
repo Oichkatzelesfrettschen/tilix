@@ -5,7 +5,7 @@ This comprehensive audit identifies 22 technical debt items across the Tilix cod
 ## Executive Summary
 
 - **Total Issues**: 22
-- **Critical**: 4 (Regex caching, File size, TODO debt, Hardcoded metrics)
+- **Critical**: 2 active (Regex caching, File size), 2 resolved (non-blocking PTY read, layout metrics)
 - **High**: 4 (Error handling, Massive methods, Resource leaks, GC pressure)
 - **Medium**: 7 (Queue overflow, Singletons, Concatenations, Missing tests)
 - **Low**: 5 (Code smell, Typos, Magic numbers)
@@ -52,49 +52,20 @@ GRegex getCompiledRegex(string pattern) {
 
 ---
 
-### 3. Unresolved TODO in iothread.d
-**File**: `source/gx/tilix/terminal/iothread.d:389`
-**Impact**: Blocking reads could freeze entire I/O thread
-**Root Cause**: Incomplete async I/O implementation
-**Fix**: Implement select/poll with non-blocking reads
-**Effort**: High (5-8 hours)
-
-```d
-// Current:
-// TODO: Use select/poll for non-blocking read
-
-// Recommended:
-import core.sys.posix.sys.select;
-fd_set readfds;
-FD_ZERO(&readfds);
-FD_SET(pty_fd, &readfds);
-if (select(pty_fd + 1, &readfds, null, null, &timeout) > 0) {
-    // Non-blocking read
-}
-```
+### 3. Resolved: Non-blocking PTY reads in iothread.d
+**File**: `source/gx/tilix/terminal/iothread.d:399-439`
+**Status**: Implemented using `select()` with a 1ms timeout.
+**Impact**: PTY reads are now non-blocking in the IO thread.
+**Follow-up**: Verify IOThreadManager is instantiated and hooked into Terminal update flow.
+**Effort**: Medium (verification + integration)
 
 ---
 
-### 4. Hardcoded Metrics in session.d
-**File**: `source/gx/tilix/session.d:1465-1466`
-**Impact**: Layout calculations inaccurate for non-default fonts
-**Root Cause**: Metrics not queried from VTE widget
-**Fix**: Fetch actual char dimensions from VTE
-**Effort**: Medium (2-3 hours)
-
-```d
-// Current:
-// TODO: Fetch real char metrics from terminal
-LayoutConfig cfg = LayoutConfig(50, 1, 8, 16);  // Hardcoded
-
-// Recommended:
-LayoutConfig cfg = LayoutConfig(
-    currentTerminal.getColumnCount(),
-    1,
-    currentTerminal.getCharWidth(),
-    currentTerminal.getCharHeight()
-);
-```
+### 4. Resolved: Layout metrics now use terminal char dimensions
+**File**: `source/gx/tilix/session.d:1465-1475`
+**Status**: Uses `terminal.charWidth` and `terminal.charHeight` in LayoutConfig.
+**Impact**: Layout calculations scale with font metrics.
+**Follow-up**: Validate behavior across font sizes during resize.
 
 ---
 
@@ -188,9 +159,9 @@ LayoutConfig cfg = LayoutConfig(
 ## PRIORITIZATION ROADMAP
 
 ### Immediate (Next Sprint)
-1. Fix hardcoded layout metrics (session.d:1465) - **blocks layout accuracy**
+1. Validate layout metrics across font sizes (session.d:1465) - **verify**
 2. Add regex compilation cache (terminal.d:2032) - **impacts UX**
-3. Complete TODO in iothread.d:389 - **blocks I/O reliability**
+3. Verify IOThreadManager integration path (Terminal uses IO thread without blocking)
 4. Fix color parsing error handling (terminal.d:2256)
 
 ### Short Term (Next 2 Sprints)
@@ -237,7 +208,7 @@ LayoutConfig cfg = LayoutConfig(
 |--------|-------|
 | Largest file | terminal.d (4,677 lines) |
 | Files >1000 lines | 3 (terminal, session, appwindow) |
-| TODO/FIXME items | 2 (both critical) |
+| TODO/FIXME items | 0 (non-vendor; see docs/TODO-FIXME-SUMMARY.md) |
 | Global singletons | 3 (ProcessMonitor, settings objects) |
 | Untested modules | 15+ |
 | Regex compilations/click | O(n) patterns |

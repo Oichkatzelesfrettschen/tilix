@@ -13,7 +13,8 @@
         "gtk-d:vte": "~>3.11.0",
         "bindbc-opengl": "~>1.1.1",
         "bindbc-loader": "~>1.1.5",
-        "bindbc-freetype": "~>1.3.3"
+        "bindbc-freetype": "~>1.3.3",
+        "mir-algorithm": "~>3.22.4"
     },
     "subConfigurations": {
         "bindbc-freetype": "dynamic"

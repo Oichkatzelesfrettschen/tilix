@@ -269,46 +269,120 @@ private:
      * Translate special keys (arrows, function keys, etc.)
      */
     const(ubyte)[] translateSpecialKey(int key, int mods) {
+        int modParam = modifierParam(mods);
+
         // Arrow keys depend on cursor mode
         switch (key) {
             case GLFW_KEY_UP:
+                if (modParam > 1) {
+                    return encodeCsiMod(1, modParam, 'A');
+                }
                 return _applicationCursorMode
                     ? cast(const(ubyte)[])"\x1bOA"   // SS3 A
                     : cast(const(ubyte)[])"\x1b[A";  // CSI A
             case GLFW_KEY_DOWN:
+                if (modParam > 1) {
+                    return encodeCsiMod(1, modParam, 'B');
+                }
                 return _applicationCursorMode
                     ? cast(const(ubyte)[])"\x1bOB"
                     : cast(const(ubyte)[])"\x1b[B";
             case GLFW_KEY_RIGHT:
+                if (modParam > 1) {
+                    return encodeCsiMod(1, modParam, 'C');
+                }
                 return _applicationCursorMode
                     ? cast(const(ubyte)[])"\x1bOC"
                     : cast(const(ubyte)[])"\x1b[C";
             case GLFW_KEY_LEFT:
+                if (modParam > 1) {
+                    return encodeCsiMod(1, modParam, 'D');
+                }
                 return _applicationCursorMode
                     ? cast(const(ubyte)[])"\x1bOD"
                     : cast(const(ubyte)[])"\x1b[D";
 
             // Navigation keys
-            case GLFW_KEY_HOME:      return cast(const(ubyte)[])"\x1b[H";
-            case GLFW_KEY_END:       return cast(const(ubyte)[])"\x1b[F";
-            case GLFW_KEY_INSERT:    return cast(const(ubyte)[])"\x1b[2~";
-            case GLFW_KEY_DELETE:    return cast(const(ubyte)[])"\x1b[3~";
-            case GLFW_KEY_PAGE_UP:   return cast(const(ubyte)[])"\x1b[5~";
-            case GLFW_KEY_PAGE_DOWN: return cast(const(ubyte)[])"\x1b[6~";
+            case GLFW_KEY_HOME:
+                return modParam > 1 ? encodeCsiMod(1, modParam, 'H')
+                                    : cast(const(ubyte)[])"\x1b[H";
+            case GLFW_KEY_END:
+                return modParam > 1 ? encodeCsiMod(1, modParam, 'F')
+                                    : cast(const(ubyte)[])"\x1b[F";
+            case GLFW_KEY_INSERT:
+                return modParam > 1 ? encodeCsiMod(2, modParam, '~')
+                                    : cast(const(ubyte)[])"\x1b[2~";
+            case GLFW_KEY_DELETE:
+                return modParam > 1 ? encodeCsiMod(3, modParam, '~')
+                                    : cast(const(ubyte)[])"\x1b[3~";
+            case GLFW_KEY_PAGE_UP:
+                return modParam > 1 ? encodeCsiMod(5, modParam, '~')
+                                    : cast(const(ubyte)[])"\x1b[5~";
+            case GLFW_KEY_PAGE_DOWN:
+                return modParam > 1 ? encodeCsiMod(6, modParam, '~')
+                                    : cast(const(ubyte)[])"\x1b[6~";
 
             // Function keys (VT220 style)
-            case GLFW_KEY_F1:  return cast(const(ubyte)[])"\x1bOP";
-            case GLFW_KEY_F2:  return cast(const(ubyte)[])"\x1bOQ";
-            case GLFW_KEY_F3:  return cast(const(ubyte)[])"\x1bOR";
-            case GLFW_KEY_F4:  return cast(const(ubyte)[])"\x1bOS";
-            case GLFW_KEY_F5:  return cast(const(ubyte)[])"\x1b[15~";
-            case GLFW_KEY_F6:  return cast(const(ubyte)[])"\x1b[17~";
-            case GLFW_KEY_F7:  return cast(const(ubyte)[])"\x1b[18~";
-            case GLFW_KEY_F8:  return cast(const(ubyte)[])"\x1b[19~";
-            case GLFW_KEY_F9:  return cast(const(ubyte)[])"\x1b[20~";
-            case GLFW_KEY_F10: return cast(const(ubyte)[])"\x1b[21~";
-            case GLFW_KEY_F11: return cast(const(ubyte)[])"\x1b[23~";
-            case GLFW_KEY_F12: return cast(const(ubyte)[])"\x1b[24~";
+            case GLFW_KEY_F1:
+                return modParam > 1 ? encodeCsiMod(1, modParam, 'P')
+                                    : cast(const(ubyte)[])"\x1bOP";
+            case GLFW_KEY_F2:
+                return modParam > 1 ? encodeCsiMod(1, modParam, 'Q')
+                                    : cast(const(ubyte)[])"\x1bOQ";
+            case GLFW_KEY_F3:
+                return modParam > 1 ? encodeCsiMod(1, modParam, 'R')
+                                    : cast(const(ubyte)[])"\x1bOR";
+            case GLFW_KEY_F4:
+                return modParam > 1 ? encodeCsiMod(1, modParam, 'S')
+                                    : cast(const(ubyte)[])"\x1bOS";
+            case GLFW_KEY_F5:
+                return modParam > 1 ? encodeCsiMod(15, modParam, '~')
+                                    : cast(const(ubyte)[])"\x1b[15~";
+            case GLFW_KEY_F6:
+                return modParam > 1 ? encodeCsiMod(17, modParam, '~')
+                                    : cast(const(ubyte)[])"\x1b[17~";
+            case GLFW_KEY_F7:
+                return modParam > 1 ? encodeCsiMod(18, modParam, '~')
+                                    : cast(const(ubyte)[])"\x1b[18~";
+            case GLFW_KEY_F8:
+                return modParam > 1 ? encodeCsiMod(19, modParam, '~')
+                                    : cast(const(ubyte)[])"\x1b[19~";
+            case GLFW_KEY_F9:
+                return modParam > 1 ? encodeCsiMod(20, modParam, '~')
+                                    : cast(const(ubyte)[])"\x1b[20~";
+            case GLFW_KEY_F10:
+                return modParam > 1 ? encodeCsiMod(21, modParam, '~')
+                                    : cast(const(ubyte)[])"\x1b[21~";
+            case GLFW_KEY_F11:
+                return modParam > 1 ? encodeCsiMod(23, modParam, '~')
+                                    : cast(const(ubyte)[])"\x1b[23~";
+            case GLFW_KEY_F12:
+                return modParam > 1 ? encodeCsiMod(24, modParam, '~')
+                                    : cast(const(ubyte)[])"\x1b[24~";
+            case GLFW_KEY_F13:
+                return modParam > 1 ? encodeCsiMod(25, modParam, '~')
+                                    : cast(const(ubyte)[])"\x1b[25~";
+            case GLFW_KEY_F14:
+                return modParam > 1 ? encodeCsiMod(26, modParam, '~')
+                                    : cast(const(ubyte)[])"\x1b[26~";
+            case GLFW_KEY_F15:
+                return modParam > 1 ? encodeCsiMod(28, modParam, '~')
+                                    : cast(const(ubyte)[])"\x1b[28~";
+            case GLFW_KEY_F16:
+                return modParam > 1 ? encodeCsiMod(29, modParam, '~')
+                                    : cast(const(ubyte)[])"\x1b[29~";
+            case GLFW_KEY_F17:
+                return modParam > 1 ? encodeCsiMod(31, modParam, '~')
+                                    : cast(const(ubyte)[])"\x1b[31~";
+            case GLFW_KEY_F18:
+                return modParam > 1 ? encodeCsiMod(32, modParam, '~')
+                                    : cast(const(ubyte)[])"\x1b[32~";
+            case GLFW_KEY_F19:
+                return modParam > 1 ? encodeCsiMod(33, modParam, '~')
+                                    : cast(const(ubyte)[])"\x1b[33~";
+            case GLFW_KEY_F20:
+                return modParam > 1 ? encodeCsiMod(34, modParam, '~')
+                                    : cast(const(ubyte)[])"\x1b[34~";
 
             // Control keys
             case GLFW_KEY_BACKSPACE: return cast(const(ubyte)[])"\x7f";
@@ -366,6 +440,30 @@ private:
                 return _applicationKeypadMode
                     ? cast(const(ubyte)[])"\x1bOy"
                     : cast(const(ubyte)[])("9");
+            case GLFW_KEY_KP_DECIMAL:
+                return _applicationKeypadMode
+                    ? cast(const(ubyte)[])"\x1bOn"
+                    : cast(const(ubyte)[])(".");
+            case GLFW_KEY_KP_DIVIDE:
+                return _applicationKeypadMode
+                    ? cast(const(ubyte)[])"\x1bOo"
+                    : cast(const(ubyte)[])("/");
+            case GLFW_KEY_KP_MULTIPLY:
+                return _applicationKeypadMode
+                    ? cast(const(ubyte)[])"\x1bOj"
+                    : cast(const(ubyte)[])("*");
+            case GLFW_KEY_KP_SUBTRACT:
+                return _applicationKeypadMode
+                    ? cast(const(ubyte)[])"\x1bOm"
+                    : cast(const(ubyte)[])("-");
+            case GLFW_KEY_KP_ADD:
+                return _applicationKeypadMode
+                    ? cast(const(ubyte)[])"\x1bOk"
+                    : cast(const(ubyte)[])("+");
+            case GLFW_KEY_KP_EQUAL:
+                return _applicationKeypadMode
+                    ? cast(const(ubyte)[])"\x1bOX"
+                    : cast(const(ubyte)[])("=");
 
             default:
                 return null;
@@ -405,6 +503,44 @@ private:
             default:
                 return null;
         }
+    }
+
+    int modifierParam(int mods) {
+        int param = 1;
+        if (mods & GLFW_MOD_SHIFT)   param += 1;
+        if (mods & GLFW_MOD_ALT)     param += 2;
+        if (mods & GLFW_MOD_CONTROL) param += 4;
+        return param;
+    }
+
+    size_t appendNumber(ubyte[] buffer, size_t offset, int value) {
+        if (value == 0) {
+            buffer[offset++] = '0';
+            return offset;
+        }
+
+        ubyte[10] digits;
+        size_t len = 0;
+        int v = value;
+        while (v > 0 && len < digits.length) {
+            digits[len++] = cast(ubyte)('0' + (v % 10));
+            v /= 10;
+        }
+        foreach_reverse (i; 0 .. len) {
+            buffer[offset++] = digits[i];
+        }
+        return offset;
+    }
+
+    const(ubyte)[] encodeCsiMod(int baseParam, int modParam, char finalChar) {
+        size_t offset = 0;
+        _keyBuffer[offset++] = 0x1b;
+        _keyBuffer[offset++] = '[';
+        offset = appendNumber(_keyBuffer[], offset, baseParam);
+        _keyBuffer[offset++] = ';';
+        offset = appendNumber(_keyBuffer[], offset, modParam);
+        _keyBuffer[offset++] = cast(ubyte)finalChar;
+        return _keyBuffer[0 .. offset];
     }
 
     /**

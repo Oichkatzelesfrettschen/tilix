@@ -1,0 +1,156 @@
+{
+	"authors": [
+		"Ahmet Sait"
+	],
+	"configurations": [
+		{
+			"dependencies": {
+				"bindbc-freetype": "~>1.3.3",
+				"bindbc-loader": "~>1.1.5"
+			},
+			"excludedSourceFiles": [
+				"test/app.d",
+				"test/app.d"
+			],
+			"name": "dynamic",
+			"targetType": "staticLibrary"
+		},
+		{
+			"buildOptions": [
+				"betterC"
+			],
+			"dependencies": {
+				"bindbc-freetype": "~>1.3.3",
+				"bindbc-loader": "~>1.1.5"
+			},
+			"excludedSourceFiles": [
+				"test/app.d",
+				"test/app.d"
+			],
+			"name": "dynamicBC",
+			"subConfigurations": {
+				"bindbc-loader": "yesBC"
+			},
+			"targetType": "staticLibrary"
+		},
+		{
+			"excludedSourceFiles": [
+				"source/bindbc/sdl/dynload.d",
+				"test/app.d",
+				"test/app.d"
+			],
+			"name": "static",
+			"targetType": "staticLibrary",
+			"versions": [
+				"BindHB_Static"
+			]
+		},
+		{
+			"buildOptions": [
+				"betterC"
+			],
+			"excludedSourceFiles": [
+				"source/bindbc/sdl/dynload.d",
+				"test/app.d",
+				"test/app.d"
+			],
+			"name": "staticBC",
+			"targetType": "staticLibrary",
+			"versions": [
+				"BindHB_Static"
+			]
+		},
+		{
+			"buildOptions": [
+				"debugMode",
+				"debugInfo",
+				"unittests"
+			],
+			"copyFiles-windows-x86": [
+				"lib/*.dll"
+			],
+			"copyFiles-windows-x86_64": [
+				"lib64/*.dll"
+			],
+			"dependencies": {
+				"aurora-directx": "~>12.1.1",
+				"bindbc-freetype": "~>1.3.3",
+				"bindbc-loader": "~>1.1.5"
+			},
+			"excludedSourceFiles": [],
+			"mainSourceFile": "test/app.d",
+			"name": "test_dynamic",
+			"sourcePaths": [
+				"test"
+			],
+			"targetPath": "bin-test_dynamic-$ARCH",
+			"targetType": "executable",
+			"versions": [
+				"HB_2_6_3",
+				"HB_with_deprecated",
+				"HB_with_freetype",
+				"HB_with_subset"
+			],
+			"versions-windows": [
+				"HB_with_uniscribe"
+			]
+		},
+		{
+			"buildOptions": [
+				"debugMode",
+				"debugInfo",
+				"unittests"
+			],
+			"copyFiles-windows-x86": [
+				"lib/*.dll"
+			],
+			"copyFiles-windows-x86_64": [
+				"lib64/*.dll"
+			],
+			"dependencies": {
+				"aurora-directx": "~>12.1.1",
+				"bindbc-freetype": "~>1.3.3",
+				"bindbc-loader": "~>1.1.5"
+			},
+			"excludedSourceFiles": [
+				"source/bindbc/sdl/dynload.d"
+			],
+			"libs-windows-x86": [
+				"lib/libharfbuzz-0"
+			],
+			"libs-windows-x86_64": [
+				"lib64/libharfbuzz-0"
+			],
+			"mainSourceFile": "test/app.d",
+			"name": "test_static",
+			"sourcePaths": [
+				"test"
+			],
+			"targetPath": "bin-test_static-$ARCH",
+			"targetType": "executable",
+			"versions": [
+				"BindHB_Static",
+				"HB_2_6_3",
+				"HB_with_deprecated",
+				"HB_with_freetype",
+				"HB_with_subset"
+			],
+			"versions-windows": [
+				"HB_with_uniscribe"
+			]
+		}
+	],
+	"copyright": "Copyright © 2019, Ahmet Sait",
+	"description": "Dynamic and static bindings to HarfBuzz, compatible with -betterC, @nogc, and nothrow.",
+	"importPaths": [
+		"src"
+	],
+	"license": "BSL-1.0",
+	"name": "bindbc-harfbuzz",
+	"sourcePaths": [
+		"src"
+	],
+	"targetPath": "bin-$ARCH",
+	"targetType": "staticLibrary",
+	"version": "0.2.1"
+}

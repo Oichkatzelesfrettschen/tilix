@@ -1462,8 +1462,7 @@ public:
                         trace("Resizing " ~ direction);
                         
                         // Verified V2 Logic
-                        // TODO: Fetch real char metrics from terminal
-                        LayoutConfig cfg = LayoutConfig(50, 1, 8, 16); 
+                        LayoutConfig cfg = LayoutConfig(50, 1, terminal.charWidth, terminal.charHeight);
                         int newPos = calculateResize(cfg, paned.getPosition(), paned.getAllocatedHeight(), increment, Axis.Vertical);
                         
                         if (newPos != -1) {
@@ -1475,7 +1474,7 @@ public:
                         trace("Resizing " ~ direction);
                         
                         // Verified V2 Logic
-                        LayoutConfig cfg = LayoutConfig(80, 1, 8, 16);
+                        LayoutConfig cfg = LayoutConfig(80, 1, terminal.charWidth, terminal.charHeight);
                         int newPos = calculateResize(cfg, paned.getPosition(), paned.getAllocatedWidth(), increment, Axis.Horizontal);
 
                         if (newPos != -1) {
@@ -1924,4 +1923,3 @@ struct MaximizedInfo {
 }
 
 // PanedModel and PanedNode were replaced by LayoutVerified.balance logic.
-

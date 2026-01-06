@@ -42,6 +42,8 @@ private:
     void delegate(int, int, int) _mouseButtonCallback;
     void delegate(double, double) _scrollCallback;
     void delegate(double, double) _cursorPosCallback;
+    void delegate(bool) _focusCallback;
+    void delegate(float, float) _contentScaleCallback;
 
 public:
     /**
@@ -51,10 +53,11 @@ public:
      *   width = Initial window width in pixels
      *   height = Initial window height in pixels
      *   title = Window title string
+     *   swapInterval = VSync interval (0 disables VSync)
      *
      * Returns: true if initialization succeeded, false otherwise
      */
-    bool initialize(int width, int height, string title) {
+    bool initialize(int width, int height, string title, int swapInterval = 0) {
         _width = width;
         _height = height;
 
@@ -95,8 +98,11 @@ public:
             stderr.writefln("Warning: OpenGL library has missing symbols");
         }
 
-        // Disable VSync for maximum framerate (320Hz+ target)
-        glfwSwapInterval(0);
+        // Disable VSync by default for maximum framerate (320Hz+ target)
+        if (swapInterval < 0) {
+            swapInterval = 0;
+        }
+        glfwSwapInterval(swapInterval);
 
         // Set up callbacks
         glfwSetWindowUserPointer(_handle, cast(void*)this);
@@ -106,6 +112,8 @@ public:
         glfwSetMouseButtonCallback(_handle, &mouseButtonCallbackStatic);
         glfwSetScrollCallback(_handle, &scrollCallbackStatic);
         glfwSetCursorPosCallback(_handle, &cursorPosCallbackStatic);
+        glfwSetWindowFocusCallback(_handle, &windowFocusCallbackStatic);
+        glfwSetWindowContentScaleCallback(_handle, &contentScaleCallbackStatic);
 
         return true;
     }
@@ -129,6 +137,13 @@ public:
     }
 
     /**
+     * Access native GLFW window handle.
+     */
+    @property GLFWwindow* handle() {
+        return _handle;
+    }
+
+    /**
      * Request window close.
      */
     void close() {
@@ -147,6 +162,17 @@ public:
      */
     void swapBuffers() {
         glfwSwapBuffers(_handle);
+    }
+
+    void setSwapInterval(int swapInterval) {
+        if (swapInterval < 0) {
+            swapInterval = 0;
+        }
+        glfwSwapInterval(swapInterval);
+    }
+
+    void setSize(int width, int height) {
+        glfwSetWindowSize(_handle, width, height);
     }
 
     /**
@@ -171,10 +197,24 @@ public:
     }
 
     /**
+     * Get content scale (HiDPI).
+     */
+    void getContentScale(out float xScale, out float yScale) {
+        glfwGetWindowContentScale(_handle, &xScale, &yScale);
+    }
+
+    /**
      * Set window title.
      */
     void setTitle(string title) {
         glfwSetWindowTitle(_handle, title.toStringz);
+    }
+
+    /**
+     * Set window title from a preformatted C string.
+     */
+    void setTitleRaw(const(char)* title) @nogc nothrow {
+        glfwSetWindowTitle(_handle, title);
     }
 
     /**
@@ -207,6 +247,14 @@ public:
 
     void onCursorPos(void delegate(double, double) callback) {
         _cursorPosCallback = callback;
+    }
+
+    void onFocus(void delegate(bool) callback) {
+        _focusCallback = callback;
+    }
+
+    void onContentScale(void delegate(float, float) callback) {
+        _contentScaleCallback = callback;
     }
 
 private:
@@ -261,6 +309,24 @@ private:
             auto self = cast(GLFWWindow)glfwGetWindowUserPointer(window);
             if (self !is null && self._cursorPosCallback !is null) {
                 self._cursorPosCallback(xpos, ypos);
+            }
+        } catch (Exception) {}
+    }
+
+    extern(C) static void windowFocusCallbackStatic(GLFWwindow* window, int focused) nothrow {
+        try {
+            auto self = cast(GLFWWindow)glfwGetWindowUserPointer(window);
+            if (self !is null && self._focusCallback !is null) {
+                self._focusCallback(focused != 0);
+            }
+        } catch (Exception) {}
+    }
+
+    extern(C) static void contentScaleCallbackStatic(GLFWwindow* window, float xScale, float yScale) nothrow {
+        try {
+            auto self = cast(GLFWWindow)glfwGetWindowUserPointer(window);
+            if (self !is null && self._contentScaleCallback !is null) {
+                self._contentScaleCallback(xScale, yScale);
             }
         } catch (Exception) {}
     }

@@ -60,6 +60,6 @@ You may want to use this in a variety of cases:
 
 WIP synposis: check build settings for example - this works like `targetType "sourceLibrary"`, but only for specific files. The primary reason why this was added by the original PR author was for dynamic libraries to register themselves automatically in some loader in the host application. Use-cases extend beyond that however.
 
-TODO: need to document how this works with dependencies of dependencies
+Per the DUB build settings reference, `injectSourceFiles` compiles the listed sources into binaries that depend on this package (direct dependents in the build graph). This makes it a good fit for auto-registration hooks, optional instrumentation, or template-only support glue that should live in the consumer binary rather than a separate library.
 
-TODO: need to document if there is any use-case paired with `targetType "sourceLibrary"`
+`targetType "sourceLibrary"` remains useful for template-heavy or header-style D codebases where object files would be empty, or where you want the dependent project to compile the sources with its own flags and LTO settings. Use it when you want *all* sources in a package to be compiled into the dependent binary; use `injectSourceFiles` when you only need a small subset injected.

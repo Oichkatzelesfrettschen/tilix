@@ -1651,10 +1651,14 @@ private:
         while (_stateManager.pollEvent(msg)) {
             switch (msg.type) {
                 case IOMessageType.Bell:
-                    // Handle bell/alert (TODO: ring bell in future)
+                    if (_container.widget.getMapped()) {
+                        showBell();
+                    } else {
+                        deferShowBell = true;
+                    }
                     break;
                 case IOMessageType.Title:
-                    // Handle title change (TODO: update title in future)
+                    updateDisplayText();
                     break;
                 case IOMessageType.Data:
                     // Delegate to VTE for processing complex sequences
@@ -4203,6 +4207,14 @@ public:
 
     @property string currentLocalDirectory() {
         return gst.getState(TerminalStateType.LOCAL).directory;
+    }
+
+    @property int charWidth() {
+        return cast(int)_container.charWidth;
+    }
+
+    @property int charHeight() {
+        return cast(int)_container.charHeight;
     }
 
     @property string defaultProfileUUID() {

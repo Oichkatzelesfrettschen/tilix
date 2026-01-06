@@ -41,7 +41,7 @@ Next: Phase 5 (process indicators), Phase 6 (vi-mode), IO thread hookup
 - [ ] Validate install/uninstall via DUB configs on a clean system
 - [ ] Add developer run targets (debug + trace) with explicit DUB commands
 - [x] Reconcile DUB warning about warningsAsErrors/buildRequirements
-- [ ] Create CI-ready build/test script for DUB path
+- [x] Create CI-ready build/test script for DUB path
 - [ ] Decide Meson deprecation window and record criteria
 
 ## Toolchain and Dependencies (CachyOS)
@@ -50,6 +50,7 @@ Next: Phase 5 (process indicators), Phase 6 (vi-mode), IO thread hookup
 - [ ] Record minimum DMD/LDC versions and compiler flags
 - [ ] Add optional sanitizers and debug flags guidance
 - [ ] Document GL/Vulkan optional stacks and validation steps
+- [x] Resolve dependency warnings (vendor arsd-official patch + importPaths)
 
 ## Documentation and Research
 - [x] Capture DUB and DMD docs in docs/research
@@ -57,15 +58,18 @@ Next: Phase 5 (process indicators), Phase 6 (vi-mode), IO thread hookup
 - [x] Add feature harvest notes (ghostty, alacritty, kitty)
 - [x] Document xpra crash analysis and mitigation
 - [x] Update gemini.md with latest audit and research notes
+- [x] Expand install requirements with per-module/package granularity (GTK/VTE, Pure D, OpenGL, tooling)
 - [ ] Add dedicated build architecture doc (DUB pipeline + resources)
-- [ ] Record reproducible build steps and CI-ready script
+- [x] Record reproducible build steps and CI-ready script
+- [x] Define BetterC boundary for Pure D hot paths (docs/pure-d/betterc-boundary.md)
+- [x] Audit Pure D DUB packages and record candidates (docs/research/pure-d-packages.md)
 - [x] Add term_analysis overview doc with repo list and scope
 
 ## TODO/FIXME Audit
 - [x] Generate TODO/FIXME inventory (docs/TODO-FIXME-AUDIT.md)
-- [ ] Classify TODO/FIXME items by subsystem and severity
-- [ ] Convert actionable TODO/FIXME items into tasks with owners
-- [ ] Remove obsolete or invalid TODOs
+- [x] Classify TODO/FIXME items by subsystem and severity
+- [x] Convert actionable TODO/FIXME items into tasks with owners (TBD)
+- [x] Remove obsolete or invalid TODOs
 
 ## Verification and Benchmarking
 - [x] Keep layout fuzz tests in unittests
@@ -73,6 +77,19 @@ Next: Phase 5 (process indicators), Phase 6 (vi-mode), IO thread hookup
 - [ ] Add layout verification runner with metrics output
 - [ ] Define baseline performance metrics and regression thresholds
 - [ ] Add performance harness for scrollback, render, IO
+
+## Pure D Backend Parity
+- [x] Implement clipboard + PRIMARY selection for Pure D (GLFW/X11 bridge)
+- [x] Implement dynamic Unicode glyph caching in FontAtlas
+- [x] Implement true-color extraction from emulator cell attributes
+- [x] Implement bell handling and cursor style updates in Pure D UI
+- [x] Add selection highlight config and accessibility outline cursor
+- [x] Add search (selection + F3) integration
+- [x] Implement scrollback buffer access in Pure D rendering path
+- [x] Add lock-free triple buffer utility for renderer handoff
+- [x] Wire triple buffer into Pure D render path
+- [x] Move emulator parsing off render thread (use triple buffer)
+- [ ] Decide how to complete or guard OpenGLContainer stubs in GTK backend
 
 ## Architecture and Feature Harvest
 - [x] Draft backend interface boundaries (GTK3/GTK4/Qt/KMS)

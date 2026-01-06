@@ -390,45 +390,7 @@ vteHandlers ~= vte.addOnContentsChanged(delegate(VTE) {
 // IO thread delivers frames, main thread reads from lock-free buffer
 ```
 
-3. Implement select/poll for non-blocking PTY reads:
-```d
-// iothread.d:389 - resolve TODO
-void ioLoop() {
-    import core.sys.posix.sys.select;
-
-    while (!_stopRequested) {
-        fd_set readfds;
-        FD_ZERO(&readfds);
-        FD_SET(_ptyFd, &readfds);
-
-        timeval timeout;
-        timeout.tv_sec = 0;
-        timeout.tv_usec = 16666;  // ~60 FPS
-
-        int result = select(_ptyFd + 1, &readfds, null, null, &timeout);
-
-        if (result > 0 && FD_ISSET(_ptyFd, &readfds)) {
-            ubyte[4096] buffer;
-            ssize_t bytesRead = read(_ptyFd, buffer.ptr, buffer.length);
-
-            if (bytesRead > 0) {
-                parseVTSequences(buffer[0..bytesRead]);
-                updateBackBuffer();
-            }
-        }
-
-        // Check control queue
-        processControlMessages();
-
-        // Swap buffers if dirty
-        if (_bufferDirty) {
-            _buffer.swap();
-            signalFrameReady();
-            _bufferDirty = false;
-        }
-    }
-}
-```
+3. Verify non-blocking PTY reads are active (implemented in `iothread.d:399-439`) and wire IOThreadManager into Terminal.
 
 ### Dependencies
 
@@ -1131,6 +1093,7 @@ grep -r "new TerminalStateManager\|TerminalStateManager()" source/gx/tilix --inc
 - Comprehensive Roadmap: `docs/COMPREHENSIVE_ROADMAP.md`
 - Backend Interface Map: `docs/architecture/backend-interface-map.md`
 - TODO List: `docs/TODO.md`
+- TODO/FIXME Audit: `docs/TODO-FIXME-AUDIT.md`
 
 ---
 

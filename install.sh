@@ -96,6 +96,10 @@ install -Dm 755 data/scripts/* -t "$TILIX_SHARE/scripts/"
 echo "Copying color schemes..."
 install -Dm 644 data/schemes/* -t "$TILIX_SHARE/schemes/"
 
+# Copy palettes
+echo "Copying palettes..."
+install -Dm 644 data/palettes/* -t "$TILIX_SHARE/palettes/"
+
 # Compile po files
 echo "Copying and installing localization files"
 for f in po/*.po; do

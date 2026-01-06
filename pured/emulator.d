@@ -19,7 +19,9 @@ module pured.emulator;
 version (PURE_D_BACKEND):
 
 import arsd.terminalemulator;
+import pured.platform.input : MouseMode, MouseEncoding;
 import arsd.color : Color, IndexedImage;
+import pured.config : ResolvedTheme, defaultResolvedTheme;
 import std.stdio : stderr, writefln;
 
 /**
@@ -42,6 +44,18 @@ interface ITerminalCallbacks {
 
     /// Called when cursor style changes
     void onCursorStyleChanged(TerminalEmulator.CursorStyle style);
+
+    /// Called when emulator wants to set clipboard text
+    void onCopyToClipboard(string text);
+
+    /// Called when emulator wants to set PRIMARY selection text
+    void onCopyToPrimary(string text);
+
+    /// Called when emulator requests clipboard contents
+    string onPasteFromClipboard();
+
+    /// Called when emulator requests PRIMARY selection contents
+    string onPasteFromPrimary();
 }
 
 /**
@@ -137,6 +151,68 @@ public:
     }
 
     /**
+     * Scrollback line count.
+     */
+    size_t scrollbackLineCount() {
+        return scrollbackBuffer.length();
+    }
+
+    /**
+     * Scrollback ring start index.
+     */
+    int scrollbackStartIndex() {
+        return scrollbackBuffer.start;
+    }
+
+    /**
+     * Fetch a scrollback line by index (0 = oldest).
+     */
+    TerminalCell[] scrollbackLine(size_t index) {
+        return scrollbackBuffer[cast(int)index];
+    }
+
+    @property bool applicationCursorMode() const {
+        return applicationCursorKeys;
+    }
+
+    @property MouseMode mouseMode() {
+        if (mouseMotionTracking) {
+            return MouseMode.anyEvent;
+        }
+        if (mouseButtonMotionTracking) {
+            return MouseMode.buttonEvent;
+        }
+        if (selectiveMouseTracking) {
+            return MouseMode.highlight;
+        }
+        if (mouseButtonTracking || mouseButtonReleaseTracking) {
+            return MouseMode.normal;
+        }
+        return MouseMode.none;
+    }
+
+    @property MouseEncoding mouseEncoding() {
+        if (sgrMouseMode) {
+            return MouseEncoding.sgr;
+        }
+        if (urxvtMouseMode) {
+            return MouseEncoding.urxvt;
+        }
+        if (utf8MouseMode) {
+            return MouseEncoding.utf8;
+        }
+        return MouseEncoding.x10;
+    }
+
+    @property bool bracketedPasteModeEnabled() {
+        return bracketedPasteMode;
+    }
+
+    @property bool focusReportingEnabled() {
+        return sendFocusEvents;
+    }
+
+    /**
      * Check if alternate screen (used by vim, etc.) is active.
      */
     @property bool isAlternateScreen() const {
@@ -221,25 +297,36 @@ protected:
     }
 
     override void copyToClipboard(string text) {
-        // TODO: Implement clipboard via GLFW
+        if (_callbacks !is null) {
+            _callbacks.onCopyToClipboard(text);
+        }
     }
 
     override void pasteFromClipboard(void delegate(in char[]) callback) {
-        // TODO: Implement clipboard via GLFW
-        // For now, just call with empty string
         if (callback !is null) {
-            callback("");
+            if (_callbacks is null) {
+                callback("");
+                return;
+            }
+            auto text = _callbacks.onPasteFromClipboard();
+            callback(text);
         }
     }
 
     override void copyToPrimary(string text) {
-        // TODO: Implement X11 PRIMARY selection
+        if (_callbacks !is null) {
+            _callbacks.onCopyToPrimary(text);
+        }
     }
 
     override void pasteFromPrimary(void delegate(in char[]) callback) {
-        // TODO: Implement X11 PRIMARY selection
         if (callback !is null) {
-            callback("");
+            if (_callbacks is null) {
+                callback("");
+                return;
+            }
+            auto text = _callbacks.onPasteFromPrimary();
+            callback(text);
         }
     }
 
@@ -259,46 +346,45 @@ protected:
  *   bg = Output background color (r, g, b, a as 0.0-1.0)
  */
 void attributesToColors(ref TerminalEmulator.TextAttributes attrs,
-                        out float[4] fg, out float[4] bg) {
-    // Default colors (white on black)
-    fg = [0.9f, 0.9f, 0.9f, 1.0f];
-    bg = [0.1f, 0.1f, 0.15f, 1.0f];
+                        out float[4] fg, out float[4] bg,
+                        const(ResolvedTheme)* theme = null) {
+    const(ResolvedTheme)* resolved = theme is null ? defaultResolvedTheme() : theme;
+    fg = resolved.foreground;
+    bg = resolved.background;
 
-    // Standard 16-color palette (approximate xterm colors)
-    static immutable float[4][16] palette = [
-        [0.0f, 0.0f, 0.0f, 1.0f],       // 0: Black
-        [0.8f, 0.0f, 0.0f, 1.0f],       // 1: Red
-        [0.0f, 0.8f, 0.0f, 1.0f],       // 2: Green
-        [0.8f, 0.8f, 0.0f, 1.0f],       // 3: Yellow
-        [0.0f, 0.0f, 0.8f, 1.0f],       // 4: Blue
-        [0.8f, 0.0f, 0.8f, 1.0f],       // 5: Magenta
-        [0.0f, 0.8f, 0.8f, 1.0f],       // 6: Cyan
-        [0.75f, 0.75f, 0.75f, 1.0f],    // 7: White
-        [0.5f, 0.5f, 0.5f, 1.0f],       // 8: Bright Black
-        [1.0f, 0.0f, 0.0f, 1.0f],       // 9: Bright Red
-        [0.0f, 1.0f, 0.0f, 1.0f],       // 10: Bright Green
-        [1.0f, 1.0f, 0.0f, 1.0f],       // 11: Bright Yellow
-        [0.0f, 0.0f, 1.0f, 1.0f],       // 12: Bright Blue
-        [1.0f, 0.0f, 1.0f, 1.0f],       // 13: Bright Magenta
-        [0.0f, 1.0f, 1.0f, 1.0f],       // 14: Bright Cyan
-        [1.0f, 1.0f, 1.0f, 1.0f],       // 15: Bright White
-    ];
+    bool directFg = false;
+    bool directBg = false;
+
+    version (with_24_bit_color) {
+        if (!attrs.foregroundIsDefault) {
+            fg = colorToRgba(attrs.foreground);
+            directFg = true;
+        }
+        if (!attrs.backgroundIsDefault) {
+            bg = colorToRgba(attrs.background);
+            directBg = true;
+        }
+    }
 
     // Get foreground color
     auto fgIdx = attrs.foregroundIndex;
-    if (!attrs.foregroundIsDefault && fgIdx < 16) {
-        fg = palette[fgIdx];
-    } else if (!attrs.foregroundIsDefault && fgIdx < 256) {
-        // Extended 256-color palette - convert to RGB
-        fg = index256ToRgba(fgIdx);
+    if (!directFg) {
+        if (!attrs.foregroundIsDefault && fgIdx < 16) {
+            fg = resolved.palette[fgIdx];
+        } else if (!attrs.foregroundIsDefault && fgIdx < 256) {
+            // Extended 256-color palette - convert to RGB
+            fg = index256ToRgba(fgIdx);
+        }
     }
 
     // Get background color
     auto bgIdx = attrs.backgroundIndex;
-    if (!attrs.backgroundIsDefault && bgIdx < 16) {
-        bg = palette[bgIdx];
-    } else if (!attrs.backgroundIsDefault && bgIdx < 256) {
-        bg = index256ToRgba(bgIdx);
+    if (!directBg) {
+        if (!attrs.backgroundIsDefault && bgIdx < 16) {
+            bg = resolved.palette[bgIdx];
+        } else if (!attrs.backgroundIsDefault && bgIdx < 256) {
+            bg = index256ToRgba(bgIdx);
+        }
     }
 
     // Handle inverse video
@@ -309,7 +395,7 @@ void attributesToColors(ref TerminalEmulator.TextAttributes attrs,
     }
 
     // Handle bold (brighten foreground)
-    if (attrs.bold && !attrs.foregroundIsDefault) {
+    if (!directFg && attrs.bold && !attrs.foregroundIsDefault) {
         fg[0] = fg[0] * 1.3f > 1.0f ? 1.0f : fg[0] * 1.3f;
         fg[1] = fg[1] * 1.3f > 1.0f ? 1.0f : fg[1] * 1.3f;
         fg[2] = fg[2] * 1.3f > 1.0f ? 1.0f : fg[2] * 1.3f;
@@ -330,7 +416,7 @@ void attributesToColors(ref TerminalEmulator.TextAttributes attrs,
  * Indices 16-231: 6x6x6 color cube
  * Indices 232-255: Grayscale ramp
  */
-private float[4] index256ToRgba(int idx) {
+private float[4] index256ToRgba(int idx) @nogc nothrow {
     if (idx < 16) {
         // Standard colors handled elsewhere
         return [0.5f, 0.5f, 0.5f, 1.0f];
@@ -352,4 +438,24 @@ private float[4] index256ToRgba(int idx) {
         float v = gray / 255.0f;
         return [v, v, v, 1.0f];
     }
+}
+
+unittest {
+    auto emu = new PureDEmulator(10, 2);
+    emu.feedData(cast(const(ubyte)[])"hello");
+    assert(emu.getCell(0, 0).ch == 'h');
+    assert(emu.getCell(4, 0).ch == 'o');
+
+    emu.feedData(cast(const(ubyte)[])"\r\nworld");
+    assert(emu.getCell(0, 1).ch == 'w');
+    assert(emu.getCell(4, 1).ch == 'd');
+}
+
+private float[4] colorToRgba(Color color) @nogc nothrow {
+    return [
+        color.r / 255.0f,
+        color.g / 255.0f,
+        color.b / 255.0f,
+        color.a / 255.0f
+    ];
 }

@@ -12,3 +12,5 @@ version (PURE_D_BACKEND):
 
 public import pured.terminal.selection;
 public import pured.terminal.scrollback;
+public import pured.terminal.frame;
+public import pured.terminal.scrollback_buffer;
