@@ -1,10 +1,16 @@
 {
 	"fileVersion": 1,
 	"versions": {
+		"arsd-official": "12.1.0",
 		"bindbc-common": "1.0.5",
 		"bindbc-freetype": "1.3.3",
+		"bindbc-glfw": "1.1.2",
 		"bindbc-loader": "1.1.5",
 		"bindbc-opengl": "1.1.1",
-		"gtk-d": "3.11.0"
+		"gtk-d": "3.11.0",
+		"intel-intrinsics": "1.13.0",
+		"mir-algorithm": "3.21.0",
+		"mir-core": "1.7.3",
+		"silly": "1.1.1"
 	}
 }

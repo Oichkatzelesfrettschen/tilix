@@ -12,10 +12,15 @@
         "gtk-d:vte": "~>3.11.0",
         "bindbc-opengl": "~>1.1.1",
         "bindbc-loader": "~>1.1.5",
-        "bindbc-freetype": "~>1.3.3"
+        "bindbc-freetype": "~>1.3.3",
+        "bindbc-glfw": "~>1.1.0",
+        "arsd-official:terminalemulator": "~>12.1.0",
+        "mir-algorithm": "~>3.21.0",
+        "intel-intrinsics": "~>1.13.0"
     },
     "subConfigurations": {
-        "bindbc-freetype": "dynamic"
+        "bindbc-freetype": "dynamic",
+        "bindbc-glfw": "static"
     },
     "versions": ["GL_33"],
     "buildTypes": {
@@ -72,6 +77,19 @@
             "mainSourceFile": "scripts/benchmark_scrolling.d",
             "targetName": "benchmark_scrolling",
             "targetPath": "build/dub/bench"
+        },
+        {
+            "name": "pure-d",
+            "targetType": "executable",
+            "mainSourceFile": "pured/main.d",
+            "targetName": "tilix-pure",
+            "targetPath": "build/pure",
+            "versions": ["PURE_D_BACKEND", "GL_45", "StdLoggerDisableTrace"],
+            "libs-linux": ["glfw", "GL", "freetype", "X11"],
+            "dflags-ldc": ["-mcpu=native", "-O3"],
+            "sourcePaths": ["pured"],
+            "importPaths": ["pured"],
+            "excludedSourceFiles": ["source/*"]
         }
     ]
 }
