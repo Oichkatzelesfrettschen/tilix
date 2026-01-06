@@ -51,6 +51,7 @@ This roadmap synthesizes findings from four parallel analysis efforts:
 - SIMD delimiter scan + scrollback search unit tests
 - Capnp bindings regenerated via capnpc-dlang
 - Pure D headless test harness (`pure-d-tests`)
+- Quake/dropdown mode (GLFW floating + borderless) + `quakeHeight` config
 
 **Open**:
 - Search UI beyond selection-only flow

@@ -9,6 +9,8 @@
     "fontSize": { "type": "integer", "minimum": 1 },
     "windowWidth": { "type": "integer", "minimum": 1 },
     "windowHeight": { "type": "integer", "minimum": 1 },
+    "quakeMode": { "type": "boolean" },
+    "quakeHeight": { "type": "number", "minimum": 0.1, "maximum": 1 },
     "scrollbackMaxLines": { "type": "integer", "minimum": 1000 },
     "swapInterval": { "type": "integer", "minimum": 0 },
     "themePath": { "type": "string" },

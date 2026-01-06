@@ -44,7 +44,7 @@ metadata, and install steps.
 - DUB build succeeds with `DFLAGS=-w` after vendoring arsd-official and patching warnings.
 - DUB runs resource preparation before builds via `scripts/dub/prepare-resources.sh`.
 - Install uses staged artifacts to avoid polluting the source tree.
-- Pure D backend now includes: clipboard/PRIMARY, true color, bell flash, cursor styles (incl. outline), selection + search highlights (configurable), hyperlink detection + Ctrl+click, HarfBuzz shaping + fallback, selection-driven search, hot-reloadable config, accessibility presets, IPC schema + local UNIX socket listener + DUB IPC client, strict `pure-d-nogc` build profile, SIMD delimiter/search unit tests, and a headless test harness.
+- Pure D backend now includes: clipboard/PRIMARY, true color, bell flash, cursor styles (incl. outline), selection + search highlights (configurable), hyperlink detection + Ctrl+click, HarfBuzz shaping + fallback, selection-driven search, hot-reloadable config, accessibility presets, IPC schema + local UNIX socket listener + DUB IPC client, strict `pure-d-nogc` build profile, SIMD delimiter/search unit tests, a headless test harness, and Quake/dropdown mode support.
 
 ## XPRA Crash Findings
 - xpra server aborts with a pygobject assertion in pygi-invoke.c during

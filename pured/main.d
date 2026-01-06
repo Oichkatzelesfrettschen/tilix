@@ -127,6 +127,8 @@ private:
     float[4] _searchBg = [0.85f, 0.7f, 0.2f, 1.0f];
     float[4] _searchFg = [0.0f, 0.0f, 0.0f, 1.0f];
     float[4] _linkFg = [0.2f, 0.6f, 1.0f, 1.0f];
+    bool _quakeMode;
+    float _quakeHeight;
 
     IpcServer _ipcServer;
 
@@ -161,6 +163,8 @@ public:
         _searchBg = resolveSearchBg(_config);
         _searchFg = resolveSearchFg(_config, _searchBg);
         _linkFg = resolveLinkFg(_config);
+        _quakeMode = _config.quakeMode;
+        _quakeHeight = _config.quakeHeight;
         int windowWidth = _config.windowWidth;
         int windowHeight = _config.windowHeight;
 
@@ -210,6 +214,8 @@ public:
         // Get cell dimensions from font atlas
         _cellWidth = _renderer.cellWidth;
         _cellHeight = _renderer.cellHeight;
+
+        applyQuakeMode();
 
         // Set initial viewport and calculate terminal size
         int width, height;
@@ -373,6 +379,39 @@ public:
         writefln("IPC: listening on %s", socketPath);
     }
 
+    void applyQuakeMode() {
+        if (_window is null) {
+            return;
+        }
+
+        if (!_quakeMode) {
+            _window.setDecorated(true);
+            _window.setFloating(false);
+            _window.setSize(_config.windowWidth, _config.windowHeight);
+            return;
+        }
+
+        int xpos;
+        int ypos;
+        int width;
+        int height;
+        if (!_window.getWorkArea(xpos, ypos, width, height)) {
+            _window.getSize(width, height);
+            xpos = 0;
+            ypos = 0;
+        }
+
+        int targetHeight = cast(int)(height * _quakeHeight);
+        if (targetHeight < _cellHeight) {
+            targetHeight = _cellHeight;
+        }
+
+        _window.setDecorated(false);
+        _window.setFloating(true);
+        _window.setSize(width, targetHeight);
+        _window.setPosition(xpos, ypos);
+    }
+
     void spawnNewInstance(string[] extraArgs = null) {
         string exePath;
         try {
@@ -453,6 +492,9 @@ public:
         _searchBg = resolveSearchBg(_config);
         _searchFg = resolveSearchFg(_config, _searchBg);
         _linkFg = resolveLinkFg(_config);
+        _quakeMode = _config.quakeMode;
+        _quakeHeight = _config.quakeHeight;
+        applyQuakeMode();
 
         if (_renderer !is null) {
             auto themeConfig = _config.theme;

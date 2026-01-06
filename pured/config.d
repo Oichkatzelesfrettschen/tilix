@@ -26,6 +26,8 @@ struct PureDConfig {
     int fontSize;
     int windowWidth;
     int windowHeight;
+    bool quakeMode;
+    float quakeHeight;
     size_t scrollbackMaxLines;
     int swapInterval;
     string themePath;
@@ -46,6 +48,8 @@ PureDConfig defaultConfig() {
     cfg.fontSize = 16;
     cfg.windowWidth = 1280;
     cfg.windowHeight = 720;
+    cfg.quakeMode = false;
+    cfg.quakeHeight = 0.4f;
     cfg.scrollbackMaxLines = 200_000;
     cfg.swapInterval = 0;
     cfg.themePath = "";
@@ -100,6 +104,9 @@ PureDConfig sanitizeConfig(PureDConfig cfg) {
     }
     if (cfg.windowHeight <= 0) {
         cfg.windowHeight = def.windowHeight;
+    }
+    if (cfg.quakeHeight <= 0.0f || cfg.quakeHeight > 1.0f) {
+        cfg.quakeHeight = def.quakeHeight;
     }
     if (cfg.scrollbackMaxLines < 1_000) {
         cfg.scrollbackMaxLines = def.scrollbackMaxLines;

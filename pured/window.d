@@ -175,6 +175,44 @@ public:
         glfwSetWindowSize(_handle, width, height);
     }
 
+    void setPosition(int xpos, int ypos) {
+        glfwSetWindowPos(_handle, xpos, ypos);
+    }
+
+    void setDecorated(bool decorated) {
+        static if (glfwSupport >= GLFWSupport.glfw33) {
+            glfwSetWindowAttrib(_handle, GLFW_DECORATED, decorated ? 1 : 0);
+        }
+    }
+
+    void setFloating(bool floating) {
+        static if (glfwSupport >= GLFWSupport.glfw33) {
+            glfwSetWindowAttrib(_handle, GLFW_FLOATING, floating ? 1 : 0);
+        }
+    }
+
+    bool getWorkArea(out int xpos, out int ypos, out int width, out int height) {
+        auto monitor = glfwGetPrimaryMonitor();
+        if (monitor is null) {
+            return false;
+        }
+        static if (glfwSupport >= GLFWSupport.glfw33) {
+            glfwGetMonitorWorkarea(monitor, &xpos, &ypos, &width, &height);
+            if (width > 0 && height > 0) {
+                return true;
+            }
+        }
+        auto mode = glfwGetVideoMode(monitor);
+        if (mode is null) {
+            return false;
+        }
+        xpos = 0;
+        ypos = 0;
+        width = mode.width;
+        height = mode.height;
+        return true;
+    }
+
     /**
      * Make this window's OpenGL context current.
      */
