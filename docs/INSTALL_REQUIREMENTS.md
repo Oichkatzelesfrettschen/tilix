@@ -31,6 +31,13 @@ sudo pacman -S --needed dmd dtools dub ldc gcc-d
 sudo pacman -S --needed git meson ninja pkgconf python
 ```
 
+Optional config validation:
+- python-jsonschema (for `scripts/pure-d/validate_config.sh`)
+
+```sh
+sudo pacman -S --needed python-jsonschema
+```
+
 ## 3. GTK3 + VTE3 (current default runtime)
 - gtk3
 - vte3

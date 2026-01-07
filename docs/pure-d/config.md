@@ -87,6 +87,10 @@ Schema:
 - `docs/pure-d/config.schema.json` (JSON Schema draft 2020-12).
 - `docs/pure-d/theme-presets.md` (sample high-contrast palette).
 
+Validation:
+- `scripts/pure-d/validate_config.sh` (uses Python `jsonschema`).
+- Defaults to `$XDG_CONFIG_HOME/tilix/pure-d.json` when no path is provided.
+
 Accessibility presets (example):
 ```json
 {
