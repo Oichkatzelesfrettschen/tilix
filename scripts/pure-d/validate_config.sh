@@ -18,6 +18,14 @@ else
 fi
 
 if [[ ! -f "$config" ]]; then
+  if [[ -n "${1:-}" ]]; then
+    echo "Config not found: $config" >&2
+    exit 1
+  fi
+  config="$root/docs/pure-d/sample-config.json"
+fi
+
+if [[ ! -f "$config" ]]; then
   echo "Config not found: $config" >&2
   exit 1
 fi

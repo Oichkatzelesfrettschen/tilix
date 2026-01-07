@@ -90,6 +90,7 @@ Schema:
 Validation:
 - `scripts/pure-d/validate_config.sh` (uses Python `jsonschema`).
 - Defaults to `$XDG_CONFIG_HOME/tilix/pure-d.json` when no path is provided.
+- Sample config for CI/test matrix: `docs/pure-d/sample-config.json`.
 
 Accessibility presets (example):
 ```json
