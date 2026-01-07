@@ -27,3 +27,18 @@ Notes:
 - Use `hyperfine` to compare runs if installed.
 - `tilix-pure-nogc` is useful for isolating render-loop allocations.
 - CI: set `TILIX_CI_PERF=1` to run the harness script via `scripts/ci/dub-build.sh`.
+
+## Recent benchmark data
+
+Example run (after the latest IPC + search UI updates):
+
+```sh
+dub run --config=pure-d-search-bench -- --lines 10000 --cols 120 --needle ERROR
+```
+
+```
+Scrollback search benchmark
+  lines: 10000 cols: 120 needle: 'ERROR' matchEvery: 50
+  hits: 200 elapsed: 0.014011s
+  approx MB scanned: 1.14441 throughput: 81.6793 MB/s
+```

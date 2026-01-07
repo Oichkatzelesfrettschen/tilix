@@ -13,33 +13,12 @@ module pured.platform.input;
 version (PURE_D_BACKEND):
 
 import bindbc.glfw;
+import pured.platform.input_types : MouseMode, MouseEncoding;
 import pured.platform.xkbcommon : XkbTranslator;
 import std.ascii : isAlpha, toUpper;
 import std.conv : to;
 import std.string : strip, split, toLower;
 import std.stdio : stderr, writefln;
-
-/**
- * Mouse reporting modes per ANSI/DEC standards.
- */
-enum MouseMode {
-    none = 0,       /// Mouse reporting disabled
-    x10 = 9,        /// X10 compatibility mode (button press only)
-    normal = 1000,  /// Normal tracking (press/release)
-    highlight = 1001, /// Highlight tracking
-    buttonEvent = 1002, /// Button-event tracking (motion while pressed)
-    anyEvent = 1003,  /// Any-event tracking (all motion)
-}
-
-/**
- * Mouse coordinate encoding format.
- */
-enum MouseEncoding {
-    x10 = 0,        /// X10/normal: ESC [ M Cb Cx Cy (6 bytes, coords +32)
-    utf8 = 1005,    /// UTF-8: coords as UTF-8 characters
-    sgr = 1006,     /// SGR: ESC [ < Pb ; Px ; Py M/m (press/release)
-    urxvt = 1015,   /// urxvt: ESC [ Pb ; Px ; Py M
-}
 
 enum int keyModMask = GLFW_MOD_CONTROL | GLFW_MOD_SHIFT | GLFW_MOD_ALT |
     GLFW_MOD_SUPER;

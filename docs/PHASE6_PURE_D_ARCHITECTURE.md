@@ -458,6 +458,7 @@ If Super Phase 6 encounters critical issues:
 - [x] Phase 6.0: Foundation - GLFW window, OpenGL context
 - [x] Phase 6.1: Terminal Emulation - arsd adapter
 - [x] Phase 6.2: Input Handling - GLFW key/mouse translation
+- [x] Phase 6.3: IPC + search UX - expanded IPC commands (tabs/splits) + live search overlay text
 - [x] Phase 6.3: Widget System - Full widget hierarchy
 
 ### Files Created

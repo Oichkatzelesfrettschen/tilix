@@ -19,7 +19,7 @@ module pured.emulator;
 version (PURE_D_BACKEND):
 
 import arsd.terminalemulator;
-import pured.platform.input : MouseMode, MouseEncoding;
+import pured.platform.input_types : MouseMode, MouseEncoding;
 import arsd.color : Color, IndexedImage;
 import pured.config : ResolvedTheme, defaultResolvedTheme;
 import std.stdio : stderr, writefln;

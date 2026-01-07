@@ -9,7 +9,7 @@ version (PURE_D_BACKEND):
 
 import arsd.terminalemulator : TerminalEmulator;
 import core.time : MonoTime;
-import pured.platform.input : MouseMode, MouseEncoding;
+import pured.platform.input_types : MouseMode, MouseEncoding;
 import mir.ndslice : Slice, sliced;
 
 alias TerminalCell = TerminalEmulator.TerminalCell;

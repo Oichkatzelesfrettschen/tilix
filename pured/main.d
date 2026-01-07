@@ -23,6 +23,7 @@ import pured.config : PureDConfig, ThemeConfig, resolveTheme, loadConfig,
     defaultConfigPath, saveSplitLayout;
 import pured.theme_importer;
 import pured.platform.input;
+import pured.platform.input_types : MouseMode;
 import pured.platform.clipboard;
 import pured.terminal.frame : TerminalFrame;
 import pured.terminal.selection;

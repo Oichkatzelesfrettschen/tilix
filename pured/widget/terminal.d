@@ -19,6 +19,7 @@ import pured.widget.base;
 import pured.widget.events;
 import pured.util.signal;
 import pured.platform.input;
+import pured.platform.input_types : MouseMode;
 import pured.terminal.selection;
 import pured.terminal.scrollback : ScrollbackViewport, calculateScrollbar;
 import pured.config : ResolvedTheme, defaultResolvedTheme;

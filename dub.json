@@ -144,7 +144,6 @@
             "versions": ["PURE_D_BACKEND", "StdLoggerDisableTrace"],
             "sourcePaths": ["scripts/pure-d", "pured/terminal"],
             "importPaths": ["scripts/pure-d", "pured"],
-            "sourceFiles": ["pured/platform/input.d"],
             "excludedSourceFiles": ["source/*", "scripts/pure-d/ipc_client.d"]
         },
         {
