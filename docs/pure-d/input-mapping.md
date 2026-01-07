@@ -65,4 +65,5 @@ Parity notes:
 Notes:
 - Tilix defaults are defined in `data/gsettings/com.gexperts.Tilix.gschema.xml` and surfaced in `data/resources/ui/shortcuts.ui`.
 - Pure D input translation lives in `pured/platform/input.d`; app shortcuts are in `pured/main.d`.
+- PRIMARY selection falls back to clipboard on non-X11 or missing X11 selection support.
 - F21-F24 are mapped (CSI 35~..38~); additional extended keypad keys remain unmapped.

@@ -96,6 +96,10 @@ public:
             if (primarySet.length) {
                 glfwSetX11SelectionString(primarySet.toStringz);
             }
+        } else {
+            if (primarySet.length && _window !is null) {
+                glfwSetClipboardString(_window, primarySet.toStringz);
+            }
         }
 
         string clipboardValue;
@@ -107,11 +111,21 @@ public:
         static if (glfwSupport >= GLFWSupport.glfw33) {
             if (primaryReq) {
                 auto pstr = glfwGetX11SelectionString();
-                primaryValue = pstr is null ? "" : fromStringz(pstr).idup;
+                if (pstr is null && _window !is null) {
+                    auto cstr = glfwGetClipboardString(_window);
+                    primaryValue = cstr is null ? "" : fromStringz(cstr).idup;
+                } else {
+                    primaryValue = pstr is null ? "" : fromStringz(pstr).idup;
+                }
             }
         } else {
             if (primaryReq) {
-                primaryValue = "";
+                if (_window !is null) {
+                    auto cstr = glfwGetClipboardString(_window);
+                    primaryValue = cstr is null ? "" : fromStringz(cstr).idup;
+                } else {
+                    primaryValue = "";
+                }
             }
         }
 
