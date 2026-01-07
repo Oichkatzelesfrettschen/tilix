@@ -1,4 +1,4 @@
-# Pure D Package Audit (2026-01-06)
+# Pure D Package Audit (2026-01-07)
 
 This document lists DUB packages relevant to the Pure D rebuild and their
 latest versions as reported by `https://code.dlang.org/api/packages/<pkg>/latest`.
@@ -33,7 +33,7 @@ latest versions as reported by `https://code.dlang.org/api/packages/<pkg>/latest
 - lz4-d ~master (LZ4 binding)
 - sqlite3 1.0.0 (snapshot or telemetry storage)
 
-## Registry scan (dub search, 2026-01-06)
+## Registry scan (dub search, 2026-01-07)
 - xcb-d 2.1.1+1.11.1 (XCB bindings)
 - xcb-util-wm-d 0.5.0+0.4.1 (EWMH/ICCCM helpers)
 - xkbcommon-d 0.5.1 (keyboard mapping)

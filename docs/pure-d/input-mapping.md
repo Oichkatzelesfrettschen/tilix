@@ -57,13 +57,13 @@ Parity notes:
 | Find | Ctrl+Shift+F | implemented (selection-first) |
 | Find next/prev | F3 / Shift+F3 | implemented |
 | Split add/switch/resize | Alt+arrows & gsettings | implemented (Ctrl+Shift+E/O, Ctrl+Shift+Alt+Arrows, Alt-drag boundary) |
-| Zoom in/out/normal | Ctrl+Plus/Minus/0 | missing |
-| Toggle fullscreen | F11 (GTK default) | missing |
+| Zoom in/out/normal | Ctrl+Plus/Minus/0 | implemented (Ctrl+=/+, Ctrl+-, Ctrl+0) |
+| Toggle fullscreen | F11 (GTK default) | implemented (F11) |
 | Open preferences/shortcuts | disabled by default | missing |
 | Next/prev session | Ctrl+PageUp/Down | implemented (tab switch) |
 
 Notes:
 - Tilix defaults are defined in `data/gsettings/com.gexperts.Tilix.gschema.xml` and surfaced in `data/resources/ui/shortcuts.ui`.
 - Pure D input translation lives in `pured/platform/input.d`; app shortcuts are in `pured/main.d`.
-- PRIMARY selection falls back to clipboard on non-X11 or missing X11 selection support.
+- PRIMARY selection uses XCB when available; falls back to clipboard on non-X11 or missing selection support.
 - F21-F24 are mapped (CSI 35~..38~); additional extended keypad keys remain unmapped.

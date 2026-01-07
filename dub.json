@@ -26,7 +26,12 @@
         "mir-ion": "~>2.3.5",
         "mir-algorithm": "~>3.22.4",
         "intel-intrinsics": "~>1.13.0",
-        "capnproto-dlang": "~>0.1.2"
+        "capnproto-dlang": "~>0.1.2",
+        "xkbcommon-d": "~>0.5.1",
+        "xcb-d": "~>2.1.1",
+        "xcb-util-wm-d": "~>0.5.0",
+        "wayland-client-d": "~>1.8.90",
+        "wayland-scanner-d": "~>1.0.0"
     },
     "subConfigurations": {
         "bindbc-freetype": "dynamic",

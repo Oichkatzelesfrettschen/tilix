@@ -36,16 +36,16 @@ metadata, and install steps.
 - .claude directory permissions cause noisy git status warnings.
 - OpenGLContainer remains a stub (metrics, selection, snapshot, encoding).
 - Backend abstraction is still not wired through Terminal (per architectural audit).
-- Pure D backend still missing: richer search UI, IPC command coverage beyond spawn-new-process placeholder, IME implementation, tab bar UI, perf handoff (triple buffer/PBO).
+- Pure D backend still missing: dedicated search UI overlay (beyond title bar), IPC command coverage beyond newTab (split/close/focus/paste), IME implementation, tab bar UI, perf handoff (triple buffer/PBO).
 - Pure D theme import is best-effort parsing (no full YAML/Xresources grammar coverage).
-- Wayland/XCB bindings are documented but not yet integrated into the runtime.
+- Wayland/XCB bindings are documented; dependencies are staged, runtime integration still pending.
 
 ## Sanity Check
 - DUB build succeeds with `DFLAGS='-w -wi'` after vendoring arsd-official and patching warnings.
 - DUB runs resource preparation before builds via `scripts/dub/prepare-resources.sh`.
 - Install uses staged artifacts to avoid polluting the source tree.
 - Config validation helper: `scripts/pure-d/validate_config.sh` (python `jsonschema`).
-- Pure D backend now includes: clipboard/PRIMARY, true color, bell flash, cursor styles (incl. outline), selection + search highlights (configurable), hyperlink detection + Ctrl+click, HarfBuzz shaping + fallback, selection-driven search, hot-reloadable config, config schema validation script, accessibility presets, IPC schema + local UNIX socket listener + DUB IPC client, strict `pure-d-nogc` build profile, SIMD delimiter/search unit tests, a headless test harness, Quake/dropdown mode support, crash-recovery snapshots, scene graph viewports with per-pane sessions, split creation/resizing (Ctrl+Shift+E/O, Ctrl+Shift+Alt+Arrows, Alt-drag boundary), and split layout persistence to pure-d.json.
+- Pure D backend now includes: clipboard/PRIMARY, true color, bell flash, cursor styles (incl. outline), selection + search highlights (configurable), hyperlink detection + Ctrl+click, HarfBuzz shaping + fallback, selection-driven search, window-title search prompt, hot-reloadable config, config schema validation script, accessibility presets, IPC schema + local UNIX socket listener + DUB IPC client, strict `pure-d-nogc` build profile, SIMD delimiter/search unit tests, a headless test harness, Quake/dropdown mode support, crash-recovery snapshots, scene graph viewports with per-pane sessions, split creation/resizing (Ctrl+Shift+E/O, Ctrl+Shift+Alt+Arrows, Alt-drag boundary), zoom controls (Ctrl+=/-, Ctrl+0), fullscreen toggle (F11), and split layout persistence to pure-d.json.
 
 ## XPRA Crash Findings
 - xpra server aborts with a pygobject assertion in pygi-invoke.c during
@@ -64,7 +64,7 @@ metadata, and install steps.
 - warningsAsErrors and deprecationErrors map to -w/-de: verify via DMD compiler docs: https://dlang.org/dmd.html
 - gtk-d 3.11.0 is latest: verify via https://code.dlang.org/api/packages/gtk-d/latest
 - IOThread uses non-blocking select() loop: verified in iothread.d:399-439.
-- Cursor visibility/contrast meets WCAG non-text contrast guidance: verify via WCAG 2.2 SC 1.4.11: https://www.w3.org/WAI/WCAG22/Understanding/non-text-contrast.html
+- Cursor visibility/contrast meets WCAG non-text contrast guidance: verify via WCAG 2.1 SC 1.4.11 and WCAG 2.2 Focus Appearance (Minimum): https://www.w3.org/WAI/WCAG21/Understanding/non-text-contrast.html and https://www.w3.org/WAI/WCAG22/Understanding/focus-appearance-minimum.html
 
 ## Roadmap (Phased)
 - Phase 1: DUB-first build parity for resources/i18n/schemas/metadata.

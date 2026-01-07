@@ -1,4 +1,4 @@
-# Tilix Comprehensive Development Roadmap (2026-01-06)
+# Tilix Comprehensive Development Roadmap (2026-01-07)
 
 This roadmap synthesizes findings from four parallel analysis efforts:
 1. Technical Debt Audit (22 items identified)
@@ -33,7 +33,7 @@ This roadmap synthesizes findings from four parallel analysis efforts:
 - IOThread integration blocks high-refresh-rate rendering
 - State consolidation required before reliable multi-backend support
 
-### Pure D Backend Snapshot (2026-01-06)
+### Pure D Backend Snapshot (2026-01-07)
 
 **Completed**:
 - Clipboard + PRIMARY selection (GLFW/X11 bridge)
@@ -42,6 +42,7 @@ This roadmap synthesizes findings from four parallel analysis efforts:
 - HarfBuzz shaping + font fallback
 - Config + theme import (Xresources/Alacritty) with hot reload
 - Selection-driven search (Ctrl+Shift+F + F3 cycling)
+- Window-title search prompt (editable query, Enter confirm, Esc cancel)
 - Search highlight overlay + configurable search colors
 - Search/hyperlink buffer preallocation + strict @nogc guards
 - Hyperlink detection overlay + Ctrl+click activation
@@ -58,11 +59,11 @@ This roadmap synthesizes findings from four parallel analysis efforts:
 - Scene graph tabs with Ctrl+Shift+T and Ctrl+PageUp/Down switching
 - Split creation (Ctrl+Shift+E/O) + resize (Ctrl+Shift+Alt+Arrows, Alt-drag boundary)
 - Split layout persistence (root + active pane) saved to pure-d.json
+- Zoom controls (Ctrl+=/-, Ctrl+0) + fullscreen toggle (F11)
 - Pure D test matrix script (`scripts/pure-d/run_test_matrix.sh`)
 
 **Open**:
-- Search UI prompt (window-title) beyond selection-only flow
-- IPC command coverage beyond spawnProfile (newTab is now in-process)
+- IPC command coverage beyond newTab (split/close/focus/paste)
 - IME implementation + preedit overlay
 - Tab bar + split persistence polish
 - Renderer perf handoff (PBO/triple buffer)

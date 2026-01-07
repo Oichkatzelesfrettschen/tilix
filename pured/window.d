@@ -34,6 +34,11 @@ private:
     int _width;
     int _height;
     bool _shouldClose;
+    bool _fullscreen;
+    int _windowedX;
+    int _windowedY;
+    int _windowedWidth;
+    int _windowedHeight;
 
     // Callbacks
     void delegate(int, int) _resizeCallback;
@@ -177,6 +182,35 @@ public:
 
     void setPosition(int xpos, int ypos) {
         glfwSetWindowPos(_handle, xpos, ypos);
+    }
+
+    void toggleFullscreen() {
+        setFullscreen(!_fullscreen);
+    }
+
+    void setFullscreen(bool enabled) {
+        if (_handle is null || enabled == _fullscreen) {
+            return;
+        }
+        if (enabled) {
+            glfwGetWindowPos(_handle, &_windowedX, &_windowedY);
+            glfwGetWindowSize(_handle, &_windowedWidth, &_windowedHeight);
+            auto monitor = glfwGetPrimaryMonitor();
+            if (monitor is null) {
+                return;
+            }
+            auto mode = glfwGetVideoMode(monitor);
+            if (mode is null) {
+                return;
+            }
+            glfwSetWindowMonitor(_handle, monitor, 0, 0, mode.width, mode.height,
+                mode.refreshRate);
+            _fullscreen = true;
+            return;
+        }
+        glfwSetWindowMonitor(_handle, null, _windowedX, _windowedY,
+            _windowedWidth, _windowedHeight, 0);
+        _fullscreen = false;
     }
 
     void setDecorated(bool decorated) {

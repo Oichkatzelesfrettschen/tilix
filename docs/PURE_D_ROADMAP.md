@@ -1,7 +1,7 @@
 # Tilix Pure D: Complete Rebuild Roadmap
 
 **Version:** 1.0.0
-**Date:** 2026-01-05
+**Date:** 2026-01-07
 **Target:** Feature parity with GTK/VTE3 Tilix
 **Timeline:** 16-20 weeks for core features
 
@@ -41,6 +41,12 @@ A complete rewrite of Tilix terminal emulator in Pure D, replacing:
 | Binary Size | ~2MB + GTK | ~500KB | ~1MB |
 | Dependencies | GTK3, VTE3, GLib | GLFW, FreeType | GLFW, FreeType |
 | Features | 100% | 5% | 100% |
+
+### Recent Progress (2026-01-07)
+- Window-title search prompt with editable query and search highlight overlay.
+- Zoom controls (Ctrl+=/-, Ctrl+0) and fullscreen toggle (F11).
+- PRIMARY selection fallback to clipboard when X11 selection is unavailable.
+- DUB dependencies staged for xcb/wayland/xkbcommon integration.
 
 ### Why This Document Exists
 

@@ -37,6 +37,7 @@ import std.stdio : stderr, writefln, writeln;
 import std.string : strip, toLower;
 import std.utf : byDchar, toUTF8;
 import std.math : pow;
+import std.algorithm : clamp;
 import std.process : spawnProcess;
 import std.path : buildPath;
 import std.process : environment;
@@ -180,6 +181,7 @@ private:
     PureDConfig _pendingConfig;
     shared bool _configPending;
     string _configPath;
+    int _baseFontSize;
     float _bellIntensity;
     float _bellDecayRate = 4.0f;
     shared bool _bellTriggered;
@@ -234,6 +236,7 @@ public:
         _config = loadConfig();
         _configMutex = new Mutex();
         _configPath = defaultConfigPath();
+        _baseFontSize = _config.fontSize;
         _selectionBg = resolveSelectionBg(_config);
         _selectionFg = resolveSelectionFg(_config, _selectionBg);
         _searchBg = resolveSearchBg(_config);
@@ -1125,6 +1128,7 @@ public:
     void applyConfig(PureDConfig cfg) {
         auto previous = _config;
         _config = cfg;
+        _baseFontSize = _config.fontSize;
         refreshCursorSettings();
         _selectionBg = resolveSelectionBg(_config);
         _selectionFg = resolveSelectionFg(_config, _selectionBg);
@@ -1189,6 +1193,31 @@ public:
             _window.getFramebufferSize(width, height);
             onResize(width, height);
         }
+    }
+
+    void adjustFontSize(int delta) {
+        applyFontSize(_config.fontSize + delta);
+    }
+
+    void resetFontSize() {
+        applyFontSize(_baseFontSize);
+    }
+
+    void applyFontSize(int targetSize) {
+        int clamped = clamp(targetSize, 6, 72);
+        if (clamped == _config.fontSize || _renderer is null || _window is null) {
+            return;
+        }
+        _config.fontSize = clamped;
+        if (!_renderer.reloadFont(_config.fontPath, _config.fontSize)) {
+            stderr.writefln("Warning: Failed to apply Pure D font size change");
+            return;
+        }
+        _cellWidth = _renderer.cellWidth;
+        _cellHeight = _renderer.cellHeight;
+        int width, height;
+        _window.getFramebufferSize(width, height);
+        onResize(width, height);
     }
 
     void resetSearchAndLinks() {
@@ -2116,6 +2145,26 @@ private:
                 closeTab(_activeTabIndex);
                 return;
             }
+        }
+
+        if (action == GLFW_PRESS && (mods & GLFW_MOD_CONTROL)) {
+            if (key == GLFW_KEY_EQUAL || key == GLFW_KEY_KP_ADD) {
+                adjustFontSize(1);
+                return;
+            }
+            if (key == GLFW_KEY_MINUS || key == GLFW_KEY_KP_SUBTRACT) {
+                adjustFontSize(-1);
+                return;
+            }
+            if (key == GLFW_KEY_0 || key == GLFW_KEY_KP_0) {
+                resetFontSize();
+                return;
+            }
+        }
+
+        if (action == GLFW_PRESS && key == GLFW_KEY_F11) {
+            _window.toggleFullscreen();
+            return;
         }
 
         if ((action == GLFW_PRESS || action == GLFW_REPEAT) &&
