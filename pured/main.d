@@ -583,6 +583,15 @@ public:
         return false;
     }
 
+    int tabIndexForPane(int paneId) {
+        foreach (i, tab; _tabs) {
+            if (tab.scene !is null && tab.scene.hasPane(paneId)) {
+                return cast(int)i;
+            }
+        }
+        return -1;
+    }
+
     void setActivePane(int paneId, bool force = false) {
         if (!force && paneId == _activePaneId) {
             return;
@@ -1640,6 +1649,13 @@ public:
         _titleMutex.lock();
         scope(exit) _titleMutex.unlock();
         pane.shellTitle = title;
+        int tabIndex = tabIndexForPane(paneId);
+        if (tabIndex >= 0) {
+            _tabs[tabIndex].title = title;
+        }
+        if (paneId == _activePaneId && _window !is null) {
+            _window.setTitle("Tilix Pure D - " ~ title);
+        }
     }
 
     void onPaneSendToApplication(int paneId, scope const(void)[] data) {
