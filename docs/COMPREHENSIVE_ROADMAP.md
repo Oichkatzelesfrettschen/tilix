@@ -43,6 +43,7 @@ This roadmap synthesizes findings from four parallel analysis efforts:
 - Config + theme import (Xresources/Alacritty) with hot reload
 - Selection-driven search (Ctrl+Shift+F + F3 cycling)
 - Window-title search prompt (editable query, Enter confirm, Esc cancel)
+- Bottom-row search prompt overlay during active query
 - Search highlight overlay + configurable search colors
 - Search/hyperlink buffer preallocation + strict @nogc guards
 - Hyperlink detection overlay + Ctrl+click activation

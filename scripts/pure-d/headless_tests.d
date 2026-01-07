@@ -7,6 +7,7 @@ import pured.terminal.scrollback_buffer : ScrollbackBuffer;
 import pured.terminal.search : findInScrollback, findInFrame;
 import pured.terminal.frame : TerminalFrame;
 import pured.terminal.hyperlink : HyperlinkRange, scanLineForLinks;
+import pured.terminal.selection : Selection, SelectionType;
 import pured.scenegraph : SceneGraph, SplitOrientation, Viewport;
 import pured.recovery : saveSnapshot, loadSnapshot, clearSnapshot;
 import pured.config : SplitLayoutConfig, SplitLayoutNode, sanitizeSplitLayout;
@@ -68,6 +69,29 @@ void main() {
     assert(count == 1);
     assert(ranges[0].startCol == 0);
     assert(ranges[0].url == "https://example.com");
+
+    string[] lines = ["hello world", "alpha beta"];
+    dchar getChar(int col, int row) {
+        if (row < 0 || row >= cast(int)lines.length) {
+            return 0;
+        }
+        auto line = lines[row];
+        if (col < 0 || col >= cast(int)line.length) {
+            return 0;
+        }
+        return line[col];
+    }
+    auto sel = new Selection(&getChar);
+    sel.start(1, 0, SelectionType.word);
+    sel.finish();
+    assert(sel.hasSelection);
+    assert(sel.getSelectedText(&getChar, 16) == "hello");
+    sel.start(7, 0, SelectionType.word);
+    sel.finish();
+    assert(sel.getSelectedText(&getChar, 16) == "world");
+    sel.start(0, 1, SelectionType.line);
+    sel.finish();
+    assert(sel.getSelectedText(&getChar, 16) == "alpha beta");
 
     SceneGraph scene = new SceneGraph();
     auto rightPane = scene.splitLeaf(0, SplitOrientation.vertical, 0.5f);

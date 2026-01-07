@@ -28,6 +28,7 @@ import pured.terminal.hyperlink : HyperlinkRange;
 import pured.terminal.frame : TerminalFrame;
 import core.stdc.string : memcpy;
 import std.math : pow;
+import std.algorithm : min;
 import std.stdio : stderr, writefln;
 
 /**
@@ -193,7 +194,11 @@ public:
             const(HyperlinkRange)[] linkRanges = null,
             float[4] linkFg = [0.2f, 0.6f, 1.0f, 1.0f],
             CursorRenderStyle cursorStyle = CursorRenderStyle.block,
-            float cursorThickness = 0.0f) {
+            float cursorThickness = 0.0f,
+            const(dchar)[] overlayText = null,
+            int overlayRow = -1,
+            float[4] overlayBg = [0.15f, 0.15f, 0.2f, 0.9f],
+            float[4] overlayFg = [1.0f, 1.0f, 1.0f, 1.0f]) {
         if (frame.cols <= 0 || frame.rows <= 0 || frame.cells.length == 0) {
             return;
         }
@@ -214,6 +219,11 @@ public:
         size_t rangeIndex = 0;
         bool hasLinks = linkRanges !is null && linkRanges.length > 0;
         size_t linkIndex = 0;
+        bool hasOverlay = overlayText !is null && overlayText.length > 0 &&
+            overlayRow >= 0 && overlayRow < rows;
+        int overlayCols = hasOverlay
+            ? min(cast(int)overlayText.length, cols)
+            : 0;
         float cursorThicknessPx = cursorThickness > 0.0f ?
             cursorThickness * _contentScale : maxf(2.0f, cellH * 0.1f);
         if (cursorThicknessPx > cellH) {
@@ -231,6 +241,7 @@ public:
             size_t rowLinkIndex = linkIndex;
             HyperlinkRange currentLink;
             bool hasLink = false;
+            bool overlayRowActive = hasOverlay && row == overlayRow;
 
             if (hasSearch) {
                 while (rowRangeIndex < searchRanges.length &&
@@ -255,6 +266,21 @@ public:
                 }
             }
             foreach (col; 0 .. cols) {
+                if (overlayRowActive) {
+                    dchar ch = col < overlayCols ? overlayText[col] : ' ';
+                    float[4] fg = overlayFg;
+                    float[4] bg = overlayBg;
+
+                    _lineBuffer[col] = ch;
+                    _fgRow[col] = fg;
+                    _bgRow[col] = bg;
+                    float x0 = col * cellW;
+                    float y0 = row * cellH;
+                    addInstance(x0, y0, cellW, cellH,
+                                0, 0, 0, 0,
+                                fg, bg, 0.0f);
+                    continue;
+                }
                 auto idx = row * cols + col;
                 if (idx >= frame.cells.length) {
                     continue;

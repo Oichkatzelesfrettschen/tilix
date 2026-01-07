@@ -36,7 +36,7 @@ metadata, and install steps.
 - .claude directory permissions cause noisy git status warnings.
 - OpenGLContainer remains a stub (metrics, selection, snapshot, encoding).
 - Backend abstraction is still not wired through Terminal (per architectural audit).
-- Pure D backend still missing: dedicated search UI overlay (beyond title bar), IPC command coverage beyond newTab (split/close/focus/paste), IME implementation, tab bar UI, perf handoff (triple buffer/PBO).
+- Pure D backend still missing: richer search UI chrome (beyond bottom-row prompt), IPC command coverage beyond newTab (split/close/focus/paste), IME implementation, tab bar UI, perf handoff (triple buffer/PBO).
 - Pure D theme import is best-effort parsing (no full YAML/Xresources grammar coverage).
 - Wayland/XCB bindings are documented; dependencies are staged, runtime integration still pending.
 
@@ -45,7 +45,7 @@ metadata, and install steps.
 - DUB runs resource preparation before builds via `scripts/dub/prepare-resources.sh`.
 - Install uses staged artifacts to avoid polluting the source tree.
 - Config validation helper: `scripts/pure-d/validate_config.sh` (python `jsonschema`).
-- Pure D backend now includes: clipboard/PRIMARY, true color, bell flash, cursor styles (incl. outline), selection + search highlights (configurable), hyperlink detection + Ctrl+click, HarfBuzz shaping + fallback, selection-driven search, window-title search prompt, hot-reloadable config, config schema validation script, accessibility presets, IPC schema + local UNIX socket listener + DUB IPC client, strict `pure-d-nogc` build profile, SIMD delimiter/search unit tests, a headless test harness, Quake/dropdown mode support, crash-recovery snapshots, scene graph viewports with per-pane sessions, split creation/resizing (Ctrl+Shift+E/O, Ctrl+Shift+Alt+Arrows, Alt-drag boundary), zoom controls (Ctrl+=/-, Ctrl+0), fullscreen toggle (F11), and split layout persistence to pure-d.json.
+- Pure D backend now includes: clipboard/PRIMARY, true color, bell flash, cursor styles (incl. outline), selection + search highlights (configurable), hyperlink detection + Ctrl+click, HarfBuzz shaping + fallback, selection-driven search, window-title + bottom-row search prompt, hot-reloadable config, config schema validation script, accessibility presets, IPC schema + local UNIX socket listener + DUB IPC client, strict `pure-d-nogc` build profile, SIMD delimiter/search unit tests, a headless test harness, Quake/dropdown mode support, crash-recovery snapshots, scene graph viewports with per-pane sessions, split creation/resizing (Ctrl+Shift+E/O, Ctrl+Shift+Alt+Arrows, Alt-drag boundary), zoom controls (Ctrl+=/-, Ctrl+0), fullscreen toggle (F11), and split layout persistence to pure-d.json.
 
 ## XPRA Crash Findings
 - xpra server aborts with a pygobject assertion in pygi-invoke.c during

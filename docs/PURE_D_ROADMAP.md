@@ -44,6 +44,7 @@ A complete rewrite of Tilix terminal emulator in Pure D, replacing:
 
 ### Recent Progress (2026-01-07)
 - Window-title search prompt with editable query and search highlight overlay.
+- Bottom-row search prompt overlay during active search input.
 - Zoom controls (Ctrl+=/-, Ctrl+0) and fullscreen toggle (F11).
 - PRIMARY selection fallback to clipboard when X11 selection is unavailable.
 - DUB dependencies staged for xcb/wayland/xkbcommon integration.

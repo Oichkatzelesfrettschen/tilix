@@ -220,6 +220,7 @@ private:
     int _searchRangesOffset = int.min;
     bool _searchPromptActive;
     string _searchPromptBuffer;
+    dchar[] _searchPromptGlyphs;
 
     HyperlinkRange[] _hyperlinks;
     char[] _hyperlinkScratch;
@@ -733,6 +734,19 @@ public:
             }
         }
         _window.setTitle(title);
+    }
+
+    void refreshSearchPromptDisplay() {
+        updateWindowTitle();
+        if (!_searchPromptActive) {
+            _searchPromptGlyphs.length = 0;
+            return;
+        }
+        string text = "Search: " ~ _searchPromptBuffer;
+        _searchPromptGlyphs.length = 0;
+        foreach (dchar ch; text.byDchar) {
+            _searchPromptGlyphs ~= ch;
+        }
     }
 
     void nextTab(int delta) {
@@ -1255,20 +1269,20 @@ public:
         }
         _searchPromptActive = true;
         _searchPromptBuffer = query;
-        updateWindowTitle();
+        refreshSearchPromptDisplay();
     }
 
     void cancelSearchPrompt() {
         _searchPromptActive = false;
         _searchPromptBuffer = "";
-        updateWindowTitle();
+        refreshSearchPromptDisplay();
     }
 
     void confirmSearchPrompt() {
         auto query = _searchPromptBuffer;
         _searchPromptActive = false;
         _searchPromptBuffer = "";
-        updateWindowTitle();
+        refreshSearchPromptDisplay();
         if (query.length == 0) {
             return;
         }
@@ -1940,13 +1954,21 @@ private:
                 int selectionOffset = pane is active ? pane.scrollback.offset : 0;
                 auto paneSearch = pane is active ? searchRanges : null;
                 auto paneLinks = pane is active ? _hyperlinks : null;
+                const(dchar)[] overlayText = null;
+                int overlayRow = -1;
+                if (pane is active && _searchPromptActive &&
+                    _searchPromptGlyphs.length > 0) {
+                    overlayText = _searchPromptGlyphs;
+                    overlayRow = paneFrame.rows - 1;
+                }
                 int glX = vp.x;
                 int glY = fbHeight - vp.y - vp.height;
                 _glContext.setViewportRect(glX, glY, vp.width, vp.height);
                 _renderer.setViewport(vp.width, vp.height);
                 _renderer.render(paneFrame, cursorVisible, selection, selectionOffset,
                     _selectionBg, _selectionFg, paneSearch, _searchBg, _searchFg,
-                    paneLinks, _linkFg, _cursorStyle, _cursorThickness);
+                    paneLinks, _linkFg, _cursorStyle, _cursorThickness,
+                    overlayText, overlayRow, _searchBg, _searchFg);
             }
         }
 
@@ -2109,7 +2131,7 @@ private:
                 }
                 if (key == GLFW_KEY_BACKSPACE) {
                     _searchPromptBuffer = popLastCodepoint(_searchPromptBuffer);
-                    updateWindowTitle();
+                    refreshSearchPromptDisplay();
                     return;
                 }
             }
@@ -2288,7 +2310,7 @@ private:
         if (_searchPromptActive) {
             if (codepoint != 0) {
                 _searchPromptBuffer ~= encodeCodepoint(cast(dchar)codepoint);
-                updateWindowTitle();
+                refreshSearchPromptDisplay();
             }
             return;
         }
