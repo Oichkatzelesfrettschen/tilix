@@ -14,6 +14,7 @@ module pured.widget.terminal;
 
 version (PURE_D_BACKEND):
 
+import bindbc.glfw;
 import pured.widget.base;
 import pured.widget.events;
 import pured.util.signal;
@@ -307,9 +308,16 @@ public:
      * Send key to PTY.
      */
     void sendKey(int key, int scancode, int action, int mods) {
+        _inputHandler.updateKeyState(scancode, action);
         auto seq = _inputHandler.translateKey(key, scancode, action, mods);
         if (seq.length > 0 && _onOutput !is null) {
             _onOutput(seq);
+        } else if ((action == GLFW_PRESS || action == GLFW_REPEAT) &&
+            key == GLFW_KEY_UNKNOWN) {
+            auto fallback = _inputHandler.translateUnknownKey(scancode, mods);
+            if (fallback.length > 0 && _onOutput !is null) {
+                _onOutput(fallback);
+            }
         }
     }
 

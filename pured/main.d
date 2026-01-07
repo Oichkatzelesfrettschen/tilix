@@ -79,6 +79,37 @@ private struct TabState {
     string title;
 }
 
+private struct KeybindingSet {
+    KeyChord closeWindow;
+    KeyChord newWindow;
+    KeyChord newTab;
+    KeyChord closeTab;
+    KeyChord splitVertical;
+    KeyChord splitHorizontal;
+    KeyChord resizeLeft;
+    KeyChord resizeRight;
+    KeyChord resizeUp;
+    KeyChord resizeDown;
+    KeyChord focusNextPane;
+    KeyChord focusPrevPane;
+    KeyChord nextTab;
+    KeyChord prevTab;
+    KeyChord find;
+    KeyChord findNext;
+    KeyChord findPrev;
+    KeyChord copy;
+    KeyChord paste;
+    KeyChord pasteSelection;
+    KeyChord zoomIn;
+    KeyChord zoomOut;
+    KeyChord zoomReset;
+    KeyChord fullscreen;
+    KeyChord scrollPageUp;
+    KeyChord scrollPageDown;
+    KeyChord scrollTop;
+    KeyChord scrollBottom;
+}
+
 private class SessionCallbacks : ITerminalCallbacks {
 private:
     PureDTerminal _owner;
@@ -142,6 +173,7 @@ private:
     // Input handling
     InputHandler _inputHandler;
     ClipboardBridge _clipboard;
+    KeybindingSet _keybindings;
     size_t _scrollbackMaxLines = 200_000;
 
     // Mouse state
@@ -221,6 +253,9 @@ private:
     bool _searchPromptActive;
     string _searchPromptBuffer;
     dchar[] _searchPromptGlyphs;
+    string[] _searchHistory;
+    int _searchHistoryIndex = -1;
+    string _searchPromptDraft;
 
     HyperlinkRange[] _hyperlinks;
     char[] _hyperlinkScratch;
@@ -245,6 +280,7 @@ public:
         _searchBg = resolveSearchBg(_config);
         _searchFg = resolveSearchFg(_config, _searchBg);
         _linkFg = resolveLinkFg(_config);
+        refreshKeybindings();
         _quakeMode = _config.quakeMode;
         _quakeHeight = _config.quakeHeight;
         int windowWidth = _config.windowWidth;
@@ -1151,6 +1187,7 @@ public:
         _searchBg = resolveSearchBg(_config);
         _searchFg = resolveSearchFg(_config, _searchBg);
         _linkFg = resolveLinkFg(_config);
+        refreshKeybindings();
         _quakeMode = _config.quakeMode;
         _quakeHeight = _config.quakeHeight;
         applyQuakeMode();
@@ -1271,12 +1308,16 @@ public:
         }
         _searchPromptActive = true;
         _searchPromptBuffer = query;
+        _searchHistoryIndex = cast(int)_searchHistory.length;
+        _searchPromptDraft = _searchPromptBuffer;
         refreshSearchPromptDisplay();
     }
 
     void cancelSearchPrompt() {
         _searchPromptActive = false;
         _searchPromptBuffer = "";
+        _searchPromptDraft = "";
+        _searchHistoryIndex = cast(int)_searchHistory.length;
         refreshSearchPromptDisplay();
     }
 
@@ -1284,6 +1325,8 @@ public:
         auto query = _searchPromptBuffer;
         _searchPromptActive = false;
         _searchPromptBuffer = "";
+        _searchPromptDraft = "";
+        _searchHistoryIndex = cast(int)_searchHistory.length;
         refreshSearchPromptDisplay();
         if (query.length == 0) {
             return;
@@ -1300,6 +1343,7 @@ public:
             return;
         }
         _searchQuery = query;
+        pushSearchHistory(query);
         _searchMatchLen = countCodepoints(query);
         if (_searchMatchLen == 0) {
             _searchMatchLen = 1;
@@ -1342,8 +1386,25 @@ public:
         return text[0 .. i];
     }
 
+    void pushSearchHistory(string query) {
+        if (query.length == 0) {
+            return;
+        }
+        if (_searchHistory.length != 0 &&
+            _searchHistory[$ - 1] == query) {
+            return;
+        }
+        _searchHistory ~= query;
+        if (_searchHistory.length > 50) {
+            _searchHistory = _searchHistory[$ - 50 .. $];
+        }
+    }
+
     void nextSearchHit(bool backwards) {
         if (_searchHits.length == 0) {
+            if (_searchQuery.length != 0) {
+                executeSearch(_searchQuery);
+            }
             return;
         }
         if (backwards) {
@@ -1583,6 +1644,52 @@ public:
                 cfg.selectionBg[2], cfg.selectionBg[3]];
         }
         return [0.2f, 0.6f, 0.8f, 1.0f];
+    }
+
+    void refreshKeybindings() {
+        _keybindings.closeWindow = resolveKeybinding("closeWindow", "Ctrl+Q");
+        _keybindings.newWindow = resolveKeybinding("newWindow", "Ctrl+Shift+N");
+        _keybindings.newTab = resolveKeybinding("newTab", "Ctrl+Shift+T");
+        _keybindings.closeTab = resolveKeybinding("closeTab", "Ctrl+Shift+Q");
+        _keybindings.splitVertical = resolveKeybinding("splitVertical", "Ctrl+Shift+E");
+        _keybindings.splitHorizontal = resolveKeybinding("splitHorizontal", "Ctrl+Shift+O");
+        _keybindings.resizeLeft = resolveKeybinding("resizeLeft", "Ctrl+Shift+Alt+Left");
+        _keybindings.resizeRight = resolveKeybinding("resizeRight", "Ctrl+Shift+Alt+Right");
+        _keybindings.resizeUp = resolveKeybinding("resizeUp", "Ctrl+Shift+Alt+Up");
+        _keybindings.resizeDown = resolveKeybinding("resizeDown", "Ctrl+Shift+Alt+Down");
+        _keybindings.focusNextPane = resolveKeybinding("focusNextPane", "Ctrl+Tab");
+        _keybindings.focusPrevPane = resolveKeybinding("focusPrevPane", "Ctrl+Shift+Tab");
+        _keybindings.nextTab = resolveKeybinding("nextTab", "Ctrl+PageDown");
+        _keybindings.prevTab = resolveKeybinding("prevTab", "Ctrl+PageUp");
+        _keybindings.find = resolveKeybinding("find", "Ctrl+Shift+F");
+        _keybindings.findNext = resolveKeybinding("findNext", "F3");
+        _keybindings.findPrev = resolveKeybinding("findPrev", "Shift+F3");
+        _keybindings.copy = resolveKeybinding("copy", "Ctrl+Shift+C");
+        _keybindings.paste = resolveKeybinding("paste", "Ctrl+Shift+V");
+        _keybindings.pasteSelection = resolveKeybinding("pasteSelection", "Shift+Insert");
+        _keybindings.zoomIn = resolveKeybinding("zoomIn", "Ctrl+Plus");
+        _keybindings.zoomOut = resolveKeybinding("zoomOut", "Ctrl+Minus");
+        _keybindings.zoomReset = resolveKeybinding("zoomReset", "Ctrl+0");
+        _keybindings.fullscreen = resolveKeybinding("fullscreen", "F11");
+        _keybindings.scrollPageUp = resolveKeybinding("scrollPageUp", "Shift+PageUp");
+        _keybindings.scrollPageDown = resolveKeybinding("scrollPageDown", "Shift+PageDown");
+        _keybindings.scrollTop = resolveKeybinding("scrollTop", "Shift+Home");
+        _keybindings.scrollBottom = resolveKeybinding("scrollBottom", "Shift+End");
+    }
+
+    KeyChord resolveKeybinding(string name, string fallback) {
+        KeyChord chord;
+        if (_config.keybindings.length != 0) {
+            auto entry = name in _config.keybindings;
+            if (entry !is null) {
+                chord = parseKeyChord(*entry);
+                if (chord.valid) {
+                    return chord;
+                }
+            }
+        }
+        chord = parseKeyChord(fallback);
+        return chord;
     }
 
     float[4] resolveSelectionFg(in PureDConfig cfg, in float[4] selectionBg) {
@@ -2141,6 +2248,7 @@ private:
      */
     void onKey(int key, int scancode, int action, int mods) {
         _lastKeyMods = mods;
+        _inputHandler.updateKeyState(scancode, action);
         auto pane = activePane();
         if (_searchPromptActive) {
             if (action == GLFW_PRESS || action == GLFW_REPEAT) {
@@ -2154,164 +2262,192 @@ private:
                 }
                 if (key == GLFW_KEY_BACKSPACE) {
                     _searchPromptBuffer = popLastCodepoint(_searchPromptBuffer);
+                    _searchHistoryIndex = cast(int)_searchHistory.length;
+                    _searchPromptDraft = _searchPromptBuffer;
                     refreshSearchPromptDisplay();
+                    return;
+                }
+                if (key == GLFW_KEY_UP) {
+                    if (_searchHistory.length != 0 &&
+                        _searchHistoryIndex > 0) {
+                        if (_searchHistoryIndex == cast(int)_searchHistory.length) {
+                            _searchPromptDraft = _searchPromptBuffer;
+                        }
+                        _searchHistoryIndex--;
+                        _searchPromptBuffer = _searchHistory[_searchHistoryIndex];
+                        refreshSearchPromptDisplay();
+                    }
+                    return;
+                }
+                if (key == GLFW_KEY_DOWN) {
+                    if (_searchHistory.length != 0 &&
+                        _searchHistoryIndex < cast(int)_searchHistory.length) {
+                        _searchHistoryIndex++;
+                        if (_searchHistoryIndex >= cast(int)_searchHistory.length) {
+                            _searchPromptBuffer = _searchPromptDraft;
+                            _searchHistoryIndex = cast(int)_searchHistory.length;
+                        } else {
+                            _searchPromptBuffer = _searchHistory[_searchHistoryIndex];
+                        }
+                        refreshSearchPromptDisplay();
+                    }
                     return;
                 }
             }
             return;
         }
-        // Close on Ctrl+Q (keep as hardcoded shortcut)
-        if (action == GLFW_PRESS && key == GLFW_KEY_Q &&
-            (mods & GLFW_MOD_CONTROL) && (mods & GLFW_MOD_SHIFT) == 0) {
+        if (action == GLFW_PRESS &&
+            matchKeyChord(_keybindings.closeWindow, key, mods)) {
             _window.close();
             return;
         }
 
-        if (action == GLFW_PRESS &&
-            (mods & GLFW_MOD_CONTROL) &&
-            (mods & GLFW_MOD_SHIFT)) {
-            if (key == GLFW_KEY_E) {
+        if (action == GLFW_PRESS) {
+            if (matchKeyChord(_keybindings.splitVertical, key, mods)) {
                 splitActive(SplitOrientation.vertical);
                 return;
             }
-            if (key == GLFW_KEY_O) {
+            if (matchKeyChord(_keybindings.splitHorizontal, key, mods)) {
                 splitActive(SplitOrientation.horizontal);
                 return;
             }
-            if (key == GLFW_KEY_T) {
+            if (matchKeyChord(_keybindings.newTab, key, mods)) {
                 createTab();
                 return;
             }
-            if (key == GLFW_KEY_N) {
+            if (matchKeyChord(_keybindings.newWindow, key, mods)) {
                 spawnNewInstance();
                 return;
             }
-            if (key == GLFW_KEY_Q) {
+            if (matchKeyChord(_keybindings.closeTab, key, mods)) {
                 closeTab(_activeTabIndex);
                 return;
             }
         }
 
-        if (action == GLFW_PRESS && (mods & GLFW_MOD_CONTROL)) {
-            if (key == GLFW_KEY_EQUAL || key == GLFW_KEY_KP_ADD) {
+        if (action == GLFW_PRESS) {
+            if (matchKeyChord(_keybindings.zoomIn, key, mods) ||
+                (key == GLFW_KEY_KP_ADD &&
+                 _keybindings.zoomIn.mods == normalizeMods(mods))) {
                 adjustFontSize(1);
                 return;
             }
-            if (key == GLFW_KEY_MINUS || key == GLFW_KEY_KP_SUBTRACT) {
+            if (matchKeyChord(_keybindings.zoomOut, key, mods) ||
+                (key == GLFW_KEY_KP_SUBTRACT &&
+                 _keybindings.zoomOut.mods == normalizeMods(mods))) {
                 adjustFontSize(-1);
                 return;
             }
-            if (key == GLFW_KEY_0 || key == GLFW_KEY_KP_0) {
+            if (matchKeyChord(_keybindings.zoomReset, key, mods) ||
+                (key == GLFW_KEY_KP_0 &&
+                 _keybindings.zoomReset.mods == normalizeMods(mods))) {
                 resetFontSize();
                 return;
             }
         }
 
-        if (action == GLFW_PRESS && key == GLFW_KEY_F11) {
+        if (action == GLFW_PRESS &&
+            matchKeyChord(_keybindings.fullscreen, key, mods)) {
             _window.toggleFullscreen();
             return;
         }
 
-        if ((action == GLFW_PRESS || action == GLFW_REPEAT) &&
-            (mods & GLFW_MOD_CONTROL) &&
-            (mods & GLFW_MOD_SHIFT) &&
-            (mods & GLFW_MOD_ALT)) {
+        if (action == GLFW_PRESS || action == GLFW_REPEAT) {
             float delta = 0.05f;
-            if (key == GLFW_KEY_LEFT) {
+            if (matchKeyChord(_keybindings.resizeLeft, key, mods)) {
                 resizeActiveSplit(SplitOrientation.vertical, -delta);
                 return;
             }
-            if (key == GLFW_KEY_RIGHT) {
+            if (matchKeyChord(_keybindings.resizeRight, key, mods)) {
                 resizeActiveSplit(SplitOrientation.vertical, delta);
                 return;
             }
-            if (key == GLFW_KEY_UP) {
+            if (matchKeyChord(_keybindings.resizeUp, key, mods)) {
                 resizeActiveSplit(SplitOrientation.horizontal, -delta);
                 return;
             }
-            if (key == GLFW_KEY_DOWN) {
+            if (matchKeyChord(_keybindings.resizeDown, key, mods)) {
                 resizeActiveSplit(SplitOrientation.horizontal, delta);
                 return;
             }
         }
 
-        if (action == GLFW_PRESS &&
-            key == GLFW_KEY_TAB &&
-            (mods & GLFW_MOD_CONTROL)) {
-            bool backwards = (mods & GLFW_MOD_SHIFT) != 0;
-            focusAdjacentPane(backwards ? -1 : 1);
-            return;
-        }
-
-        if (action == GLFW_PRESS &&
-            (mods & GLFW_MOD_CONTROL) &&
-            (mods & GLFW_MOD_SHIFT) == 0) {
-            if (key == GLFW_KEY_PAGE_UP) {
+        if (action == GLFW_PRESS) {
+            if (matchKeyChord(_keybindings.focusNextPane, key, mods)) {
+                focusAdjacentPane(1);
+                return;
+            }
+            if (matchKeyChord(_keybindings.focusPrevPane, key, mods)) {
+                focusAdjacentPane(-1);
+                return;
+            }
+            if (matchKeyChord(_keybindings.prevTab, key, mods)) {
                 nextTab(-1);
                 return;
             }
-            if (key == GLFW_KEY_PAGE_DOWN) {
+            if (matchKeyChord(_keybindings.nextTab, key, mods)) {
                 nextTab(1);
                 return;
             }
         }
 
         if (action == GLFW_PRESS &&
-            key == GLFW_KEY_F &&
-            (mods & GLFW_MOD_CONTROL) &&
-            (mods & GLFW_MOD_SHIFT)) {
+            matchKeyChord(_keybindings.find, key, mods)) {
             triggerSearch();
             return;
         }
 
-        if (action == GLFW_PRESS && key == GLFW_KEY_F3) {
-            bool backwards = (mods & GLFW_MOD_SHIFT) != 0;
-            nextSearchHit(backwards);
-            return;
+        if (action == GLFW_PRESS) {
+            if (matchKeyChord(_keybindings.findNext, key, mods)) {
+                nextSearchHit(false);
+                return;
+            }
+            if (matchKeyChord(_keybindings.findPrev, key, mods)) {
+                nextSearchHit(true);
+                return;
+            }
         }
 
         // Handle scrollback navigation (Shift+PageUp/PageDown)
         if (action == GLFW_PRESS || action == GLFW_REPEAT) {
-            if (mods & GLFW_MOD_SHIFT) {
-                if (key == GLFW_KEY_PAGE_UP) {
-                    if (pane !is null && pane.scrollback !is null) {
-                        pane.scrollback.scrollPages(1);
-                    }
-                    return;
-                } else if (key == GLFW_KEY_PAGE_DOWN) {
-                    if (pane !is null && pane.scrollback !is null) {
-                        pane.scrollback.scrollPages(-1);
-                    }
-                    return;
-                } else if (key == GLFW_KEY_HOME) {
-                    if (pane !is null && pane.scrollback !is null) {
-                        pane.scrollback.scrollToTop();
-                    }
-                    return;
-                } else if (key == GLFW_KEY_END) {
-                    if (pane !is null && pane.scrollback !is null) {
-                        pane.scrollback.scrollToBottom();
-                    }
-                    return;
+            if (matchKeyChord(_keybindings.scrollPageUp, key, mods)) {
+                if (pane !is null && pane.scrollback !is null) {
+                    pane.scrollback.scrollPages(1);
                 }
+                return;
+            }
+            if (matchKeyChord(_keybindings.scrollPageDown, key, mods)) {
+                if (pane !is null && pane.scrollback !is null) {
+                    pane.scrollback.scrollPages(-1);
+                }
+                return;
+            }
+            if (matchKeyChord(_keybindings.scrollTop, key, mods)) {
+                if (pane !is null && pane.scrollback !is null) {
+                    pane.scrollback.scrollToTop();
+                }
+                return;
+            }
+            if (matchKeyChord(_keybindings.scrollBottom, key, mods)) {
+                if (pane !is null && pane.scrollback !is null) {
+                    pane.scrollback.scrollToBottom();
+                }
+                return;
             }
         }
 
         if (action == GLFW_PRESS) {
-            bool ctrl = (mods & GLFW_MOD_CONTROL) != 0;
-            bool shift = (mods & GLFW_MOD_SHIFT) != 0;
-
-            if (ctrl && shift && key == GLFW_KEY_C) {
+            if (matchKeyChord(_keybindings.copy, key, mods)) {
                 copySelectionToClipboard();
                 return;
             }
-            if (ctrl && shift && key == GLFW_KEY_V) {
+            if (matchKeyChord(_keybindings.paste, key, mods)) {
                 string text = _clipboard is null ? "" : _clipboard.requestClipboard();
                 pasteText(text);
                 return;
             }
-            if (shift && key == GLFW_KEY_INSERT) {
-                string text = _clipboard is null ? "" : _clipboard.requestClipboard();
+            if (matchKeyChord(_keybindings.pasteSelection, key, mods)) {
+                string text = _clipboard is null ? "" : _clipboard.requestPrimary();
                 pasteText(text);
                 return;
             }
@@ -2322,6 +2458,11 @@ private:
             auto escSeq = _inputHandler.translateKey(key, scancode, action, mods);
             if (escSeq !is null) {
                 sendToPty(escSeq);
+            } else if (key == GLFW_KEY_UNKNOWN) {
+                auto fallback = _inputHandler.translateUnknownKey(scancode, mods);
+                if (fallback !is null) {
+                    sendToPty(fallback);
+                }
             }
         }
     }
@@ -2333,6 +2474,8 @@ private:
         if (_searchPromptActive) {
             if (codepoint != 0) {
                 _searchPromptBuffer ~= encodeCodepoint(cast(dchar)codepoint);
+                _searchHistoryIndex = cast(int)_searchHistory.length;
+                _searchPromptDraft = _searchPromptBuffer;
                 refreshSearchPromptDisplay();
             }
             return;

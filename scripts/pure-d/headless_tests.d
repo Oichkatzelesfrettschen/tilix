@@ -12,6 +12,8 @@ import pured.scenegraph : SceneGraph, SplitOrientation, Viewport;
 import pured.recovery : saveSnapshot, loadSnapshot, clearSnapshot;
 import pured.config : SplitLayoutConfig, SplitLayoutNode, sanitizeSplitLayout;
 import pured.platform.wayland.primary_selection.bridge : WaylandPrimarySelectionBridge;
+import pured.platform.input : parseKeyChord, matchKeyChord;
+import bindbc.glfw : GLFW_KEY_F, GLFW_MOD_CONTROL, GLFW_MOD_SHIFT;
 import std.algorithm : min;
 import std.path : buildPath;
 import std.process : environment;
@@ -186,6 +188,12 @@ void main() {
         assert(bridge.requestPrimary().length == 0);
         bridge.setPrimary("test");
     }
+
+    auto findChord = parseKeyChord("Ctrl+Shift+F");
+    assert(findChord.valid);
+    assert(matchKeyChord(findChord, GLFW_KEY_F, GLFW_MOD_CONTROL | GLFW_MOD_SHIFT));
+    auto badChord = parseKeyChord("Ctrl+?");
+    assert(!badChord.valid);
 
     sb.terminate();
     writeln("Pure D headless tests passed.");

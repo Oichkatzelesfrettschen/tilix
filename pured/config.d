@@ -50,6 +50,7 @@ struct PureDConfig {
     string cursorStyle;
     float cursorThickness;
     string accessibilityPreset;
+    string[string] keybindings;
     float[] selectionBg;
     float[] selectionFg;
     float[] searchBg;
@@ -73,6 +74,7 @@ PureDConfig defaultConfig() {
     cfg.cursorStyle = "";
     cfg.cursorThickness = 0.0f;
     cfg.accessibilityPreset = "";
+    cfg.keybindings = null;
     cfg.selectionBg = [0.2f, 0.6f, 0.8f, 1.0f];
     cfg.selectionFg = [];
     cfg.searchBg = [0.85f, 0.7f, 0.2f, 1.0f];

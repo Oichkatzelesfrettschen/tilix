@@ -13,6 +13,10 @@ module pured.platform.input;
 version (PURE_D_BACKEND):
 
 import bindbc.glfw;
+import pured.platform.xkbcommon : XkbTranslator;
+import std.ascii : isAlpha, toUpper;
+import std.conv : to;
+import std.string : strip, split, toLower;
 import std.stdio : stderr, writefln;
 
 /**
@@ -35,6 +39,15 @@ enum MouseEncoding {
     utf8 = 1005,    /// UTF-8: coords as UTF-8 characters
     sgr = 1006,     /// SGR: ESC [ < Pb ; Px ; Py M/m (press/release)
     urxvt = 1015,   /// urxvt: ESC [ Pb ; Px ; Py M
+}
+
+enum int keyModMask = GLFW_MOD_CONTROL | GLFW_MOD_SHIFT | GLFW_MOD_ALT |
+    GLFW_MOD_SUPER;
+
+struct KeyChord {
+    int key = GLFW_KEY_UNKNOWN;
+    int mods = 0;
+    bool valid = false;
 }
 
 /**
@@ -66,7 +79,13 @@ private:
     static ubyte[32] _keyBuffer;
     static ubyte[32] _mouseBuffer;
 
+    XkbTranslator _xkb;
+
 public:
+    this() {
+        _xkb = new XkbTranslator();
+    }
+
     /**
      * Translate GLFW key event to terminal escape sequence.
      *
@@ -96,6 +115,31 @@ public:
         }
 
         return null;  // Let character callback handle normal keys
+    }
+
+    void updateKeyState(int scancode, int action) {
+        if (_xkb is null || !_xkb.available) {
+            return;
+        }
+        if (action == GLFW_PRESS || action == GLFW_REPEAT) {
+            _xkb.updateKey(scancode, true);
+        } else if (action == GLFW_RELEASE) {
+            _xkb.updateKey(scancode, false);
+        }
+    }
+
+    const(ubyte)[] translateUnknownKey(int scancode, int mods) {
+        if (_xkb is null || !_xkb.available) {
+            return null;
+        }
+        if ((mods & GLFW_MOD_CONTROL) || (mods & GLFW_MOD_SUPER)) {
+            return null;
+        }
+        auto codepoint = _xkb.lookupUtf32(scancode);
+        if (codepoint == 0) {
+            return null;
+        }
+        return translateChar(codepoint, mods);
     }
 
     /**
@@ -638,6 +682,122 @@ private:
         _mouseBuffer[0 .. result.length] = cast(ubyte[])result;
         return _mouseBuffer[0 .. result.length];
     }
+}
+
+int normalizeMods(int mods) @nogc nothrow {
+    return mods & keyModMask;
+}
+
+bool matchKeyChord(KeyChord chord, int key, int mods) @nogc nothrow {
+    if (!chord.valid) {
+        return false;
+    }
+    return chord.key == key && chord.mods == normalizeMods(mods);
+}
+
+KeyChord parseKeyChord(string value) {
+    KeyChord chord;
+    auto trimmed = strip(value);
+    if (trimmed.length == 0) {
+        return chord;
+    }
+
+    string[] parts = split(trimmed, "+");
+    foreach (rawToken; parts) {
+        auto token = toLower(strip(rawToken));
+        if (token.length == 0) {
+            continue;
+        }
+        if (token == "ctrl" || token == "control") {
+            chord.mods |= GLFW_MOD_CONTROL;
+            continue;
+        }
+        if (token == "shift") {
+            chord.mods |= GLFW_MOD_SHIFT;
+            continue;
+        }
+        if (token == "alt" || token == "option") {
+            chord.mods |= GLFW_MOD_ALT;
+            continue;
+        }
+        if (token == "super" || token == "meta" || token == "cmd" || token == "win") {
+            chord.mods |= GLFW_MOD_SUPER;
+            continue;
+        }
+
+        int key = GLFW_KEY_UNKNOWN;
+        if (token.length == 1) {
+            immutable char ch = token[0];
+            if (isAlpha(ch)) {
+                key = GLFW_KEY_A + (toUpper(ch) - 'A');
+            } else if (ch >= '0' && ch <= '9') {
+                key = GLFW_KEY_0 + (ch - '0');
+            } else if (ch == '=') {
+                key = GLFW_KEY_EQUAL;
+            } else if (ch == '-') {
+                key = GLFW_KEY_MINUS;
+            }
+        } else if (token.length >= 2 && token[0] == 'f') {
+            try {
+                int index = to!int(token[1 .. $]);
+                if (index >= 1 && index <= 25) {
+                    key = GLFW_KEY_F1 + (index - 1);
+                }
+            } catch (Exception) {
+                key = GLFW_KEY_UNKNOWN;
+            }
+        } else {
+            switch (token) {
+                case "tab": key = GLFW_KEY_TAB; break;
+                case "enter": key = GLFW_KEY_ENTER; break;
+                case "escape":
+                case "esc": key = GLFW_KEY_ESCAPE; break;
+                case "backspace": key = GLFW_KEY_BACKSPACE; break;
+                case "space": key = GLFW_KEY_SPACE; break;
+                case "pageup":
+                case "pgup": key = GLFW_KEY_PAGE_UP; break;
+                case "pagedown":
+                case "pgdown": key = GLFW_KEY_PAGE_DOWN; break;
+                case "home": key = GLFW_KEY_HOME; break;
+                case "end": key = GLFW_KEY_END; break;
+                case "insert": key = GLFW_KEY_INSERT; break;
+                case "delete": key = GLFW_KEY_DELETE; break;
+                case "left": key = GLFW_KEY_LEFT; break;
+                case "right": key = GLFW_KEY_RIGHT; break;
+                case "up": key = GLFW_KEY_UP; break;
+                case "down": key = GLFW_KEY_DOWN; break;
+                case "plus": key = GLFW_KEY_EQUAL; break;
+                case "minus": key = GLFW_KEY_MINUS; break;
+                case "kp_add": key = GLFW_KEY_KP_ADD; break;
+                case "kp_subtract": key = GLFW_KEY_KP_SUBTRACT; break;
+                case "kp_0": key = GLFW_KEY_KP_0; break;
+                case "equal": key = GLFW_KEY_EQUAL; break;
+                case "grave": key = GLFW_KEY_GRAVE_ACCENT; break;
+                case "comma": key = GLFW_KEY_COMMA; break;
+                case "period": key = GLFW_KEY_PERIOD; break;
+                case "slash": key = GLFW_KEY_SLASH; break;
+                case "semicolon": key = GLFW_KEY_SEMICOLON; break;
+                case "apostrophe": key = GLFW_KEY_APOSTROPHE; break;
+                case "left_bracket": key = GLFW_KEY_LEFT_BRACKET; break;
+                case "right_bracket": key = GLFW_KEY_RIGHT_BRACKET; break;
+                case "backslash": key = GLFW_KEY_BACKSLASH; break;
+                case "unknown": key = GLFW_KEY_UNKNOWN; break;
+                default: key = GLFW_KEY_UNKNOWN; break;
+            }
+        }
+
+        if (key == GLFW_KEY_UNKNOWN) {
+            return KeyChord.init;
+        }
+        chord.key = key;
+    }
+
+    if (chord.key == GLFW_KEY_UNKNOWN) {
+        return KeyChord.init;
+    }
+    chord.valid = true;
+    chord.mods = normalizeMods(chord.mods);
+    return chord;
 }
 
 /**

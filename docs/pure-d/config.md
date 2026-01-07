@@ -19,6 +19,11 @@ Location:
   "cursorStyle": "outline",
   "cursorThickness": 2.0,
   "accessibilityPreset": "",
+  "keybindings": {
+    "copy": "Ctrl+Shift+C",
+    "paste": "Ctrl+Shift+V",
+    "find": "Ctrl+Shift+F"
+  },
   "selectionBg": [0.2, 0.6, 0.8, 1.0],
   "selectionFg": [0.0, 0.0, 0.0, 1.0],
   "searchBg": [0.85, 0.7, 0.2, 1.0],
@@ -71,6 +76,7 @@ Notes:
 - `cursorStyle`: `block`, `underline`, `bar`, or `outline` (alias `block-outline`).
 - `cursorThickness`: pixels at 1x scale (0 uses adaptive thickness).
 - `accessibilityPreset`: `high-contrast` or `low-vision`. Presets only fill unset fields.
+- `keybindings`: optional string map of action -> chord (`Ctrl+Shift+C`, `Alt+Left`, `F3`). Unknown/invalid chords are ignored.
 - `selectionBg`: RGBA highlight color (0.0 to 1.0, clamped).
 - `selectionBg` alpha blends with the underlying cell background.
 - `selectionFg`: RGBA selection text color (0.0 to 1.0, clamped). Defaults to high-contrast black/white based on `selectionBg`.

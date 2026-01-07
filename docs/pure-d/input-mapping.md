@@ -25,10 +25,15 @@ Parity notes:
 - Focus reporting is wired via emulator mode flags.
 - Selection is suppressed while mouse reporting is active (no drag selection in that mode).
 
+## Mouse selection parity gaps
+- Rectangular/block selection is available in the selection engine but not bound to a modifier yet.
+- Alt+drag is reserved for split resizing; consider `Alt+Shift` or `Ctrl+Alt` for block selection.
+
 ## App-level shortcuts in Pure D
 - Ctrl+Q: close window.
 - Ctrl+Shift+F: open search prompt (prefilled with selection/last query).
 - Enter confirms search, Esc cancels, Backspace edits prompt.
+- Up/Down in search prompt cycles history; newest draft is restored when you reach the end.
 - F3 / Shift+F3: next/previous search hit.
 - Shift+PageUp/Down/Home/End: scrollback navigation.
 - Ctrl+Shift+N: new window (spawns new instance).
@@ -53,7 +58,7 @@ Parity notes:
 | Close session | Ctrl+Shift+Q | implemented (closes active tab) |
 | Copy | Ctrl+Shift+C | implemented |
 | Paste | Ctrl+Shift+V | implemented |
-| Paste selection | Shift+Insert | implemented (clipboard; PRIMARY paste via middle-click) |
+| Paste selection | Shift+Insert | implemented (PRIMARY selection) |
 | Find | Ctrl+Shift+F | implemented (selection-first) |
 | Find next/prev | F3 / Shift+F3 | implemented |
 | Split add/switch/resize | Alt+arrows & gsettings | implemented (Ctrl+Shift+E/O, Ctrl+Shift+Alt+Arrows, Alt-drag boundary) |
@@ -67,6 +72,8 @@ Notes:
 - Pure D input translation lives in `pured/platform/input.d`; app shortcuts are in `pured/main.d`.
 - PRIMARY selection uses XCB on X11 and primary-selection-unstable-v1 on Wayland; falls back to clipboard when unavailable.
 - F21-F24 are mapped (CSI 35~..38~); additional extended keypad keys remain unmapped.
+- GLFW key events with `GLFW_KEY_UNKNOWN` fall back to xkbcommon translation (scancode + 8) for layout-aware UTF-8.
+- xkbcommon lookup is only used for unknown GLFW keys to avoid slowing the normal key path.
 
 ## Parity gaps (Tilix defaults not yet implemented)
 - Preferences/shortcuts UI and accelerator toggles.

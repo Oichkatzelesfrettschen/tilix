@@ -24,6 +24,10 @@
       "type": "string",
       "enum": ["", "high-contrast", "low-vision"]
     },
+    "keybindings": {
+      "type": "object",
+      "additionalProperties": { "type": "string" }
+    },
     "selectionBg": { "$ref": "#/$defs/rgba" },
     "selectionFg": { "$ref": "#/$defs/rgba" },
     "searchBg": { "$ref": "#/$defs/rgba" },
