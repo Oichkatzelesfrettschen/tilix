@@ -347,7 +347,7 @@ protected:
  */
 void attributesToColors(ref TerminalEmulator.TextAttributes attrs,
                         out float[4] fg, out float[4] bg,
-                        const(ResolvedTheme)* theme = null) {
+                        const(ResolvedTheme)* theme = null) @nogc nothrow {
     const(ResolvedTheme)* resolved = theme is null ? defaultResolvedTheme() : theme;
     fg = resolved.foreground;
     bg = resolved.background;

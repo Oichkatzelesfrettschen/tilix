@@ -1009,57 +1009,57 @@ class TerminalEmulator {
 	/// .
 	static struct TextAttributes {
 		align(1):
-		bool bold() { return (attrStore & 1) ? true : false; } ///
-		void bold(bool t) { attrStore &= ~1; if(t) attrStore |= 1; } ///
+		bool bold() @nogc nothrow { return (attrStore & 1) ? true : false; } ///
+		void bold(bool t) @nogc nothrow { attrStore &= ~1; if(t) attrStore |= 1; } ///
 
-		bool blink() { return (attrStore & 2) ? true : false; } ///
-		void blink(bool t) { attrStore &= ~2; if(t) attrStore |= 2; } ///
+		bool blink() @nogc nothrow { return (attrStore & 2) ? true : false; } ///
+		void blink(bool t) @nogc nothrow { attrStore &= ~2; if(t) attrStore |= 2; } ///
 
-		bool invisible() { return (attrStore & 4) ? true : false; } ///
-		void invisible(bool t) { attrStore &= ~4; if(t) attrStore |= 4; } ///
+		bool invisible() @nogc nothrow { return (attrStore & 4) ? true : false; } ///
+		void invisible(bool t) @nogc nothrow { attrStore &= ~4; if(t) attrStore |= 4; } ///
 
-		bool inverse() { return (attrStore & 8) ? true : false; } ///
-		void inverse(bool t) { attrStore &= ~8; if(t) attrStore |= 8; } ///
+		bool inverse() @nogc nothrow { return (attrStore & 8) ? true : false; } ///
+		void inverse(bool t) @nogc nothrow { attrStore &= ~8; if(t) attrStore |= 8; } ///
 
-		bool underlined() { return (attrStore & 16) ? true : false; } ///
-		void underlined(bool t) { attrStore &= ~16; if(t) attrStore |= 16; } ///
+		bool underlined() @nogc nothrow { return (attrStore & 16) ? true : false; } ///
+		void underlined(bool t) @nogc nothrow { attrStore &= ~16; if(t) attrStore |= 16; } ///
 
-		bool italic() { return (attrStore & 32) ? true : false; } ///
-		void italic(bool t) { attrStore &= ~32; if(t) attrStore |= 32; } ///
+		bool italic() @nogc nothrow { return (attrStore & 32) ? true : false; } ///
+		void italic(bool t) @nogc nothrow { attrStore &= ~32; if(t) attrStore |= 32; } ///
 
-		bool strikeout() { return (attrStore & 64) ? true : false; } ///
-		void strikeout(bool t) { attrStore &= ~64; if(t) attrStore |= 64; } ///
+		bool strikeout() @nogc nothrow { return (attrStore & 64) ? true : false; } ///
+		void strikeout(bool t) @nogc nothrow { attrStore &= ~64; if(t) attrStore |= 64; } ///
 
-		bool faint() { return (attrStore & 128) ? true : false; } ///
-		void faint(bool t) { attrStore &= ~128; if(t) attrStore |= 128; } ///
+		bool faint() @nogc nothrow { return (attrStore & 128) ? true : false; } ///
+		void faint(bool t) @nogc nothrow { attrStore &= ~128; if(t) attrStore |= 128; } ///
 
 		// if the high bit here is set, you should use the full Color values if possible, and the value here sans the high bit if not
 
-		bool foregroundIsDefault() { return (attrStore & 256) ? true : false; } ///
-		void foregroundIsDefault(bool t) { attrStore &= ~256; if(t) attrStore |= 256; } ///
+		bool foregroundIsDefault() @nogc nothrow { return (attrStore & 256) ? true : false; } ///
+		void foregroundIsDefault(bool t) @nogc nothrow { attrStore &= ~256; if(t) attrStore |= 256; } ///
 
-		bool backgroundIsDefault() { return (attrStore & 512) ? true : false; } ///
-		void backgroundIsDefault(bool t) { attrStore &= ~512; if(t) attrStore |= 512; } ///
+		bool backgroundIsDefault() @nogc nothrow { return (attrStore & 512) ? true : false; } ///
+		void backgroundIsDefault(bool t) @nogc nothrow { attrStore &= ~512; if(t) attrStore |= 512; } ///
 
 		// I am doing all this to  get the store a bit smaller but
 		// I could go back to just plain `ushort foregroundIndex` etc.
 
 		///
-		@property ushort foregroundIndex() {
+		@property ushort foregroundIndex() @nogc nothrow {
 			if(foregroundIsDefault)
 				return 256;
 			else
 				return foregroundIndexStore;
 		}
 		///
-		@property ushort backgroundIndex() {
+		@property ushort backgroundIndex() @nogc nothrow {
 			if(backgroundIsDefault)
 				return 256;
 			else
 				return backgroundIndexStore;
 		}
 		///
-		@property void foregroundIndex(ushort v) {
+		@property void foregroundIndex(ushort v) @nogc nothrow {
 			if(v == 256)
 				foregroundIsDefault = true;
 			else
@@ -1067,7 +1067,7 @@ class TerminalEmulator {
 			foregroundIndexStore = cast(ubyte) v;
 		}
 		///
-		@property void backgroundIndex(ushort v) {
+		@property void backgroundIndex(ushort v) @nogc nothrow {
 			if(v == 256)
 				backgroundIsDefault = true;
 			else

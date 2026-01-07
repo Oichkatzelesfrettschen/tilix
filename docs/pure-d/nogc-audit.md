@@ -7,6 +7,8 @@ Status:
   layout changes (see `pured/main.d`).
 - Strict `@nogc` path uses `tryGetGlyph*` to avoid atlas allocations in the
   render loop (see `pured/renderer.d`).
+- `arsd.terminalemulator.TextAttributes` accessors are annotated `@nogc`
+  to support `attributesToColors` in the render path.
 
 Known allocation risks (hot paths):
 - `Renderer.render()` is not annotated `@nogc` yet; it relies on dynamic arrays
