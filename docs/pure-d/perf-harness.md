@@ -11,11 +11,13 @@ Steps:
    - `scripts/pure-d/run_perf_harness.sh`
 2) (Optional) run headless tests:
    - `./build/pure/tilix-pure-tests`
-3) In the Pure D terminal, generate output:
+3) (Optional) run scrollback search benchmark:
+   - `dub run --config=pure-d-search-bench -- --lines 20000 --cols 120 --needle ERROR`
+4) In the Pure D terminal, generate output:
    - `scripts/pure-d/generate_output.sh 512`
-4) Run correctness suite:
+5) Run correctness suite:
    - `vttest`
-5) Optional: compare runs with hyperfine:
+6) Optional: compare runs with hyperfine:
    - `hyperfine --runs 5 "scripts/pure-d/generate_output.sh 512"`
 
 Notes:

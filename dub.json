@@ -131,6 +131,18 @@
             "excludedSourceFiles": ["source/*", "scripts/pure-d/ipc_client.d"]
         },
         {
+            "name": "pure-d-search-bench",
+            "targetType": "executable",
+            "mainSourceFile": "scripts/pure-d/bench_scrollback_search.d",
+            "targetName": "tilix-search-bench",
+            "targetPath": "build/pure",
+            "versions": ["PURE_D_BACKEND", "StdLoggerDisableTrace"],
+            "sourcePaths": ["scripts/pure-d", "pured/terminal"],
+            "importPaths": ["scripts/pure-d", "pured"],
+            "sourceFiles": ["pured/platform/input.d"],
+            "excludedSourceFiles": ["source/*", "scripts/pure-d/ipc_client.d"]
+        },
+        {
             "name": "ipc-client",
             "targetType": "executable",
             "mainSourceFile": "scripts/pure-d/ipc_client.d",
