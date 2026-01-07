@@ -101,6 +101,12 @@ DUB dependencies (pulled automatically; versions from code.dlang.org /latest):
 - wayland-scanner-d 1.0.0 (optional; protocol generation)
 - fswatch 0.6.1 or dinotify 0.5.0 (optional; config file watching)
 
+Pure D module notes:
+- Input/keybinding fallback: libxkbcommon (xkbcommon-d) for GLFW_KEY_UNKNOWN lookup.
+- PRIMARY selection: libxcb + xcb-util-wm on X11; wayland + wayland-protocols on Wayland.
+- Renderer/shaping: freetype2 + harfbuzz + fontconfig for glyphs and fallback.
+- Hyperlink activation: xdg-utils for xdg-open.
+
 ## 5. GTK4 + VTE4 (optional future backend)
 - gtk4
 - vte4

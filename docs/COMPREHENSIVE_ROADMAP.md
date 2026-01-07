@@ -37,11 +37,14 @@ This roadmap synthesizes findings from four parallel analysis efforts:
 
 **Completed**:
 - Clipboard + PRIMARY selection (X11/XCB + Wayland primary-selection)
+- xkbcommon fallback for GLFW_KEY_UNKNOWN (layout-aware UTF-8 input)
 - Truecolor mapping and per-cell colors
 - Cursor styles (block/underline/bar/outline) with configurable selection highlight
 - HarfBuzz shaping + font fallback
 - Config + theme import (Xresources/Alacritty) with hot reload
+- Configurable keybindings map + parser (Ctrl/Shift/Alt/Super chords)
 - Selection-driven search (Ctrl+Shift+F + F3 cycling)
+- Search prompt history (Up/Down cycling + draft restore)
 - Window-title search prompt (editable query, Enter confirm, Esc cancel)
 - Bottom-row search prompt overlay during active query
 - Search highlight overlay + configurable search colors
