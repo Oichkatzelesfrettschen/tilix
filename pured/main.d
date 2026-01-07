@@ -29,6 +29,7 @@ import pured.terminal.selection;
 import pured.terminal.scrollback;
 import pured.terminal.search : SearchHit, SearchRange, buildSearchRangesForFrame,
     findInScrollback, findInFrame;
+import pured.terminal.search_history : SearchHistory;
 import pured.terminal.hyperlink : HyperlinkRange, scanLineForLinks;
 import pured.ipc.server : IpcServer, IpcCommand, IpcCommandType;
 import pured.recovery : defaultSnapshotPath, saveSnapshot, loadSnapshot;
@@ -254,9 +255,7 @@ private:
     bool _searchPromptActive;
     string _searchPromptBuffer;
     dchar[] _searchPromptGlyphs;
-    string[] _searchHistory;
-    int _searchHistoryIndex = -1;
-    string _searchPromptDraft;
+    SearchHistory _searchHistory;
 
     HyperlinkRange[] _hyperlinks;
     char[] _hyperlinkScratch;
@@ -1309,16 +1308,14 @@ public:
         }
         _searchPromptActive = true;
         _searchPromptBuffer = query;
-        _searchHistoryIndex = cast(int)_searchHistory.length;
-        _searchPromptDraft = _searchPromptBuffer;
+        _searchHistory.resetDraft(_searchPromptBuffer);
         refreshSearchPromptDisplay();
     }
 
     void cancelSearchPrompt() {
         _searchPromptActive = false;
         _searchPromptBuffer = "";
-        _searchPromptDraft = "";
-        _searchHistoryIndex = cast(int)_searchHistory.length;
+        _searchHistory.resetDraft("");
         refreshSearchPromptDisplay();
     }
 
@@ -1326,8 +1323,7 @@ public:
         auto query = _searchPromptBuffer;
         _searchPromptActive = false;
         _searchPromptBuffer = "";
-        _searchPromptDraft = "";
-        _searchHistoryIndex = cast(int)_searchHistory.length;
+        _searchHistory.resetDraft("");
         refreshSearchPromptDisplay();
         if (query.length == 0) {
             return;
@@ -1388,17 +1384,7 @@ public:
     }
 
     void pushSearchHistory(string query) {
-        if (query.length == 0) {
-            return;
-        }
-        if (_searchHistory.length != 0 &&
-            _searchHistory[$ - 1] == query) {
-            return;
-        }
-        _searchHistory ~= query;
-        if (_searchHistory.length > 50) {
-            _searchHistory = _searchHistory[$ - 50 .. $];
-        }
+        _searchHistory.push(query);
     }
 
     void nextSearchHit(bool backwards) {
@@ -2238,33 +2224,20 @@ private:
                 }
                 if (key == GLFW_KEY_BACKSPACE) {
                     _searchPromptBuffer = popLastCodepoint(_searchPromptBuffer);
-                    _searchHistoryIndex = cast(int)_searchHistory.length;
-                    _searchPromptDraft = _searchPromptBuffer;
+                    _searchHistory.updateDraft(_searchPromptBuffer);
                     refreshSearchPromptDisplay();
                     return;
                 }
                 if (key == GLFW_KEY_UP) {
-                    if (_searchHistory.length != 0 &&
-                        _searchHistoryIndex > 0) {
-                        if (_searchHistoryIndex == cast(int)_searchHistory.length) {
-                            _searchPromptDraft = _searchPromptBuffer;
-                        }
-                        _searchHistoryIndex--;
-                        _searchPromptBuffer = _searchHistory[_searchHistoryIndex];
+                    if (_searchHistory.entries.length != 0) {
+                        _searchPromptBuffer = _searchHistory.prev(_searchPromptBuffer);
                         refreshSearchPromptDisplay();
                     }
                     return;
                 }
                 if (key == GLFW_KEY_DOWN) {
-                    if (_searchHistory.length != 0 &&
-                        _searchHistoryIndex < cast(int)_searchHistory.length) {
-                        _searchHistoryIndex++;
-                        if (_searchHistoryIndex >= cast(int)_searchHistory.length) {
-                            _searchPromptBuffer = _searchPromptDraft;
-                            _searchHistoryIndex = cast(int)_searchHistory.length;
-                        } else {
-                            _searchPromptBuffer = _searchHistory[_searchHistoryIndex];
-                        }
+                    if (_searchHistory.entries.length != 0) {
+                        _searchPromptBuffer = _searchHistory.next();
                         refreshSearchPromptDisplay();
                     }
                     return;
@@ -2450,8 +2423,7 @@ private:
         if (_searchPromptActive) {
             if (codepoint != 0) {
                 _searchPromptBuffer ~= encodeCodepoint(cast(dchar)codepoint);
-                _searchHistoryIndex = cast(int)_searchHistory.length;
-                _searchPromptDraft = _searchPromptBuffer;
+                _searchHistory.updateDraft(_searchPromptBuffer);
                 refreshSearchPromptDisplay();
             }
             return;

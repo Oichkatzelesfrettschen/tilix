@@ -6,6 +6,7 @@ import arsd.terminalemulator : TerminalEmulator;
 import pured.terminal.scrollback_buffer : ScrollbackBuffer;
 import pured.terminal.search : SearchHit, SearchRange, buildSearchRangesForFrame,
     findInScrollback, findInFrame;
+import pured.terminal.search_history : SearchHistory;
 import pured.terminal.frame : TerminalFrame;
 import pured.terminal.hyperlink : HyperlinkRange, scanLineForLinks;
 import pured.terminal.selection : Selection, SelectionType;
@@ -82,6 +83,20 @@ void main() {
     assert(searchRanges[1].row == 2);
     assert(searchRanges[1].startCol == 6);
     assert(searchRanges[1].endCol == 7);
+
+    SearchHistory history;
+    history.push("alpha");
+    history.push("beta");
+    string prompt = "draft";
+    history.resetDraft(prompt);
+    prompt = history.prev(prompt);
+    assert(prompt == "beta");
+    prompt = history.prev(prompt);
+    assert(prompt == "alpha");
+    prompt = history.next();
+    assert(prompt == "beta");
+    prompt = history.next();
+    assert(prompt == "draft");
 
     HyperlinkRange[] ranges;
     size_t count = 0;
