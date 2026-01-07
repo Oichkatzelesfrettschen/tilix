@@ -89,6 +89,20 @@ void main() {
     leftWidth = viewports[0].paneId == 0 ? viewports[0].width : viewports[1].width;
     assert(leftWidth >= 69 && leftWidth <= 71);
 
+    SceneGraph tabScene = new SceneGraph(10);
+    auto tabPane = tabScene.splitLeafWithIds(10, SplitOrientation.horizontal, 0.4f, 11, 12);
+    assert(tabPane == 12);
+    Viewport[] tabViewports;
+    tabScene.computeViewports(0, 0, 100, 40, tabViewports);
+    assert(tabViewports.length == 2);
+    bool has10 = false;
+    bool has12 = false;
+    foreach (vp; tabViewports) {
+        if (vp.paneId == 10) has10 = true;
+        if (vp.paneId == 12) has12 = true;
+    }
+    assert(has10 && has12);
+
     SplitLayoutConfig layout;
     layout.rootPaneId = 1;
     layout.activePaneId = 1;

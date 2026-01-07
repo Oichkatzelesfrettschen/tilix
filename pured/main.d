@@ -40,6 +40,7 @@ import std.math : pow;
 import std.process : spawnProcess;
 import std.path : buildPath;
 import std.process : environment;
+import std.conv : to;
 import core.atomic : atomicLoad, atomicStore, MemoryOrder;
 import core.thread : Thread;
 import core.time : MonoTime, dur;
@@ -67,6 +68,13 @@ private struct SplitDragState {
     int paneId;
     double origin;
     double span;
+}
+
+private struct TabState {
+    SceneGraph scene;
+    Viewport[] viewports;
+    int activePaneId = -1;
+    string title;
 }
 
 private class SessionCallbacks : ITerminalCallbacks {
@@ -188,6 +196,9 @@ private:
     string _snapshotPath;
     MonoTime _lastSnapshotTime;
 
+    TabState[] _tabs;
+    int _activeTabIndex = -1;
+    int _nextPaneId = 1;
     SceneGraph _scene;
     Viewport[] _viewports;
     int _activePaneId;
@@ -282,13 +293,21 @@ public:
         // Set initial viewport and calculate terminal size
         int width, height;
         _window.getFramebufferSize(width, height);
+        ensureTabs();
         _activePaneId = -1;
-        _scene = new SceneGraph();
+        auto tab = activeTab();
+        if (tab !is null) {
+            _scene = tab.scene;
+        }
+        if (_scene is null) {
+            _scene = new SceneGraph(0);
+        }
         if (_config.splitLayout.nodes.length > 0) {
             if (_scene.applyLayoutConfig(_config.splitLayout)) {
                 _activePaneId = _config.splitLayout.activePaneId;
             }
         }
+        syncNextPaneIdFromScene();
         updateViewports(false);
         _glContext.setViewport(width, height);
         _renderer.setViewport(width, height);
@@ -476,9 +495,18 @@ public:
     }
 
     void updateViewports(bool startNewSessions = true) {
-        if (_scene is null) {
-            _scene = new SceneGraph();
+        ensureTabs();
+        auto tab = activeTab();
+        if (tab is null) {
+            return;
         }
+        if (tab.scene is null) {
+            tab.scene = new SceneGraph(allocatePaneId());
+            tab.activePaneId = tab.scene.root.paneId;
+        }
+        _scene = tab.scene;
+        _viewports = tab.viewports;
+        _activePaneId = tab.activePaneId;
         int fbWidth;
         int fbHeight;
         _window.getFramebufferSize(fbWidth, fbHeight);
@@ -487,6 +515,7 @@ public:
             _activePaneId = _viewports[0].paneId;
         }
         syncPanesForViewports(startNewSessions);
+        syncActiveTabState();
     }
 
     PaneState paneForId(int paneId) {
@@ -498,11 +527,71 @@ public:
         return paneForId(_activePaneId);
     }
 
+    TabState* activeTab() {
+        if (_activeTabIndex < 0 || _activeTabIndex >= cast(int)_tabs.length) {
+            return null;
+        }
+        return &_tabs[_activeTabIndex];
+    }
+
+    void ensureTabs() {
+        if (_tabs.length != 0) {
+            return;
+        }
+        TabState tab;
+        tab.scene = new SceneGraph(0);
+        tab.activePaneId = -1;
+        tab.title = "Tab 1";
+        _tabs ~= tab;
+        _activeTabIndex = 0;
+        _scene = tab.scene;
+        _viewports = tab.viewports;
+        _activePaneId = tab.activePaneId;
+    }
+
+    void syncActiveTabState() {
+        auto tab = activeTab();
+        if (tab is null) {
+            return;
+        }
+        tab.viewports = _viewports;
+        tab.activePaneId = _activePaneId;
+        tab.scene = _scene;
+    }
+
+    int allocatePaneId() {
+        int id = _nextPaneId;
+        _nextPaneId += 1;
+        return id;
+    }
+
+    void syncNextPaneIdFromScene() {
+        if (_scene is null) {
+            return;
+        }
+        if (_scene.nextPaneId > _nextPaneId) {
+            _nextPaneId = _scene.nextPaneId;
+        }
+    }
+
+    bool paneInAnyTab(int paneId) {
+        foreach (tab; _tabs) {
+            if (tab.scene !is null && tab.scene.hasPane(paneId)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     void setActivePane(int paneId, bool force = false) {
         if (!force && paneId == _activePaneId) {
             return;
         }
         _activePaneId = paneId;
+        auto tab = activeTab();
+        if (tab !is null) {
+            tab.activePaneId = paneId;
+        }
         auto pane = activePane();
         if (pane !is null) {
             _cols = pane.cols;
@@ -539,6 +628,45 @@ public:
             ? 0
             : (currentIndex + delta + count) % count;
         setActivePane(_viewports[targetIndex].paneId);
+    }
+
+    void createTab() {
+        TabState tab;
+        int rootPaneId = allocatePaneId();
+        tab.scene = new SceneGraph(rootPaneId);
+        tab.activePaneId = rootPaneId;
+        tab.title = "Tab " ~ to!string(_tabs.length + 1);
+        _tabs ~= tab;
+        switchTab(cast(int)_tabs.length - 1);
+    }
+
+    void switchTab(int index) {
+        if (index < 0 || index >= cast(int)_tabs.length) {
+            return;
+        }
+        syncActiveTabState();
+        _activeTabIndex = index;
+        auto tab = activeTab();
+        if (tab is null) {
+            return;
+        }
+        _scene = tab.scene;
+        _viewports = tab.viewports;
+        _activePaneId = tab.activePaneId;
+        updateViewports();
+        resetSearchAndLinks();
+    }
+
+    void nextTab(int delta) {
+        if (_tabs.length == 0) {
+            return;
+        }
+        int count = cast(int)_tabs.length;
+        int next = (_activeTabIndex + delta) % count;
+        if (next < 0) {
+            next += count;
+        }
+        switchTab(next);
     }
 
     int clampScrollbackMaxLines() const {
@@ -635,7 +763,7 @@ public:
 
         int[] stale;
         foreach (paneId, pane; _panes) {
-            if (!(paneId in activePanes)) {
+            if (!(paneId in activePanes) && !paneInAnyTab(paneId)) {
                 stale ~= paneId;
             }
         }
@@ -700,9 +828,12 @@ public:
 
     void splitActive(SplitOrientation orientation) {
         if (_scene is null) {
-            _scene = new SceneGraph();
+            _scene = new SceneGraph(allocatePaneId());
         }
-        int newPane = _scene.splitLeaf(_activePaneId, orientation, 0.5f);
+        int internalId = allocatePaneId();
+        int newPaneId = allocatePaneId();
+        int newPane = _scene.splitLeafWithIds(_activePaneId, orientation, 0.5f,
+            internalId, newPaneId);
         if (newPane < 0) {
             stderr.writefln("Split: failed to split pane %d", _activePaneId);
             return;
@@ -966,6 +1097,7 @@ public:
         if (_config.splitLayout.nodes.length > 0 && _scene !is null) {
             if (_scene.applyLayoutConfig(_config.splitLayout)) {
                 _activePaneId = _config.splitLayout.activePaneId;
+                syncNextPaneIdFromScene();
                 updateViewports();
             }
         }
@@ -1795,6 +1927,10 @@ private:
                 splitActive(SplitOrientation.horizontal);
                 return;
             }
+            if (key == GLFW_KEY_T) {
+                createTab();
+                return;
+            }
         }
 
         if ((action == GLFW_PRESS || action == GLFW_REPEAT) &&
@@ -1826,6 +1962,19 @@ private:
             bool backwards = (mods & GLFW_MOD_SHIFT) != 0;
             focusAdjacentPane(backwards ? -1 : 1);
             return;
+        }
+
+        if (action == GLFW_PRESS &&
+            (mods & GLFW_MOD_CONTROL) &&
+            (mods & GLFW_MOD_SHIFT) == 0) {
+            if (key == GLFW_KEY_PAGE_UP) {
+                nextTab(-1);
+                return;
+            }
+            if (key == GLFW_KEY_PAGE_DOWN) {
+                nextTab(1);
+                return;
+            }
         }
 
         if (action == GLFW_PRESS &&

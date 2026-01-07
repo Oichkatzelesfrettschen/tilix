@@ -55,6 +55,7 @@ This roadmap synthesizes findings from four parallel analysis efforts:
 - Quake/dropdown mode (GLFW floating + borderless) + `quakeHeight` config
 - Crash recovery snapshot (visible grid dump + restore)
 - Scene graph layout + multi-viewport render loop (mirrored panes)
+- Scene graph tabs with Ctrl+Shift+T and Ctrl+PageUp/Down switching
 - Split creation (Ctrl+Shift+E/O) + resize (Ctrl+Shift+Alt+Arrows, Alt-drag boundary)
 - Split layout persistence (root + active pane) saved to pure-d.json
 - Pure D test matrix script (`scripts/pure-d/run_test_matrix.sh`)

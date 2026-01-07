@@ -46,12 +46,23 @@ public:
         _root = new SceneNode(0);
     }
 
+    this(int rootPaneId) {
+        _root = new SceneNode(rootPaneId);
+        _nextPaneId = rootPaneId + 1;
+    }
+
     @property SceneNode root() {
         return _root;
     }
 
     @property int nextPaneId() const {
         return _nextPaneId;
+    }
+
+    @property void nextPaneId(int value) {
+        if (value > _nextPaneId) {
+            _nextPaneId = value;
+        }
     }
 
     int splitLeaf(int paneId, SplitOrientation orientation, float ratio = 0.5f) {
@@ -69,6 +80,27 @@ public:
         node.splitRatio = clampRatio(ratio);
         node.first = new SceneNode(originalPaneId);
         node.second = new SceneNode(newPaneId);
+        return newPaneId;
+    }
+
+    int splitLeafWithIds(int paneId, SplitOrientation orientation, float ratio,
+            int internalId, int newPaneId) {
+        auto node = findLeaf(_root, paneId);
+        if (node is null) {
+            return -1;
+        }
+        int originalPaneId = node.paneId;
+        node.isLeaf = false;
+        node.paneId = internalId;
+        node.orientation = orientation;
+        node.splitRatio = clampRatio(ratio);
+        node.first = new SceneNode(originalPaneId);
+        node.second = new SceneNode(newPaneId);
+
+        int maxId = internalId > newPaneId ? internalId : newPaneId;
+        if (_nextPaneId <= maxId) {
+            _nextPaneId = maxId + 1;
+        }
         return newPaneId;
     }
 
@@ -156,6 +188,10 @@ public:
             ref Viewport[] outViewports) {
         outViewports.length = 0;
         appendViewports(_root, x, y, width, height, outViewports);
+    }
+
+    bool hasPane(int paneId) {
+        return containsPane(_root, paneId);
     }
 
 private:
