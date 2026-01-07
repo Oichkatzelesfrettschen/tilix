@@ -1009,7 +1009,7 @@ public:
         while (_ipcServer.pollCommand(cmd)) {
             final switch (cmd.type) {
                 case IpcCommandType.newTab:
-                    spawnNewInstance();
+                    createTab();
                     break;
                 case IpcCommandType.pasteText:
                     pasteText(cmd.payload);
@@ -1929,6 +1929,10 @@ private:
             }
             if (key == GLFW_KEY_T) {
                 createTab();
+                return;
+            }
+            if (key == GLFW_KEY_N) {
+                spawnNewInstance();
                 return;
             }
         }

@@ -27,5 +27,5 @@ Commands:
 
 Notes:
 - IPC server runs inside the Pure D backend and queues commands for the main loop.
-- `newTab` spawns a new Pure D process (tab UI is still pending).
+- `newTab` opens a new scenegraph tab in the running Pure D window.
 - `spawnProfile` spawns a new process with `--profile <name>` if provided.

@@ -30,6 +30,7 @@ Parity notes:
 - Ctrl+Shift+F: search using selection or last query.
 - F3 / Shift+F3: next/previous search hit.
 - Shift+PageUp/Down/Home/End: scrollback navigation.
+- Ctrl+Shift+N: new window (spawns new instance).
 - Ctrl+Shift+C: copy selection.
 - Ctrl+Shift+V or Shift+Insert: paste clipboard.
 - Ctrl+Click: open hyperlink (selection/cursor unaffected).
@@ -45,7 +46,7 @@ Parity notes:
 ## Tilix default shortcut parity (gsettings baseline)
 | Action | Tilix default | Pure D status |
 | --- | --- | --- |
-| New window | Ctrl+Shift+N | missing |
+| New window | Ctrl+Shift+N | implemented (spawns new instance) |
 | New session/tab | Ctrl+Shift+T | implemented (scenegraph tab) |
 | Close session | Ctrl+Shift+Q | missing (Pure D uses Ctrl+Q for window) |
 | Copy | Ctrl+Shift+C | implemented |

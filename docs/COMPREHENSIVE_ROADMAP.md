@@ -62,7 +62,7 @@ This roadmap synthesizes findings from four parallel analysis efforts:
 
 **Open**:
 - Search UI beyond selection-only flow
-- IPC command coverage beyond spawn-new-process placeholder
+- IPC command coverage beyond spawnProfile (newTab is now in-process)
 - IME implementation + preedit overlay
 - Tab bar + split persistence polish
 - Renderer perf handoff (PBO/triple buffer)
