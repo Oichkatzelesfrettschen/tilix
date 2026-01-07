@@ -35,7 +35,7 @@ import pured.scenegraph : SceneGraph, Viewport, SplitOrientation;
 import arsd.terminalemulator : TerminalEmulator;
 import std.stdio : stderr, writefln, writeln;
 import std.string : strip, toLower;
-import std.utf : byDchar;
+import std.utf : byDchar, toUTF8;
 import std.math : pow;
 import std.process : spawnProcess;
 import std.path : buildPath;
@@ -216,6 +216,8 @@ private:
     size_t _searchRangesGeneration;
     size_t _searchRangesScrollbackCount;
     int _searchRangesOffset = int.min;
+    bool _searchPromptActive;
+    string _searchPromptBuffer;
 
     HyperlinkRange[] _hyperlinks;
     char[] _hyperlinkScratch;
@@ -717,7 +719,15 @@ public:
             string tabTitle = tab.title.length != 0
                 ? tab.title
                 : ("Tab " ~ to!string(index));
-            title = format("Tilix Pure D [%d/%d] %s", index, total, tabTitle);
+            if (_searchPromptActive) {
+                string prompt = _searchPromptBuffer.length != 0
+                    ? _searchPromptBuffer
+                    : "<type to search>";
+                title = format("Tilix Pure D [%d/%d] Search: %s",
+                    index, total, prompt);
+            } else {
+                title = format("Tilix Pure D [%d/%d] %s", index, total, tabTitle);
+            }
         }
         _window.setTitle(title);
     }
@@ -1189,12 +1199,18 @@ public:
         _searchRangesGeneration = 0;
         _searchRangesScrollbackCount = 0;
         _searchRangesOffset = int.min;
+        _searchPromptActive = false;
+        _searchPromptBuffer = "";
         _hyperlinks.length = 0;
         _lastHyperlinkSequence = 0;
         _lastHyperlinkOffset = int.min;
     }
 
     void triggerSearch() {
+        startSearchPrompt();
+    }
+
+    void startSearchPrompt() {
         string query;
         auto pane = activePane();
         if (pane is null || pane.scrollback is null) {
@@ -1208,7 +1224,34 @@ public:
         if (query.length == 0) {
             query = _searchQuery;
         }
+        _searchPromptActive = true;
+        _searchPromptBuffer = query;
+        updateWindowTitle();
+    }
+
+    void cancelSearchPrompt() {
+        _searchPromptActive = false;
+        _searchPromptBuffer = "";
+        updateWindowTitle();
+    }
+
+    void confirmSearchPrompt() {
+        auto query = _searchPromptBuffer;
+        _searchPromptActive = false;
+        _searchPromptBuffer = "";
+        updateWindowTitle();
         if (query.length == 0) {
+            return;
+        }
+        executeSearch(query);
+    }
+
+    void executeSearch(string query) {
+        if (query.length == 0) {
+            return;
+        }
+        auto pane = activePane();
+        if (pane is null || pane.scrollback is null) {
             return;
         }
         _searchQuery = query;
@@ -1236,6 +1279,22 @@ public:
         _searchGeneration++;
         _searchIndex = 0;
         applySearchHit();
+    }
+
+    string encodeCodepoint(dchar codepoint) {
+        dchar[1] buffer = [codepoint];
+        return toUTF8(buffer[]);
+    }
+
+    string popLastCodepoint(string text) {
+        if (text.length == 0) {
+            return text;
+        }
+        size_t i = text.length - 1;
+        while (i > 0 && (text[i] & 0xC0) == 0x80) {
+            i--;
+        }
+        return text[0 .. i];
     }
 
     void nextSearchHit(bool backwards) {
@@ -2009,6 +2068,24 @@ private:
     void onKey(int key, int scancode, int action, int mods) {
         _lastKeyMods = mods;
         auto pane = activePane();
+        if (_searchPromptActive) {
+            if (action == GLFW_PRESS || action == GLFW_REPEAT) {
+                if (key == GLFW_KEY_ENTER) {
+                    confirmSearchPrompt();
+                    return;
+                }
+                if (key == GLFW_KEY_ESCAPE) {
+                    cancelSearchPrompt();
+                    return;
+                }
+                if (key == GLFW_KEY_BACKSPACE) {
+                    _searchPromptBuffer = popLastCodepoint(_searchPromptBuffer);
+                    updateWindowTitle();
+                    return;
+                }
+            }
+            return;
+        }
         // Close on Ctrl+Q (keep as hardcoded shortcut)
         if (action == GLFW_PRESS && key == GLFW_KEY_Q &&
             (mods & GLFW_MOD_CONTROL) && (mods & GLFW_MOD_SHIFT) == 0) {
@@ -2159,6 +2236,13 @@ private:
      * Handle character input (Unicode).
      */
     void onChar(uint codepoint) {
+        if (_searchPromptActive) {
+            if (codepoint != 0) {
+                _searchPromptBuffer ~= encodeCodepoint(cast(dchar)codepoint);
+                updateWindowTitle();
+            }
+            return;
+        }
         auto pane = activePane();
         if (pane is null || pane.session is null || !pane.session.isOpen) {
             return;

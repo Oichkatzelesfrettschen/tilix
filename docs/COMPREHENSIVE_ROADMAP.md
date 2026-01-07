@@ -61,7 +61,7 @@ This roadmap synthesizes findings from four parallel analysis efforts:
 - Pure D test matrix script (`scripts/pure-d/run_test_matrix.sh`)
 
 **Open**:
-- Search UI beyond selection-only flow
+- Search UI prompt (window-title) beyond selection-only flow
 - IPC command coverage beyond spawnProfile (newTab is now in-process)
 - IME implementation + preedit overlay
 - Tab bar + split persistence polish

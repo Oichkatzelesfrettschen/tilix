@@ -27,7 +27,8 @@ Parity notes:
 
 ## App-level shortcuts in Pure D
 - Ctrl+Q: close window.
-- Ctrl+Shift+F: search using selection or last query.
+- Ctrl+Shift+F: open search prompt (prefilled with selection/last query).
+- Enter confirms search, Esc cancels, Backspace edits prompt.
 - F3 / Shift+F3: next/previous search hit.
 - Shift+PageUp/Down/Home/End: scrollback navigation.
 - Ctrl+Shift+N: new window (spawns new instance).
