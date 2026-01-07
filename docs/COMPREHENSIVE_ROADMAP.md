@@ -52,12 +52,17 @@ This roadmap synthesizes findings from four parallel analysis efforts:
 - Capnp bindings regenerated via capnpc-dlang
 - Pure D headless test harness (`pure-d-tests`)
 - Quake/dropdown mode (GLFW floating + borderless) + `quakeHeight` config
+- Crash recovery snapshot (visible grid dump + restore)
+- Scene graph layout + multi-viewport render loop (mirrored panes)
+- Split creation (Ctrl+Shift+E/O) + resize (Ctrl+Shift+Alt+Arrows, Alt-drag boundary)
+- Split layout persistence (root + active pane) saved to pure-d.json
+- Pure D test matrix script (`scripts/pure-d/run_test_matrix.sh`)
 
 **Open**:
 - Search UI beyond selection-only flow
 - IPC command coverage beyond spawn-new-process placeholder
 - IME implementation + preedit overlay
-- Tab/split UI model
+- Tab bar + split persistence polish
 - Renderer perf handoff (PBO/triple buffer)
 
 ---

@@ -32,19 +32,19 @@ metadata, and install steps.
 - D-Bus service file was hardcoded to /usr/bin; prefix variance was not handled.
 - Optional tooling (appstreamcli, po4a) was not documented alongside install.
 - Warnings/deprecations were not enforced; now treated as errors via DUB.
-- Strict builds require `DFLAGS=-w` enforced by `scripts/dub/strict-check.sh`.
+- Strict builds require `DFLAGS='-w -wi'` in `scripts/pure-d/run_test_matrix.sh`.
 - .claude directory permissions cause noisy git status warnings.
 - OpenGLContainer remains a stub (metrics, selection, snapshot, encoding).
 - Backend abstraction is still not wired through Terminal (per architectural audit).
-- Pure D backend still missing: richer search UI, IPC command coverage beyond spawn-new-process placeholder, IME implementation, tab/split UI, perf handoff (triple buffer/PBO).
+- Pure D backend still missing: richer search UI, IPC command coverage beyond spawn-new-process placeholder, IME implementation, tab bar UI, perf handoff (triple buffer/PBO).
 - Pure D theme import is best-effort parsing (no full YAML/Xresources grammar coverage).
 - Wayland/XCB bindings are documented but not yet integrated into the runtime.
 
 ## Sanity Check
-- DUB build succeeds with `DFLAGS=-w` after vendoring arsd-official and patching warnings.
+- DUB build succeeds with `DFLAGS='-w -wi'` after vendoring arsd-official and patching warnings.
 - DUB runs resource preparation before builds via `scripts/dub/prepare-resources.sh`.
 - Install uses staged artifacts to avoid polluting the source tree.
-- Pure D backend now includes: clipboard/PRIMARY, true color, bell flash, cursor styles (incl. outline), selection + search highlights (configurable), hyperlink detection + Ctrl+click, HarfBuzz shaping + fallback, selection-driven search, hot-reloadable config, accessibility presets, IPC schema + local UNIX socket listener + DUB IPC client, strict `pure-d-nogc` build profile, SIMD delimiter/search unit tests, a headless test harness, and Quake/dropdown mode support.
+- Pure D backend now includes: clipboard/PRIMARY, true color, bell flash, cursor styles (incl. outline), selection + search highlights (configurable), hyperlink detection + Ctrl+click, HarfBuzz shaping + fallback, selection-driven search, hot-reloadable config, accessibility presets, IPC schema + local UNIX socket listener + DUB IPC client, strict `pure-d-nogc` build profile, SIMD delimiter/search unit tests, a headless test harness, Quake/dropdown mode support, crash-recovery snapshots, scene graph viewports with per-pane sessions, split creation/resizing (Ctrl+Shift+E/O, Ctrl+Shift+Alt+Arrows, Alt-drag boundary), and split layout persistence to pure-d.json.
 
 ## XPRA Crash Findings
 - xpra server aborts with a pygobject assertion in pygi-invoke.c during

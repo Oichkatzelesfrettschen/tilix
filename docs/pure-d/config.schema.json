@@ -29,6 +29,18 @@
     "searchBg": { "$ref": "#/$defs/rgba" },
     "searchFg": { "$ref": "#/$defs/rgba" },
     "linkFg": { "$ref": "#/$defs/rgba" },
+    "splitLayout": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "rootPaneId": { "type": "integer", "minimum": 0 },
+        "activePaneId": { "type": "integer", "minimum": 0 },
+        "nodes": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/splitNode" }
+        }
+      }
+    },
     "theme": {
       "type": "object",
       "additionalProperties": false,
@@ -51,6 +63,17 @@
       "minItems": 16,
       "maxItems": 16,
       "items": { "$ref": "#/$defs/rgba" }
+    },
+    "splitNode": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "paneId": { "type": "integer", "minimum": 0 },
+        "first": { "type": "integer", "minimum": -1 },
+        "second": { "type": "integer", "minimum": -1 },
+        "orientation": { "type": "string", "enum": ["", "horizontal", "vertical"] },
+        "splitRatio": { "type": "number", "minimum": 0.1, "maximum": 0.9 }
+      }
     }
   }
 }

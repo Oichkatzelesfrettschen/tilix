@@ -19,26 +19,31 @@ export DUBPATH="$PWD/vendor${DUBPATH:+:$DUBPATH}"
 
 ## Build (GTK/VTE)
 ```
-export DFLAGS="-w"
+export DFLAGS="-w -wi"
 dub build --build=release --force
 ```
 
 ## Tests
 ```
-export DFLAGS="-w"
+export DFLAGS="-w -wi"
 dub test --force
 ```
 
 ## Pure D backend (optional)
 ```
-export DFLAGS="-w"
+export DFLAGS="-w -wi"
 dub build --build=release --config=pure-d --force
 ```
 
 ## Pure D backend (LTO, LDC only)
 ```
-export DFLAGS="-w"
+export DFLAGS="-w -wi"
 dub build --build=pure-lto --config=pure-d --force
+```
+
+Pure D test matrix (warnings as errors):
+```
+scripts/pure-d/run_test_matrix.sh
 ```
 ## CI helper
 ```
@@ -51,4 +56,4 @@ TILIX_CI_PURE_D=1 scripts/ci/dub-build.sh
 - DUB warns that arsd-official subpackages do not define import paths.
 
 These are dependency-level warnings and should be tracked for upstream fixes
-or mitigated via version updates and patches.
+or mitigated via version updates and patches, since `-wi` turns warnings into errors.

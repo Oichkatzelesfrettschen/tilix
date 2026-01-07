@@ -24,6 +24,15 @@ Location:
   "searchBg": [0.85, 0.7, 0.2, 1.0],
   "searchFg": [0.0, 0.0, 0.0, 1.0],
   "linkFg": [0.2, 0.6, 1.0, 1.0],
+  "splitLayout": {
+    "rootPaneId": 1,
+    "activePaneId": 0,
+    "nodes": [
+      { "paneId": 1, "first": 0, "second": 2, "orientation": "vertical", "splitRatio": 0.5 },
+      { "paneId": 0, "first": -1, "second": -1, "orientation": "", "splitRatio": 0.5 },
+      { "paneId": 2, "first": -1, "second": -1, "orientation": "", "splitRatio": 0.5 }
+    ]
+  },
   "theme": {
     "foreground": [0.9, 0.9, 0.9, 1.0],
     "background": [0.1, 0.1, 0.15, 1.0],
@@ -57,7 +66,7 @@ Notes:
 - Changes are polled every ~250ms and applied live.
 - If `themePath` is set, it overrides the inline `theme` block.
 - `themeFormat` supports `xresources` and `alacritty` (auto-detected by extension).
-- `cursorStyle`: `block`, `underline`, `bar`, or `outline` (block outline).
+- `cursorStyle`: `block`, `underline`, `bar`, or `outline` (alias `block-outline`).
 - `cursorThickness`: pixels at 1x scale (0 uses adaptive thickness).
 - `accessibilityPreset`: `high-contrast` or `low-vision`. Presets only fill unset fields.
 - `selectionBg`: RGBA highlight color (0.0 to 1.0, clamped).
@@ -66,6 +75,11 @@ Notes:
 - `searchBg`: RGBA search highlight color (0.0 to 1.0, clamped).
 - `searchFg`: RGBA search text color (0.0 to 1.0, clamped). Defaults to high-contrast black/white based on `searchBg`.
 - `linkFg`: RGBA hyperlink foreground color (0.0 to 1.0, clamped).
+- Accessibility guidance: `docs/pure-d/accessibility.md`.
+- `splitLayout`: optional split tree snapshot used to restore panes and ratios.
+- `splitLayout.rootPaneId`: internal root node id.
+- `splitLayout.activePaneId`: active leaf pane to focus on startup.
+- `splitLayout.nodes`: array of nodes with `first`/`second` set to `-1` for leaf panes.
 
 Schema:
 - `docs/pure-d/config.schema.json` (JSON Schema draft 2020-12).

@@ -34,6 +34,10 @@ Parity notes:
 - Ctrl+Shift+V or Shift+Insert: paste clipboard.
 - Ctrl+Click: open hyperlink (selection/cursor unaffected).
 - Middle click: paste PRIMARY when mouse reporting is off.
+- Ctrl+Shift+E: split horizontally.
+- Ctrl+Shift+O: split vertically.
+- Ctrl+Shift+Alt+Arrows: resize active split.
+- Alt+drag split boundary: resize split with mouse.
 
 ## Tilix default shortcut parity (gsettings baseline)
 | Action | Tilix default | Pure D status |
@@ -46,7 +50,7 @@ Parity notes:
 | Paste selection | Shift+Insert | implemented (clipboard; PRIMARY paste via middle-click) |
 | Find | Ctrl+Shift+F | implemented (selection-first) |
 | Find next/prev | F3 / Shift+F3 | implemented |
-| Split add/switch/resize | Alt+arrows & gsettings | missing (no split UI yet) |
+| Split add/switch/resize | Alt+arrows & gsettings | implemented (Ctrl+Shift+E/O, Ctrl+Shift+Alt+Arrows, Alt-drag boundary) |
 | Zoom in/out/normal | Ctrl+Plus/Minus/0 | missing |
 | Toggle fullscreen | F11 (GTK default) | missing |
 | Open preferences/shortcuts | disabled by default | missing |

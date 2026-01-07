@@ -196,13 +196,16 @@ sudo pacman -S --needed appstream po4a
 ## 13. IPC + automation (optional)
 For IPC control plane and schema-driven commands:
 - capnproto (capnp compiler for schema generation; used with capnproto-dlang)
-- capnproto-dlang (capnpc-dlang plugin; AUR on Arch)
+- capnpc-dlang (Cap'n Proto D plugin; AUR on Arch)
 - socat (useful for PTY/IPC testing)
 
 ```sh
 sudo pacman -S --needed capnproto socat
-yay -S --needed capnproto-dlang
+yay -S --needed capnpc-dlang
 ```
+
+Note: the DUB library `capnproto-dlang` is pulled automatically; only the
+`capnpc-dlang` plugin is needed for schema generation.
 
 ## 14. Testing + benchmarking (optional)
 - vttest (terminal correctness suite)

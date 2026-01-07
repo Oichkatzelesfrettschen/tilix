@@ -26,6 +26,20 @@ latest versions as reported by `https://code.dlang.org/api/packages/<pkg>/latest
 - wayland-scanner-d 1.0.0 (Wayland protocol scanner)
 - fswatch 0.6.1 (cross-platform file watcher)
 - dinotify 0.5.0 (Linux inotify wrapper)
+- msgpack-ll 0.1.4 (nogc MessagePack; crash snapshots)
+- msgpack-d 1.0.5 (MessagePack serialization)
+- zstd 0.2.1 (Zstandard compression)
+- zased 0.1.1 (static Zstd variant)
+- lz4-d ~master (LZ4 binding)
+- sqlite3 1.0.0 (snapshot or telemetry storage)
+
+## Registry scan (dub search)
+- xcb-d 2.1.1+1.11.1 (XCB bindings)
+- xcb-util-wm-d 0.5.0+0.4.1 (EWMH/ICCCM helpers)
+- xkbcommon-d 0.5.1 (keyboard mapping)
+- wayland 0.4.0 (Wayland bindings)
+- wayland-client-d 1.8.90 (Wayland client)
+- wayland-scanner-d 1.0.0 (protocol scanner)
 
 ## Not found (via code.dlang.org API)
 - bindbc-xcb
@@ -38,3 +52,4 @@ latest versions as reported by `https://code.dlang.org/api/packages/<pkg>/latest
 - HarfBuzz + Fontconfig are recommended for shaping + fallback fonts.
 - Use wayland-client-d + wayland-scanner-d for Wayland protocol integration.
 - fswatch/dinotify can replace polling for config hot reload.
+- Compression/serialization libs can back crash recovery snapshots.
