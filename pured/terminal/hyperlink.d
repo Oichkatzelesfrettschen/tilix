@@ -46,6 +46,19 @@ void scanLineForLinks(const TerminalEmulator.TerminalCell[] line, int row,
             if (matchesAt(scratch, i, "www.")) {
                 start = i;
             }
+        } else if (scratch[i] == 'm') {
+            if (matchesAt(scratch, i, "mailto:")) {
+                start = i;
+            }
+        } else if (scratch[i] == 'f') {
+            if (matchesAt(scratch, i, "file://") ||
+                matchesAt(scratch, i, "ftp://")) {
+                start = i;
+            }
+        } else if (scratch[i] == 's') {
+            if (matchesAt(scratch, i, "ssh://")) {
+                start = i;
+            }
         }
 
         if (start == size_t.max) {
