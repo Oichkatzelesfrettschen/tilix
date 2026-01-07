@@ -226,6 +226,8 @@ private:
     char[] _hyperlinkScratch;
     ulong _lastHyperlinkSequence;
     int _lastHyperlinkOffset = int.min;
+    HyperlinkRange _hoverLink;
+    bool _hoverLinkActive;
 
 public:
     /**
@@ -1513,6 +1515,24 @@ public:
         return "";
     }
 
+    void updateHoverLink(int col, int row) {
+        _hoverLinkActive = false;
+        foreach (link; _hyperlinks) {
+            if (link.row != row) {
+                continue;
+            }
+            if (col >= link.startCol && col <= link.endCol) {
+                _hoverLink = link;
+                _hoverLinkActive = true;
+                return;
+            }
+        }
+    }
+
+    void clearHoverLink() {
+        _hoverLinkActive = false;
+    }
+
     void openUrl(string url) {
         if (url.length == 0) {
             return;
@@ -1954,6 +1974,8 @@ private:
                 int selectionOffset = pane is active ? pane.scrollback.offset : 0;
                 auto paneSearch = pane is active ? searchRanges : null;
                 auto paneLinks = pane is active ? _hyperlinks : null;
+                HyperlinkRange hoverLink = _hoverLink;
+                bool hoverActive = pane is active && _hoverLinkActive;
                 const(dchar)[] overlayText = null;
                 int overlayRow = -1;
                 if (pane is active && _searchPromptActive &&
@@ -1967,7 +1989,8 @@ private:
                 _renderer.setViewport(vp.width, vp.height);
                 _renderer.render(paneFrame, cursorVisible, selection, selectionOffset,
                     _selectionBg, _selectionFg, paneSearch, _searchBg, _searchFg,
-                    paneLinks, _linkFg, _cursorStyle, _cursorThickness,
+                    paneLinks, _linkFg, hoverLink, hoverActive,
+                    _cursorStyle, _cursorThickness,
                     overlayText, overlayRow, _searchBg, _searchFg);
             }
         }
@@ -2485,11 +2508,13 @@ private:
 
         Viewport viewport;
         if (!viewportAt(xpos, ypos, viewport)) {
+            clearHoverLink();
             return;
         }
         setActivePane(viewport.paneId);
         auto pane = activePane();
         if (pane is null) {
+            clearHoverLink();
             return;
         }
 
@@ -2507,6 +2532,13 @@ private:
         // Clamp to valid range
         col = col < 0 ? 0 : (col >= colsInView ? colsInView - 1 : col);
         row = row < 0 ? 0 : (row >= rowsInView ? rowsInView - 1 : row);
+
+        if (_inputHandler.mouseMode == MouseMode.none &&
+            (_lastKeyMods & GLFW_MOD_CONTROL)) {
+            updateHoverLink(col, row);
+        } else {
+            clearHoverLink();
+        }
 
         int bufferRow = pane.scrollback.bufferRow(row);
 

@@ -193,6 +193,8 @@ public:
             float[4] searchFg = [0.0f, 0.0f, 0.0f, 1.0f],
             const(HyperlinkRange)[] linkRanges = null,
             float[4] linkFg = [0.2f, 0.6f, 1.0f, 1.0f],
+            HyperlinkRange hoverLink = HyperlinkRange.init,
+            bool hoverLinkActive = false,
             CursorRenderStyle cursorStyle = CursorRenderStyle.block,
             float cursorThickness = 0.0f,
             const(dchar)[] overlayText = null,
@@ -314,6 +316,19 @@ public:
                         col <= currentLink.endCol) {
                         fg = linkFg;
                     }
+                }
+
+                if (hoverLinkActive &&
+                    row == hoverLink.row &&
+                    col >= hoverLink.startCol &&
+                    col <= hoverLink.endCol) {
+                    float blend = 0.35f;
+                    bg = [
+                        bg[0] * (1.0f - blend) + linkFg[0] * blend,
+                        bg[1] * (1.0f - blend) + linkFg[1] * blend,
+                        bg[2] * (1.0f - blend) + linkFg[2] * blend,
+                        bg[3]
+                    ];
                 }
 
                 if (hasRange) {

@@ -47,6 +47,7 @@ This roadmap synthesizes findings from four parallel analysis efforts:
 - Search highlight overlay + configurable search colors
 - Search/hyperlink buffer preallocation + strict @nogc guards
 - Hyperlink detection overlay + Ctrl+click activation
+- Ctrl-hover hyperlink highlight in renderer
 - Config schema (JSON Schema) + validation script + performance harness scripts
 - IPC schema + local UNIX socket listener (capnproto-dlang) + DUB IPC client
 - Accessibility presets (high-contrast/low-vision) + theme preset examples
