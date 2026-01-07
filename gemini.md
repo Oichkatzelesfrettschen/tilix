@@ -44,7 +44,8 @@ metadata, and install steps.
 - DUB build succeeds with `DFLAGS='-w -wi'` after vendoring arsd-official and patching warnings.
 - DUB runs resource preparation before builds via `scripts/dub/prepare-resources.sh`.
 - Install uses staged artifacts to avoid polluting the source tree.
-- Pure D backend now includes: clipboard/PRIMARY, true color, bell flash, cursor styles (incl. outline), selection + search highlights (configurable), hyperlink detection + Ctrl+click, HarfBuzz shaping + fallback, selection-driven search, hot-reloadable config, accessibility presets, IPC schema + local UNIX socket listener + DUB IPC client, strict `pure-d-nogc` build profile, SIMD delimiter/search unit tests, a headless test harness, Quake/dropdown mode support, crash-recovery snapshots, scene graph viewports with per-pane sessions, split creation/resizing (Ctrl+Shift+E/O, Ctrl+Shift+Alt+Arrows, Alt-drag boundary), and split layout persistence to pure-d.json.
+- Config validation helper: `scripts/pure-d/validate_config.sh` (python `jsonschema`).
+- Pure D backend now includes: clipboard/PRIMARY, true color, bell flash, cursor styles (incl. outline), selection + search highlights (configurable), hyperlink detection + Ctrl+click, HarfBuzz shaping + fallback, selection-driven search, hot-reloadable config, config schema validation script, accessibility presets, IPC schema + local UNIX socket listener + DUB IPC client, strict `pure-d-nogc` build profile, SIMD delimiter/search unit tests, a headless test harness, Quake/dropdown mode support, crash-recovery snapshots, scene graph viewports with per-pane sessions, split creation/resizing (Ctrl+Shift+E/O, Ctrl+Shift+Alt+Arrows, Alt-drag boundary), and split layout persistence to pure-d.json.
 
 ## XPRA Crash Findings
 - xpra server aborts with a pygobject assertion in pygi-invoke.c during

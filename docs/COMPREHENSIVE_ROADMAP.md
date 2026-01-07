@@ -1,4 +1,4 @@
-# Tilix Comprehensive Development Roadmap (2026-01-05)
+# Tilix Comprehensive Development Roadmap (2026-01-06)
 
 This roadmap synthesizes findings from four parallel analysis efforts:
 1. Technical Debt Audit (22 items identified)
@@ -33,7 +33,7 @@ This roadmap synthesizes findings from four parallel analysis efforts:
 - IOThread integration blocks high-refresh-rate rendering
 - State consolidation required before reliable multi-backend support
 
-### Pure D Backend Snapshot (2026-01-07)
+### Pure D Backend Snapshot (2026-01-06)
 
 **Completed**:
 - Clipboard + PRIMARY selection (GLFW/X11 bridge)
@@ -43,8 +43,9 @@ This roadmap synthesizes findings from four parallel analysis efforts:
 - Config + theme import (Xresources/Alacritty) with hot reload
 - Selection-driven search (Ctrl+Shift+F + F3 cycling)
 - Search highlight overlay + configurable search colors
+- Search/hyperlink buffer preallocation + strict @nogc guards
 - Hyperlink detection overlay + Ctrl+click activation
-- Config schema (JSON Schema) + performance harness scripts
+- Config schema (JSON Schema) + validation script + performance harness scripts
 - IPC schema + local UNIX socket listener (capnproto-dlang) + DUB IPC client
 - Accessibility presets (high-contrast/low-vision) + theme preset examples
 - Strict `pure-d-nogc` build profile with non-alloc glyph lookups

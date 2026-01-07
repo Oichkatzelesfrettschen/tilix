@@ -2,6 +2,7 @@
 
 Status:
 - `pure-d-nogc` build config compiles and uses `PURE_D_STRICT_NOGC` gates.
+- `scripts/pure-d/run_test_matrix.sh` includes `pure-d-nogc` with `-w -wi`.
 - Renderer has `buffersReady()` `@nogc` guard; `prepareBuffers()` is called on
   layout changes (see `pured/main.d`).
 - Strict `@nogc` path uses `tryGetGlyph*` to avoid atlas allocations in the
