@@ -4,7 +4,8 @@ version (PURE_D_BACKEND):
 
 import arsd.terminalemulator : TerminalEmulator;
 import pured.terminal.scrollback_buffer : ScrollbackBuffer;
-import pured.terminal.search : findInScrollback, findInFrame;
+import pured.terminal.search : SearchHit, SearchRange, buildSearchRangesForFrame,
+    findInScrollback, findInFrame;
 import pured.terminal.frame : TerminalFrame;
 import pured.terminal.hyperlink : HyperlinkRange, scanLineForLinks;
 import pured.terminal.selection : Selection, SelectionType;
@@ -63,6 +64,24 @@ void main() {
     assert(frameHits[0].column == 0);
     assert(frameHits[1].line == 11);
     assert(frameHits[1].column == 2);
+
+    SearchHit[] rangeHits = [
+        SearchHit(4, 1),
+        SearchHit(5, 2),
+        SearchHit(7, 6),
+    ];
+    SearchRange[] searchRanges;
+    searchRanges.length = 4;
+    auto rangeCount = buildSearchRangesForFrame(
+        rangeHits, 3, 10, 5, 3, 8, searchRanges);
+    assert(rangeCount == 2);
+    assert(searchRanges.length == 2);
+    assert(searchRanges[0].row == 0);
+    assert(searchRanges[0].startCol == 2);
+    assert(searchRanges[0].endCol == 4);
+    assert(searchRanges[1].row == 2);
+    assert(searchRanges[1].startCol == 6);
+    assert(searchRanges[1].endCol == 7);
 
     HyperlinkRange[] ranges;
     size_t count = 0;

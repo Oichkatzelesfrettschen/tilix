@@ -28,6 +28,53 @@ struct SearchRange {
     int endCol;
 }
 
+/// Build search highlight ranges for the visible frame.
+/// Caller provides a pre-sized buffer in outRanges; function updates its length.
+size_t buildSearchRangesForFrame(const(SearchHit)[] hits, size_t matchLen,
+        size_t scrollbackCount, int scrollOffset, int frameRows, int frameCols,
+        ref SearchRange[] outRanges, size_t maxRanges = size_t.max) {
+    if (hits.length == 0 || matchLen == 0 || frameRows <= 0 || frameCols <= 0) {
+        outRanges.length = 0;
+        return 0;
+    }
+    size_t capacity = outRanges.length;
+    if (capacity == 0) {
+        return 0;
+    }
+    size_t limit = capacity;
+    if (maxRanges != size_t.max && limit > maxRanges) {
+        limit = maxRanges;
+    }
+
+    long topIndex = cast(long)scrollbackCount - scrollOffset;
+    long bottomIndex = topIndex + frameRows - 1;
+    size_t count = 0;
+    foreach (hit; hits) {
+        long line = cast(long)hit.line;
+        if (line < topIndex || line > bottomIndex) {
+            continue;
+        }
+        int row = cast(int)(line - topIndex);
+        int startCol = cast(int)hit.column;
+        int endCol = startCol + cast(int)matchLen - 1;
+        if (startCol < 0) {
+            startCol = 0;
+        }
+        if (endCol >= frameCols) {
+            endCol = frameCols - 1;
+        }
+        if (endCol < 0 || startCol >= frameCols) {
+            continue;
+        }
+        if (count >= limit) {
+            break;
+        }
+        outRanges[count++] = SearchRange(row, startCol, endCol);
+    }
+    outRanges.length = count;
+    return count;
+}
+
 /// Search scrollback lines for a UTF-8 needle. Caller should hold scrollback lock.
 SearchHit[] findInScrollback(ScrollbackBuffer buffer, string needle,
         size_t maxResults = 256) {

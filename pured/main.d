@@ -27,7 +27,8 @@ import pured.platform.clipboard;
 import pured.terminal.frame : TerminalFrame;
 import pured.terminal.selection;
 import pured.terminal.scrollback;
-import pured.terminal.search : SearchHit, SearchRange, findInScrollback, findInFrame;
+import pured.terminal.search : SearchHit, SearchRange, buildSearchRangesForFrame,
+    findInScrollback, findInFrame;
 import pured.terminal.hyperlink : HyperlinkRange, scanLineForLinks;
 import pured.ipc.server : IpcServer, IpcCommand, IpcCommandType;
 import pured.recovery : defaultSnapshotPath, saveSnapshot, loadSnapshot;
@@ -1477,9 +1478,6 @@ public:
             return _searchRanges;
         }
 
-        long topIndex = cast(long)sbCount - pane.scrollback.offset;
-        long bottomIndex = topIndex + frame.rows - 1;
-
         size_t capacity = _searchRanges.length;
         size_t maxRanges = cast(size_t)frame.cols * cast(size_t)frame.rows;
         if (capacity < maxRanges) {
@@ -1498,30 +1496,8 @@ public:
             return _searchRanges;
         }
 
-        size_t count = 0;
-        foreach (hit; _searchHits) {
-            long line = cast(long)hit.line;
-            if (line < topIndex || line > bottomIndex) {
-                continue;
-            }
-            int row = cast(int)(line - topIndex);
-            int startCol = cast(int)hit.column;
-            int endCol = startCol + cast(int)_searchMatchLen - 1;
-            if (startCol < 0) {
-                startCol = 0;
-            }
-            if (endCol >= frame.cols) {
-                endCol = frame.cols - 1;
-            }
-            if (endCol < 0 || startCol >= frame.cols) {
-                continue;
-            }
-            if (count >= capacity) {
-                break;
-            }
-            _searchRanges[count++] = SearchRange(row, startCol, endCol);
-        }
-        _searchRanges.length = count;
+        buildSearchRangesForFrame(_searchHits, _searchMatchLen, sbCount,
+            currentOffset, frame.rows, frame.cols, _searchRanges, maxRanges);
         _searchRangesGeneration = _searchGeneration;
         _searchRangesScrollbackCount = sbCount;
         _searchRangesOffset = currentOffset;

@@ -11,6 +11,8 @@ Regenerate bindings:
 ```sh
 capnp compile --src-prefix=pured/ipc -o dlang:pured/ipc pured/ipc/tilix.capnp
 ```
+Requires `capnp` and the `capnpc-dlang` plugin on PATH (see
+`docs/INSTALL_REQUIREMENTS.md`).
 
 Client (DUB):
 ```sh
