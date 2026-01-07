@@ -61,6 +61,12 @@ void main(string[] args) {
     auto hits = findInScrollback(sb, needle, lines);
     sw.stop();
 
+    size_t expectedHits = 0;
+    if (matchEvery != 0) {
+        expectedHits = (lines + matchEvery - 1) / matchEvery;
+    }
+    assert(hits.length == expectedHits);
+
     double elapsedSec = sw.peek.total!"usecs"() / 1_000_000.0;
     double bytesScanned = cast(double)(lines * cols);
     double mb = bytesScanned / (1024.0 * 1024.0);
