@@ -383,6 +383,18 @@ private:
             case GLFW_KEY_F20:
                 return modParam > 1 ? encodeCsiMod(34, modParam, '~')
                                     : cast(const(ubyte)[])"\x1b[34~";
+            case GLFW_KEY_F21:
+                return modParam > 1 ? encodeCsiMod(35, modParam, '~')
+                                    : cast(const(ubyte)[])"\x1b[35~";
+            case GLFW_KEY_F22:
+                return modParam > 1 ? encodeCsiMod(36, modParam, '~')
+                                    : cast(const(ubyte)[])"\x1b[36~";
+            case GLFW_KEY_F23:
+                return modParam > 1 ? encodeCsiMod(37, modParam, '~')
+                                    : cast(const(ubyte)[])"\x1b[37~";
+            case GLFW_KEY_F24:
+                return modParam > 1 ? encodeCsiMod(38, modParam, '~')
+                                    : cast(const(ubyte)[])"\x1b[38~";
 
             // Control keys
             case GLFW_KEY_BACKSPACE: return cast(const(ubyte)[])"\x7f";
