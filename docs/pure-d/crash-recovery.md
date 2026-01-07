@@ -17,3 +17,4 @@ Notes:
 - This is a best-effort restore; a new PTY session will replace the snapshot.
 - Snapshot format is a raw memory dump of `TerminalCell` and is not portable
   across different architectures or incompatible arsd versions.
+- Validation: `scripts/pure-d/headless_tests.d` covers snapshot save/load round trips.
