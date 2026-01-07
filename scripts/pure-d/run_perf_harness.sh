@@ -2,8 +2,8 @@
 set -euo pipefail
 
 echo "Building Pure D backend..."
-DFLAGS=-w dub build --config=pure-d
-DFLAGS=-w dub build --config=pure-d-nogc
+DFLAGS="-w -wi" dub build --config=pure-d
+DFLAGS="-w -wi" dub build --config=pure-d-nogc
 
 cat <<'EOF'
 
