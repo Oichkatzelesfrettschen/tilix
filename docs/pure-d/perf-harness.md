@@ -19,6 +19,8 @@ Steps:
    - `vttest` (or `scripts/pure-d/run_vttest.sh`)
 6) Optional: compare runs with hyperfine:
    - `hyperfine --runs 5 "scripts/pure-d/generate_output.sh 512"`
+7) Optional: GC profiling on headless tests:
+   - `scripts/pure-d/run_gc_profile.sh`
 
 Notes:
 - Increase the output size for more stress (e.g., `1024` or `2048`).
