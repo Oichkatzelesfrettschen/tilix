@@ -31,6 +31,7 @@ Parity notes:
 - F3 / Shift+F3: next/previous search hit.
 - Shift+PageUp/Down/Home/End: scrollback navigation.
 - Ctrl+Shift+N: new window (spawns new instance).
+- Ctrl+Shift+Q: close active tab.
 - Ctrl+Shift+C: copy selection.
 - Ctrl+Shift+V or Shift+Insert: paste clipboard.
 - Ctrl+Click: open hyperlink (selection/cursor unaffected).
@@ -48,7 +49,7 @@ Parity notes:
 | --- | --- | --- |
 | New window | Ctrl+Shift+N | implemented (spawns new instance) |
 | New session/tab | Ctrl+Shift+T | implemented (scenegraph tab) |
-| Close session | Ctrl+Shift+Q | missing (Pure D uses Ctrl+Q for window) |
+| Close session | Ctrl+Shift+Q | implemented (closes active tab) |
 | Copy | Ctrl+Shift+C | implemented |
 | Paste | Ctrl+Shift+V | implemented |
 | Paste selection | Shift+Insert | implemented (clipboard; PRIMARY paste via middle-click) |

@@ -640,11 +640,7 @@ public:
         switchTab(cast(int)_tabs.length - 1);
     }
 
-    void switchTab(int index) {
-        if (index < 0 || index >= cast(int)_tabs.length) {
-            return;
-        }
-        syncActiveTabState();
+    void loadTab(int index) {
         _activeTabIndex = index;
         auto tab = activeTab();
         if (tab is null) {
@@ -655,6 +651,46 @@ public:
         _activePaneId = tab.activePaneId;
         updateViewports();
         resetSearchAndLinks();
+    }
+
+    void switchTab(int index) {
+        if (index < 0 || index >= cast(int)_tabs.length) {
+            return;
+        }
+        syncActiveTabState();
+        loadTab(index);
+    }
+
+    void closeTab(int index) {
+        if (index < 0 || index >= cast(int)_tabs.length) {
+            return;
+        }
+        if (_tabs.length == 1) {
+            _window.close();
+            return;
+        }
+        syncActiveTabState();
+        auto closing = _tabs[index];
+        int[] paneIds;
+        if (closing.scene !is null) {
+            closing.scene.collectLeafPaneIds(paneIds);
+        }
+        foreach (paneId; paneIds) {
+            auto pane = paneForId(paneId);
+            if (pane !is null && pane.session !is null) {
+                pane.session.stop();
+            }
+            _panes.remove(paneId);
+        }
+        _tabs = _tabs[0 .. index] ~ _tabs[index + 1 .. $];
+        if (_activeTabIndex > index) {
+            _activeTabIndex -= 1;
+        } else if (_activeTabIndex == index) {
+            if (_activeTabIndex >= cast(int)_tabs.length) {
+                _activeTabIndex = cast(int)_tabs.length - 1;
+            }
+        }
+        loadTab(_activeTabIndex);
     }
 
     void nextTab(int delta) {
@@ -1911,7 +1947,8 @@ private:
         _lastKeyMods = mods;
         auto pane = activePane();
         // Close on Ctrl+Q (keep as hardcoded shortcut)
-        if (action == GLFW_PRESS && key == GLFW_KEY_Q && (mods & GLFW_MOD_CONTROL)) {
+        if (action == GLFW_PRESS && key == GLFW_KEY_Q &&
+            (mods & GLFW_MOD_CONTROL) && (mods & GLFW_MOD_SHIFT) == 0) {
             _window.close();
             return;
         }
@@ -1933,6 +1970,10 @@ private:
             }
             if (key == GLFW_KEY_N) {
                 spawnNewInstance();
+                return;
+            }
+            if (key == GLFW_KEY_Q) {
+                closeTab(_activeTabIndex);
                 return;
             }
         }

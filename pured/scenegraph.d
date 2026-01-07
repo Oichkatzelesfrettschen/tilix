@@ -194,6 +194,11 @@ public:
         return containsPane(_root, paneId);
     }
 
+    void collectLeafPaneIds(ref int[] outPaneIds) {
+        outPaneIds.length = 0;
+        appendLeafPaneIds(_root, outPaneIds);
+    }
+
 private:
     SceneNode findLeaf(SceneNode node, int paneId) {
         if (node is null) {
@@ -217,6 +222,18 @@ private:
             return node.paneId == paneId;
         }
         return containsPane(node.first, paneId) || containsPane(node.second, paneId);
+    }
+
+    void appendLeafPaneIds(SceneNode node, ref int[] outPaneIds) {
+        if (node is null) {
+            return;
+        }
+        if (node.isLeaf) {
+            outPaneIds ~= node.paneId;
+            return;
+        }
+        appendLeafPaneIds(node.first, outPaneIds);
+        appendLeafPaneIds(node.second, outPaneIds);
     }
 
     SceneNode findSplitForPane(SceneNode node, int paneId,
