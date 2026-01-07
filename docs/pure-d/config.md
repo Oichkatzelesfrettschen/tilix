@@ -61,6 +61,7 @@ Notes:
 - `swapInterval`: 0 = uncapped, 1 = vsync.
 - `quakeMode`: enable drop-down terminal behavior (borderless, top-aligned).
 - `quakeHeight`: height fraction (0.1 to 1.0) used when `quakeMode` is true.
+- Quake mode details: `docs/pure-d/quake-mode.md`.
 - `palette` requires 16 entries (RGBA, 0.0 to 1.0).
 - Invalid or missing config falls back to defaults.
 - Unknown keys are ignored with a warning.

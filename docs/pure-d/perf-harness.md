@@ -16,7 +16,7 @@ Steps:
 4) In the Pure D terminal, generate output:
    - `scripts/pure-d/generate_output.sh 512`
 5) Run correctness suite:
-   - `vttest`
+   - `vttest` (or `scripts/pure-d/run_vttest.sh`)
 6) Optional: compare runs with hyperfine:
    - `hyperfine --runs 5 "scripts/pure-d/generate_output.sh 512"`
 
