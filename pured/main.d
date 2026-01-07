@@ -41,6 +41,7 @@ import std.process : spawnProcess;
 import std.path : buildPath;
 import std.process : environment;
 import std.conv : to;
+import std.format : format;
 import core.atomic : atomicLoad, atomicStore, MemoryOrder;
 import core.thread : Thread;
 import core.time : MonoTime, dur;
@@ -342,6 +343,7 @@ public:
 
         _titleMutex = new Mutex();
         startAllPanes();
+        updateWindowTitle();
 
         // Set up callbacks
         _window.onResize(&onResize);
@@ -660,6 +662,7 @@ public:
         _activePaneId = tab.activePaneId;
         updateViewports();
         resetSearchAndLinks();
+        updateWindowTitle();
     }
 
     void switchTab(int index) {
@@ -700,6 +703,23 @@ public:
             }
         }
         loadTab(_activeTabIndex);
+    }
+
+    void updateWindowTitle() {
+        if (_window is null) {
+            return;
+        }
+        string title = "Tilix Pure D";
+        auto tab = activeTab();
+        if (tab !is null) {
+            int total = cast(int)_tabs.length;
+            int index = _activeTabIndex + 1;
+            string tabTitle = tab.title.length != 0
+                ? tab.title
+                : ("Tab " ~ to!string(index));
+            title = format("Tilix Pure D [%d/%d] %s", index, total, tabTitle);
+        }
+        _window.setTitle(title);
     }
 
     void nextTab(int delta) {
@@ -1653,8 +1673,8 @@ public:
         if (tabIndex >= 0) {
             _tabs[tabIndex].title = title;
         }
-        if (paneId == _activePaneId && _window !is null) {
-            _window.setTitle("Tilix Pure D - " ~ title);
+        if (paneId == _activePaneId) {
+            updateWindowTitle();
         }
     }
 
