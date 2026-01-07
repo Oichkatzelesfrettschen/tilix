@@ -11,6 +11,7 @@ import pured.terminal.selection : Selection, SelectionType;
 import pured.scenegraph : SceneGraph, SplitOrientation, Viewport;
 import pured.recovery : saveSnapshot, loadSnapshot, clearSnapshot;
 import pured.config : SplitLayoutConfig, SplitLayoutNode, sanitizeSplitLayout;
+import pured.platform.wayland.primary_selection.bridge : WaylandPrimarySelectionBridge;
 import std.algorithm : min;
 import std.path : buildPath;
 import std.process : environment;
@@ -177,6 +178,14 @@ void main() {
     assert(restored.cells[0].ch == 'A');
     assert(restored.cells[5].ch == 'B');
     clearSnapshot(snapshotPath);
+
+    bool hasWayland = environment.get("WAYLAND_DISPLAY", "").length != 0;
+    auto bridge = new WaylandPrimarySelectionBridge();
+    if (!hasWayland) {
+        assert(!bridge.available);
+        assert(bridge.requestPrimary().length == 0);
+        bridge.setPrimary("test");
+    }
 
     sb.terminate();
     writeln("Pure D headless tests passed.");

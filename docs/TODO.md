@@ -79,7 +79,7 @@ Next: Phase 5 (process indicators), Phase 6 (vi-mode), IO thread hookup
 - [ ] Add performance harness for scrollback, render, IO
 
 ## Pure D Backend Parity
-- [x] Implement clipboard + PRIMARY selection for Pure D (GLFW/X11 bridge)
+- [x] Implement clipboard + PRIMARY selection for Pure D (X11/XCB + Wayland primary-selection)
 - [x] Implement dynamic Unicode glyph caching in FontAtlas
 - [x] Implement true-color extraction from emulator cell attributes
 - [x] Implement bell handling and cursor style updates in Pure D UI

@@ -67,16 +67,16 @@ DUB/OS additions for advanced features (optional):
 - harfbuzz (text shaping; required for ligatures/combining marks)
 - fontconfig (fallback font discovery)
 - libxkbcommon (keymap handling)
-- libxcb + xcb-util-wm (required for XCB-backed PRIMARY selection; also used for X11 window hints/Quake mode)
+- libxcb + xcb-util-wm (required for X11 PRIMARY selection; also used for X11 window hints/Quake mode)
 - xdg-utils (hyperlink activation via xdg-open)
 
 ```sh
 sudo pacman -S --needed harfbuzz fontconfig libxkbcommon libxcb xcb-util-wm
 ```
 
-Wayland (optional; GLFW Wayland builds or future Wayland backend):
-- wayland
-- wayland-protocols
+Wayland (optional; PRIMARY selection via primary-selection-unstable-v1):
+- wayland (ships wayland-scanner for regenerating protocol bindings)
+- wayland-protocols (primary-selection XML)
 
 ```sh
 sudo pacman -S --needed wayland wayland-protocols

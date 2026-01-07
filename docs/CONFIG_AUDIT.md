@@ -14,6 +14,6 @@ found during the audit.
 - install-man-pages.sh ignored PREFIX and always used /usr (fixed).
 
 ## Pure D feature gaps (code-level)
-- Clipboard and PRIMARY selection not wired for Pure D.
+- Clipboard and PRIMARY selection wired for X11/XCB and Wayland primary-selection.
 - Unicode glyph caching and true-color extraction missing.
 - Bell handling, cursor style updates, and scrollback access missing.

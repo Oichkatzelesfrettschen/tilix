@@ -7,6 +7,7 @@ import core.sync.condition : Condition;
 import core.sync.mutex : Mutex;
 import core.thread : Thread;
 import core.stdc.stdlib : free;
+import pured.platform.wayland.primary_selection.bridge : WaylandPrimarySelectionBridge;
 import std.string : fromStringz, toStringz;
 import xcb.xcb;
 
@@ -36,6 +37,7 @@ private:
     xcb_atom_t _atomXselData;
     string _xPrimaryText;
     bool _x11Available;
+    WaylandPrimarySelectionBridge _wayland;
 
     string _pendingClipboardText;
     string _pendingPrimaryText;
@@ -55,6 +57,7 @@ public:
         _mutex = new Mutex();
         _cond = new Condition(_mutex);
         _ownerThread = Thread.getThis();
+        initWayland();
         initX11();
     }
 
@@ -90,6 +93,9 @@ public:
     }
 
     void pump() {
+        if (_wayland !is null) {
+            _wayland.pump();
+        }
         pumpX11Events();
         string clipboardSet;
         string primarySet;
@@ -119,6 +125,9 @@ public:
         string clipboardValue;
         string primaryValue;
         if (primarySet.length) {
+            if (_wayland !is null && _wayland.available) {
+                _wayland.setPrimary(primarySet);
+            }
             if (_x11Available) {
                 setPrimaryX11(primarySet);
             } else static if (glfwSupport >= GLFWSupport.glfw33) {
@@ -190,6 +199,12 @@ private:
     }
 
     string directRequestPrimary() {
+        if (_wayland !is null && _wayland.available) {
+            auto text = _wayland.requestPrimary();
+            if (text.length != 0) {
+                return text;
+            }
+        }
         if (_x11Available) {
             return requestPrimaryX11();
         }
@@ -239,6 +254,13 @@ private:
         _atomXselData = internAtom("XSEL_DATA");
         _x11Available = _atomPrimary != XCB_ATOM_NONE &&
             _atomXselData != XCB_ATOM_NONE;
+    }
+
+    void initWayland() {
+        _wayland = new WaylandPrimarySelectionBridge();
+        if (_wayland is null || !_wayland.available) {
+            _wayland = null;
+        }
     }
 
     xcb_atom_t internAtom(string name) {

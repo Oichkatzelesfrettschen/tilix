@@ -65,5 +65,16 @@ Parity notes:
 Notes:
 - Tilix defaults are defined in `data/gsettings/com.gexperts.Tilix.gschema.xml` and surfaced in `data/resources/ui/shortcuts.ui`.
 - Pure D input translation lives in `pured/platform/input.d`; app shortcuts are in `pured/main.d`.
-- PRIMARY selection uses XCB when available; falls back to clipboard on non-X11 or missing selection support.
+- PRIMARY selection uses XCB on X11 and primary-selection-unstable-v1 on Wayland; falls back to clipboard when unavailable.
 - F21-F24 are mapped (CSI 35~..38~); additional extended keypad keys remain unmapped.
+
+## Parity gaps (Tilix defaults not yet implemented)
+- Preferences/shortcuts UI and accelerator toggles.
+- Profile/session management (switch profile, save/load session, rename session).
+- Terminal/session number switching (0-9 terminals, 1-10 sessions) and tab reordering.
+- Sidebar toggle and tab/pane maximize/restore.
+- Read-only toggle and reset/clear terminal actions.
+- Copy as HTML, advanced paste dialog, select/unselect all.
+- Scroll up/down/page up/down shortcut actions.
+- Bookmark add/select and insert terminal number/password helpers.
+- Silence monitor, input sync override, open directory, prompt navigation, margin display.

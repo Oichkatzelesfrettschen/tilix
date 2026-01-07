@@ -36,7 +36,7 @@ This roadmap synthesizes findings from four parallel analysis efforts:
 ### Pure D Backend Snapshot (2026-01-07)
 
 **Completed**:
-- Clipboard + PRIMARY selection (GLFW/X11 bridge)
+- Clipboard + PRIMARY selection (X11/XCB + Wayland primary-selection)
 - Truecolor mapping and per-cell colors
 - Cursor styles (block/underline/bar/outline) with configurable selection highlight
 - HarfBuzz shaping + font fallback
