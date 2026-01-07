@@ -17,7 +17,11 @@ void scanLineForLinks(const TerminalEmulator.TerminalCell[] line, int row,
         return;
     }
     if (scratch.length < line.length) {
-        scratch.length = line.length;
+        version (PURE_D_STRICT_NOGC) {
+            return;
+        } else {
+            scratch.length = line.length;
+        }
     }
 
     foreach (i, cell; line) {
@@ -56,7 +60,11 @@ void scanLineForLinks(const TerminalEmulator.TerminalCell[] line, int row,
         end = trimTrailing(scratch, start, end);
         if (end > start) {
             if (count >= ranges.length) {
-                ranges.length = ranges.length * 2 + 8;
+                version (PURE_D_STRICT_NOGC) {
+                    return;
+                } else {
+                    ranges.length = ranges.length * 2 + 8;
+                }
             }
             auto url = scratch[start .. end].idup;
             ranges[count++] = HyperlinkRange(row, cast(int)start,

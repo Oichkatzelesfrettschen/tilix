@@ -651,6 +651,9 @@ public:
             _activePaneId = _viewports[0].paneId;
         }
 
+        if (maxCols > 0 && maxRows > 0) {
+            reserveSearchBuffers(maxCols, maxRows);
+        }
         if (_renderer !is null && maxCols > 0 && maxRows > 0) {
             _renderer.prepareBuffers(maxCols, maxRows);
         }
@@ -672,6 +675,27 @@ public:
                 pane.session.start();
             }
         }
+    }
+
+    void reserveSearchBuffers(int cols, int rows) {
+        if (cols <= 0 || rows <= 0) {
+            return;
+        }
+        size_t maxRanges = cast(size_t)cols * cast(size_t)rows;
+        reserveCapacity(_searchRanges, maxRanges);
+        reserveCapacity(_hyperlinks, maxRanges);
+        if (_hyperlinkScratch.length < cols) {
+            _hyperlinkScratch.length = cols;
+        }
+    }
+
+    private void reserveCapacity(T)(ref T[] arr, size_t capacity) {
+        if (arr.length >= capacity) {
+            return;
+        }
+        auto previous = arr.length;
+        arr.length = capacity;
+        arr.length = previous;
     }
 
     void splitActive(SplitOrientation orientation) {
@@ -1094,8 +1118,22 @@ public:
         long topIndex = cast(long)sbCount - pane.scrollback.offset;
         long bottomIndex = topIndex + frame.rows - 1;
 
-        if (_searchRanges.length < _searchHits.length) {
-            _searchRanges.length = _searchHits.length;
+        size_t capacity = _searchRanges.length;
+        size_t maxRanges = cast(size_t)frame.cols * cast(size_t)frame.rows;
+        if (capacity < maxRanges) {
+            version (PURE_D_STRICT_NOGC) {
+                // Cap results in strict nogc mode to avoid growth.
+            } else {
+                _searchRanges.length = maxRanges;
+                capacity = _searchRanges.length;
+            }
+        }
+        if (capacity == 0) {
+            _searchRanges.length = 0;
+            _searchRangesGeneration = _searchGeneration;
+            _searchRangesScrollbackCount = sbCount;
+            _searchRangesOffset = currentOffset;
+            return _searchRanges;
         }
 
         size_t count = 0;
@@ -1116,6 +1154,9 @@ public:
             if (endCol < 0 || startCol >= frame.cols) {
                 continue;
             }
+            if (count >= capacity) {
+                break;
+            }
             _searchRanges[count++] = SearchRange(row, startCol, endCol);
         }
         _searchRanges.length = count;
@@ -1133,9 +1174,23 @@ public:
             _hyperlinks.length = 0;
             return;
         }
+        if (_hyperlinkScratch.length < frame.cols) {
+            version (PURE_D_STRICT_NOGC) {
+                return;
+            } else {
+                _hyperlinkScratch.length = frame.cols;
+            }
+        }
+        size_t desired = cast(size_t)frame.cols * cast(size_t)frame.rows;
+        if (_hyperlinks.length < desired) {
+            version (PURE_D_STRICT_NOGC) {
+                return;
+            } else {
+                _hyperlinks.length = desired;
+            }
+        }
 
         size_t count = 0;
-        _hyperlinks.length = 0;
 
         foreach (row; 0 .. frame.rows) {
             auto line = frame.cells[(row * frame.cols) .. ((row + 1) * frame.cols)];

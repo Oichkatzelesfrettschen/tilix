@@ -18,6 +18,8 @@ Known allocation risks (hot paths):
 Current mitigations:
 - `Renderer.buffersReady()` aborts rendering if buffers are not pre-sized.
 - `prepareBuffers()` pre-sizes renderer buffers based on max viewport dims.
+- Search/hyperlink buffers are pre-sized on viewport updates, and strict
+  `@nogc` mode skips growth in the hyperlink scanner.
 
 Next steps:
 - Add `@nogc` annotations to `Renderer.render()` and helper hot paths once
