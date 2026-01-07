@@ -1,4 +1,4 @@
-# Pure D Package Audit (2026-01-05)
+# Pure D Package Audit (2026-01-06)
 
 This document lists DUB packages relevant to the Pure D rebuild and their
 latest versions as reported by `https://code.dlang.org/api/packages/<pkg>/latest`.
@@ -33,15 +33,16 @@ latest versions as reported by `https://code.dlang.org/api/packages/<pkg>/latest
 - lz4-d ~master (LZ4 binding)
 - sqlite3 1.0.0 (snapshot or telemetry storage)
 
-## Registry scan (dub search)
+## Registry scan (dub search, 2026-01-06)
 - xcb-d 2.1.1+1.11.1 (XCB bindings)
 - xcb-util-wm-d 0.5.0+0.4.1 (EWMH/ICCCM helpers)
 - xkbcommon-d 0.5.1 (keyboard mapping)
 - wayland 0.4.0 (Wayland bindings)
 - wayland-client-d 1.8.90 (Wayland client)
 - wayland-scanner-d 1.0.0 (protocol scanner)
+- capnproto-dlang 0.1.2 (pure D Cap'n Proto bindings)
 
-## Not found (via code.dlang.org API)
+## Not found (via dub search)
 - bindbc-xcb
 - bindbc-xkbcommon
 - bindbc-x11
