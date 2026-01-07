@@ -21,6 +21,10 @@ enum IpcCommandType {
     pasteText,
     setTitle,
     spawnProfile,
+    splitPane,
+    closeTab,
+    focusNextTab,
+    focusPrevTab,
 }
 
 struct IpcCommand {
@@ -181,6 +185,21 @@ private:
                 case Command.Which.spawnProfile:
                     command.type = IpcCommandType.spawnProfile;
                     command.payload = cmd.getSpawnProfile();
+                    break;
+                case Command.Which.splitPane:
+                    command.type = IpcCommandType.splitPane;
+                    if (cmd.getSplitPane().hasOrientation()) {
+                        command.payload = cmd.getSplitPane().getOrientation();
+                    }
+                    break;
+                case Command.Which.closeTab:
+                    command.type = IpcCommandType.closeTab;
+                    break;
+                case Command.Which.focusNextTab:
+                    command.type = IpcCommandType.focusNextTab;
+                    break;
+                case Command.Which.focusPrevTab:
+                    command.type = IpcCommandType.focusPrevTab;
                     break;
                 case Command.Which._NOT_IN_SCHEMA:
                     ok = false;

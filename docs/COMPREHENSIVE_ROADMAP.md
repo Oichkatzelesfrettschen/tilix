@@ -48,6 +48,7 @@ This roadmap synthesizes findings from four parallel analysis efforts:
 - Window-title search prompt (editable query, Enter confirm, Esc cancel)
 - Bottom-row search prompt overlay during active query
 - Search highlight overlay + configurable search colors
+- Search overlay now renders prompt + hit index/line info while typing
 - Search/hyperlink buffer preallocation + strict @nogc guards
 - Hyperlink detection overlay + Ctrl+click activation
 - Ctrl-hover hyperlink highlight in renderer
@@ -68,7 +69,7 @@ This roadmap synthesizes findings from four parallel analysis efforts:
 - Pure D test matrix script (`scripts/pure-d/run_test_matrix.sh`)
 
 **Open**:
-- IPC command coverage beyond newTab (split/close/focus/paste)
+- IPC command coverage beyond newTab (split/close/focus/paste) [now handling splitPane/closeTab/focusNextTab/focusPrevTab].
 - IME implementation + preedit overlay
 - Tab bar + split persistence polish
 - Renderer perf handoff (PBO/triple buffer)

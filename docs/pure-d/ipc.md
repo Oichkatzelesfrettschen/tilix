@@ -26,8 +26,14 @@ Commands:
 - `pasteText`
 - `setTitle`
 - `spawnProfile`
+- `splitPane` with `orientation` `vertical` or `horizontal` (use `split-vertical` / `split-horizontal` in `ipc_client`).
+- `closeTab` (close active tab).
+- `focusNextTab` / `focusPrevTab` (cycle tabs).
 
 Notes:
 - IPC server runs inside the Pure D backend and queues commands for the main loop.
 - `newTab` opens a new scenegraph tab in the running Pure D window.
 - `spawnProfile` spawns a new process with `--profile <name>` if provided.
+- `splitPane` creates a new split using the current active pane and the requested orientation.
+- `closeTab` closes the currently active tab.
+- `focusNextTab`/`focusPrevTab` cycle the active tab to the next or previous tab.

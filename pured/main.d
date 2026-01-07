@@ -780,7 +780,25 @@ public:
             _searchPromptGlyphs.length = 0;
             return;
         }
-        string text = "Search: " ~ _searchPromptBuffer;
+        string prompt = _searchPromptBuffer.length != 0
+            ? _searchPromptBuffer
+            : "<type to search>";
+        string text = "Search: " ~ prompt;
+        if (_searchHits.length != 0) {
+            int index = _searchIndex;
+            if (index < 0) {
+                index = 0;
+            }
+            if (index >= cast(int)_searchHits.length) {
+                index = cast(int)_searchHits.length - 1;
+            }
+            string lineInfo = format(" | hit %s/%s",
+                index + 1, _searchHits.length);
+            auto hit = _searchHits[index];
+            lineInfo ~= format(" (line %s, col %s)",
+                hit.line, hit.column + 1);
+            text ~= lineInfo;
+        }
         _searchPromptGlyphs.length = 0;
         foreach (dchar ch; text.byDchar) {
             _searchPromptGlyphs ~= ch;
@@ -1154,6 +1172,23 @@ public:
                     } else {
                         spawnNewInstance();
                     }
+                    break;
+                case IpcCommandType.splitPane: {
+                    auto orientation = strip(cmd.payload).toLower();
+                    auto dir = orientation == "horizontal"
+                        ? SplitOrientation.horizontal
+                        : SplitOrientation.vertical;
+                    splitActive(dir);
+                    break;
+                }
+                case IpcCommandType.closeTab:
+                    closeTab(_activeTabIndex);
+                    break;
+                case IpcCommandType.focusNextTab:
+                    nextTab(1);
+                    break;
+                case IpcCommandType.focusPrevTab:
+                    nextTab(-1);
                     break;
             }
         }

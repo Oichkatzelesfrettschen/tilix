@@ -15,7 +15,7 @@ import pured.ipc.tilix_capnp : Request, Response, Command;
 
 void main(string[] args) {
     if (args.length < 2) {
-        stderr.writeln("Usage: ipc_client <new-tab|paste|set-title|spawn-profile> [payload]");
+        stderr.writeln("Usage: ipc_client <new-tab|paste|set-title|spawn-profile|split-vertical|split-horizontal|close-tab|focus-next-tab|focus-prev-tab> [payload]");
         return;
     }
 
@@ -64,6 +64,15 @@ void main(string[] args) {
         command.setSetTitle(payload);
     } else if (action == "spawn-profile") {
         command.setSpawnProfile(payload);
+    } else if (action == "split-vertical" || action == "split-horizontal") {
+        auto split = command.initSplitPane();
+        split.setOrientation(action == "split-horizontal" ? "horizontal" : "vertical");
+    } else if (action == "close-tab") {
+        command.setCloseTab();
+    } else if (action == "focus-next-tab") {
+        command.setFocusNextTab();
+    } else if (action == "focus-prev-tab") {
+        command.setFocusPrevTab();
     } else {
         stderr.writeln("Unknown command: ", action);
         return;
