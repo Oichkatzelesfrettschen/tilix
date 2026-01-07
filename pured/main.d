@@ -522,6 +522,25 @@ public:
         resetSearchAndLinks();
     }
 
+    void focusAdjacentPane(int direction) {
+        if (_viewports.length == 0) {
+            return;
+        }
+        int count = cast(int)_viewports.length;
+        int currentIndex = -1;
+        foreach (i, vp; _viewports) {
+            if (vp.paneId == _activePaneId) {
+                currentIndex = cast(int)i;
+                break;
+            }
+        }
+        int delta = direction >= 0 ? 1 : -1;
+        int targetIndex = currentIndex < 0
+            ? 0
+            : (currentIndex + delta + count) % count;
+        setActivePane(_viewports[targetIndex].paneId);
+    }
+
     int clampScrollbackMaxLines() const {
         if (_scrollbackMaxLines > cast(size_t)int.max) {
             return int.max;
@@ -1301,6 +1320,7 @@ public:
     void terminate() {
         atomicStore!(MemoryOrder.raw)(_exitRequested, true);
         writefln("Shutting down... (rendered %d frames)", _totalFrameCount);
+        persistSplitLayout();
 
         if (_snapshotPath.length != 0) {
             auto pane = activePane();
@@ -1743,6 +1763,14 @@ private:
                 resizeActiveSplit(SplitOrientation.horizontal, delta);
                 return;
             }
+        }
+
+        if (action == GLFW_PRESS &&
+            key == GLFW_KEY_TAB &&
+            (mods & GLFW_MOD_CONTROL)) {
+            bool backwards = (mods & GLFW_MOD_SHIFT) != 0;
+            focusAdjacentPane(backwards ? -1 : 1);
+            return;
         }
 
         if (action == GLFW_PRESS &&

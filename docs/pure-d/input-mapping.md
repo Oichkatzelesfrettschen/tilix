@@ -38,6 +38,7 @@ Parity notes:
 - Ctrl+Shift+O: split vertically.
 - Ctrl+Shift+Alt+Arrows: resize active split.
 - Alt+drag split boundary: resize split with mouse.
+- Ctrl+Tab / Ctrl+Shift+Tab: cycle panes.
 
 ## Tilix default shortcut parity (gsettings baseline)
 | Action | Tilix default | Pure D status |
@@ -54,6 +55,7 @@ Parity notes:
 | Zoom in/out/normal | Ctrl+Plus/Minus/0 | missing |
 | Toggle fullscreen | F11 (GTK default) | missing |
 | Open preferences/shortcuts | disabled by default | missing |
+| Next/prev session | Ctrl+PageUp/Down | missing (Pure D uses Ctrl+Tab/Shift+Ctrl+Tab) |
 
 Notes:
 - Tilix defaults are defined in `data/gsettings/com.gexperts.Tilix.gschema.xml` and surfaced in `data/resources/ui/shortcuts.ui`.
