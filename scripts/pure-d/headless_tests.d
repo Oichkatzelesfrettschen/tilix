@@ -7,7 +7,12 @@ import pured.terminal.scrollback_buffer : ScrollbackBuffer;
 import pured.terminal.search : findInScrollback, findInFrame;
 import pured.terminal.frame : TerminalFrame;
 import pured.terminal.hyperlink : HyperlinkRange, scanLineForLinks;
+import pured.scenegraph : SceneGraph, SplitOrientation, Viewport;
+import pured.recovery : saveSnapshot, loadSnapshot, clearSnapshot;
+import pured.config : SplitLayoutConfig, SplitLayoutNode, sanitizeSplitLayout;
 import std.algorithm : min;
+import std.path : buildPath;
+import std.process : environment;
 import std.stdio : writeln;
 
 alias TerminalCell = TerminalEmulator.TerminalCell;
@@ -63,6 +68,77 @@ void main() {
     assert(count == 1);
     assert(ranges[0].startCol == 0);
     assert(ranges[0].url == "https://example.com");
+
+    SceneGraph scene = new SceneGraph();
+    auto rightPane = scene.splitLeaf(0, SplitOrientation.vertical, 0.5f);
+    assert(rightPane >= 0);
+    Viewport[] viewports;
+    scene.computeViewports(0, 0, 100, 40, viewports);
+    assert(viewports.length == 2);
+    int leftWidth = viewports[0].paneId == 0 ? viewports[0].width : viewports[1].width;
+    int rightWidth = viewports[0].paneId == 0 ? viewports[1].width : viewports[0].width;
+    assert(leftWidth == 50);
+    assert(rightWidth == 50);
+    assert(scene.adjustSplitForPane(0, SplitOrientation.vertical, 0.2f));
+    scene.computeViewports(0, 0, 100, 40, viewports);
+    leftWidth = viewports[0].paneId == 0 ? viewports[0].width : viewports[1].width;
+    rightWidth = viewports[0].paneId == 0 ? viewports[1].width : viewports[0].width;
+    assert(leftWidth > rightWidth);
+    assert(scene.setSplitRatioForPane(0, SplitOrientation.vertical, 0.7f));
+    scene.computeViewports(0, 0, 100, 40, viewports);
+    leftWidth = viewports[0].paneId == 0 ? viewports[0].width : viewports[1].width;
+    assert(leftWidth >= 69 && leftWidth <= 71);
+
+    SplitLayoutConfig layout;
+    layout.rootPaneId = 1;
+    layout.activePaneId = 1;
+    SplitLayoutNode rootNode;
+    rootNode.paneId = 1;
+    rootNode.first = 0;
+    rootNode.second = 2;
+    rootNode.orientation = "vertical";
+    rootNode.splitRatio = 0.5f;
+    SplitLayoutNode leftNode;
+    leftNode.paneId = 0;
+    leftNode.first = -1;
+    leftNode.second = -1;
+    SplitLayoutNode rightNode;
+    rightNode.paneId = 2;
+    rightNode.first = -1;
+    rightNode.second = -1;
+    layout.nodes = [rootNode, leftNode, rightNode];
+    auto sanitized = sanitizeSplitLayout(layout);
+    assert(sanitized.activePaneId == 0 || sanitized.activePaneId == 2);
+
+    TerminalFrame snapshot;
+    snapshot.ensureSize(4, 2);
+    foreach (i; 0 .. cast(size_t)snapshot.cells.length) {
+        snapshot.cells[i] = TerminalCell.init;
+    }
+    snapshot.cells[0].ch = 'A';
+    snapshot.cells[5].ch = 'B';
+    snapshot.cursorCol = 1;
+    snapshot.cursorRow = 1;
+    snapshot.sequence = 42;
+    int expectedOffset = 3;
+    string runtimeDir = environment.get("XDG_RUNTIME_DIR", "");
+    if (runtimeDir.length == 0) {
+        runtimeDir = "/tmp";
+    }
+    auto snapshotPath = buildPath(runtimeDir, "tilix-pure.snapshot.test");
+    clearSnapshot(snapshotPath);
+    assert(saveSnapshot(snapshot, expectedOffset, snapshotPath));
+    TerminalFrame restored;
+    int restoredOffset = 0;
+    assert(loadSnapshot(restored, restoredOffset, snapshotPath));
+    assert(restoredOffset == expectedOffset);
+    assert(restored.cursorCol == snapshot.cursorCol);
+    assert(restored.cursorRow == snapshot.cursorRow);
+    assert(restored.sequence == snapshot.sequence);
+    assert(restored.cells.length == snapshot.cells.length);
+    assert(restored.cells[0].ch == 'A');
+    assert(restored.cells[5].ch == 'B');
+    clearSnapshot(snapshotPath);
 
     sb.terminate();
     writeln("Pure D headless tests passed.");

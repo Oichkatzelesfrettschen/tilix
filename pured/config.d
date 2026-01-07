@@ -3,8 +3,9 @@ module pured.config;
 version (PURE_D_BACKEND):
 
 import mir.deser.json : deserializeJson;
-import std.file : exists, readText;
-import std.path : buildPath, expandTilde;
+import std.file : exists, readText, write, mkdirRecurse;
+import std.json : JSONValue, JSONType, parseJSON;
+import std.path : buildPath, expandTilde, dirName;
 import std.process : environment;
 import std.stdio : stderr;
 import std.string : toLower;
@@ -13,6 +14,20 @@ struct ThemeConfig {
     float[] foreground;
     float[] background;
     float[][] palette;
+}
+
+struct SplitLayoutNode {
+    int paneId = -1;
+    int first = -1;
+    int second = -1;
+    string orientation;
+    float splitRatio = 0.5f;
+}
+
+struct SplitLayoutConfig {
+    int rootPaneId = 0;
+    int activePaneId = 0;
+    SplitLayoutNode[] nodes;
 }
 
 struct ResolvedTheme {
@@ -41,6 +56,7 @@ struct PureDConfig {
     float[] searchFg;
     float[] linkFg;
     ThemeConfig theme;
+    SplitLayoutConfig splitLayout;
 }
 
 PureDConfig defaultConfig() {
@@ -62,6 +78,7 @@ PureDConfig defaultConfig() {
     cfg.searchBg = [0.85f, 0.7f, 0.2f, 1.0f];
     cfg.searchFg = [];
     cfg.linkFg = [0.2f, 0.6f, 1.0f, 1.0f];
+    cfg.splitLayout = SplitLayoutConfig.init;
     return cfg;
 }
 
@@ -152,6 +169,7 @@ PureDConfig sanitizeConfig(PureDConfig cfg) {
     } else {
         cfg.linkFg = def.linkFg;
     }
+    cfg.splitLayout = sanitizeSplitLayout(cfg.splitLayout);
     return cfg;
 }
 
@@ -218,6 +236,114 @@ PureDConfig loadConfig(string path = null) {
             target, ex.msg);
     }
     return cfg;
+}
+
+SplitLayoutConfig sanitizeSplitLayout(SplitLayoutConfig layout) {
+    if (layout.nodes.length == 0) {
+        layout.rootPaneId = 0;
+        layout.activePaneId = 0;
+        return layout;
+    }
+    bool hasRoot = false;
+    bool hasActive = false;
+    bool[int] isLeaf;
+    foreach (ref node; layout.nodes) {
+        if (node.paneId == layout.rootPaneId) {
+            hasRoot = true;
+        }
+        if (node.paneId == layout.activePaneId) {
+            hasActive = true;
+        }
+        node.splitRatio = clampRatio(node.splitRatio);
+        node.orientation = sanitizeOrientation(node.orientation);
+        if (node.paneId >= 0) {
+            isLeaf[node.paneId] = node.first < 0 || node.second < 0;
+        }
+    }
+    if (!hasRoot) {
+        layout.rootPaneId = layout.nodes[0].paneId;
+    }
+    if (!hasActive || !(layout.activePaneId in isLeaf) || !isLeaf[layout.activePaneId]) {
+        int fallback = -1;
+        foreach (node; layout.nodes) {
+            if (node.paneId in isLeaf && isLeaf[node.paneId]) {
+                fallback = node.paneId;
+                break;
+            }
+        }
+        if (fallback < 0) {
+            fallback = layout.rootPaneId;
+        }
+        layout.activePaneId = fallback;
+    }
+    return layout;
+}
+
+bool saveSplitLayout(in SplitLayoutConfig layout, string path = null) {
+    string target = (path is null || path.length == 0)
+        ? defaultConfigPath()
+        : path;
+
+    JSONValue root;
+    if (exists(target)) {
+        try {
+            root = parseJSON(readText(target));
+        } catch (Exception ex) {
+            stderr.writefln("Warning: Failed to parse config for layout save at %s: %s",
+                target, ex.msg);
+            return false;
+        }
+    }
+
+    if (root.type != JSONType.object) {
+        root = ["splitLayout": buildLayoutJson(layout)];
+    } else {
+        root["splitLayout"] = buildLayoutJson(layout);
+    }
+
+    auto parentDir = dirName(target);
+    if (parentDir.length > 0 && !exists(parentDir)) {
+        mkdirRecurse(parentDir);
+    }
+    write(target, root.toString());
+    return true;
+}
+
+private JSONValue buildLayoutJson(in SplitLayoutConfig layout) {
+    JSONValue[] nodes;
+    nodes.length = layout.nodes.length;
+    foreach (i, node; layout.nodes) {
+        JSONValue[string] entry;
+        entry["paneId"] = node.paneId;
+        entry["first"] = node.first;
+        entry["second"] = node.second;
+        entry["orientation"] = node.orientation;
+        entry["splitRatio"] = node.splitRatio;
+        nodes[i] = entry;
+    }
+    JSONValue[string] root;
+    root["rootPaneId"] = layout.rootPaneId;
+    root["activePaneId"] = layout.activePaneId;
+    root["nodes"] = nodes;
+    return JSONValue(root);
+}
+
+private string sanitizeOrientation(string value) {
+    auto lowered = toLower(value);
+    if (lowered == "horizontal" || lowered == "vertical") {
+        return lowered;
+    }
+    return "";
+}
+
+private float clampRatio(float value) {
+    if (value < 0.1f) {
+        return 0.1f;
+    }
+    if (value > 0.9f) {
+        return 0.9f;
+    }
+    return value;
 }
 
 private float clamp01(float value) {

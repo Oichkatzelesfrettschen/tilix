@@ -16,23 +16,22 @@ version (PURE_D_BACKEND):
 
 import pured.window;
 import pured.context;
-import pured.pty;
-import pured.ptyreader;
 import pured.emulator;
-import pured.parserworker;
+import pured.session : TerminalSession;
 import pured.renderer;
-import pured.config;
+import pured.config : PureDConfig, ThemeConfig, resolveTheme, loadConfig,
+    defaultConfigPath, saveSplitLayout;
 import pured.theme_importer;
 import pured.platform.input;
 import pured.platform.clipboard;
 import pured.terminal.frame : TerminalFrame;
 import pured.terminal.selection;
 import pured.terminal.scrollback;
-import pured.terminal.scrollback_buffer : ScrollbackBuffer;
 import pured.terminal.search : SearchHit, SearchRange, findInScrollback, findInFrame;
 import pured.terminal.hyperlink : HyperlinkRange, scanLineForLinks;
 import pured.ipc.server : IpcServer, IpcCommand, IpcCommandType;
-import pured.util.triplebuffer : TripleBuffer;
+import pured.recovery : defaultSnapshotPath, saveSnapshot, loadSnapshot;
+import pured.scenegraph : SceneGraph, Viewport, SplitOrientation;
 import arsd.terminalemulator : TerminalEmulator;
 import std.stdio : stderr, writefln, writeln;
 import std.string : strip, toLower;
@@ -49,6 +48,75 @@ import std.datetime : SysTime;
 import std.file : exists, timeLastModified, thisExePath;
 import bindbc.glfw;
 
+private class PaneState {
+public:
+    TerminalSession session;
+    ScrollbackViewport scrollback;
+    Selection selection;
+    ClickDetector clickDetector;
+    size_t lastScrollbackCount;
+    int lastScrollbackOffset = int.min;
+    int cols;
+    int rows;
+    string shellTitle;
+}
+
+private struct SplitDragState {
+    bool active;
+    SplitOrientation orientation;
+    int paneId;
+    double origin;
+    double span;
+}
+
+private class SessionCallbacks : ITerminalCallbacks {
+private:
+    PureDTerminal _owner;
+    int _paneId;
+
+public:
+    this(PureDTerminal owner, int paneId) {
+        _owner = owner;
+        _paneId = paneId;
+    }
+
+    override void onTitleChanged(string title) {
+        _owner.onPaneTitleChanged(_paneId, title);
+    }
+
+    override void onSendToApplication(scope const(void)[] data) {
+        _owner.onPaneSendToApplication(_paneId, data);
+    }
+
+    override void onBell() {
+        _owner.onPaneBell(_paneId);
+    }
+
+    override void onRequestExit() {
+        _owner.onPaneRequestExit(_paneId);
+    }
+
+    override void onCursorStyleChanged(TerminalEmulator.CursorStyle style) {
+        _owner.onPaneCursorStyleChanged(_paneId, style);
+    }
+
+    override void onCopyToClipboard(string text) {
+        _owner.onCopyToClipboard(text);
+    }
+
+    override void onCopyToPrimary(string text) {
+        _owner.onCopyToPrimary(text);
+    }
+
+    override string onPasteFromClipboard() {
+        return _owner.onPasteFromClipboard();
+    }
+
+    override string onPasteFromPrimary() {
+        return _owner.onPasteFromPrimary();
+    }
+}
+
 /**
  * Pure D Terminal Application
  *
@@ -58,31 +126,20 @@ class PureDTerminal : ITerminalCallbacks {
 private:
     GLFWWindow _window;
     GLContext _glContext;
-    PTY _pty;
-    PtyReader _ptyReader;
-    PureDEmulator _emulator;
-    ParserWorker _parserWorker;
     CellRenderer _renderer;
-    TripleBuffer!TerminalFrame _frames;
+    PaneState[int] _panes;
 
     // Input handling
     InputHandler _inputHandler;
     ClipboardBridge _clipboard;
-    Selection _selection;
-    ScrollbackViewport _scrollback;
-    ClickDetector _clickDetector;
-    ScrollbackBuffer _scrollbackBuffer;
-    Mutex _scrollbackMutex;
-    TerminalFrame _scrollFrame;
     size_t _scrollbackMaxLines = 200_000;
-    size_t _lastScrollbackCount;
-    int _lastScrollbackOffset;
 
     // Mouse state
     double _mouseX = 0;
     double _mouseY = 0;
     int _mouseButtons = 0;
     int _lastKeyMods = 0;
+    SplitDragState _splitDrag;
 
     // Frame timing
     MonoTime _lastFrameTime;
@@ -106,7 +163,6 @@ private:
     Mutex _titleMutex;
 
     // Window title from shell
-    string _shellTitle;
     shared bool _exitRequested;
     float _contentScale = 1.0f;
     PureDConfig _config;
@@ -129,6 +185,12 @@ private:
     float[4] _linkFg = [0.2f, 0.6f, 1.0f, 1.0f];
     bool _quakeMode;
     float _quakeHeight;
+    string _snapshotPath;
+    MonoTime _lastSnapshotTime;
+
+    SceneGraph _scene;
+    Viewport[] _viewports;
+    int _activePaneId;
 
     IpcServer _ipcServer;
 
@@ -220,49 +282,47 @@ public:
         // Set initial viewport and calculate terminal size
         int width, height;
         _window.getFramebufferSize(width, height);
+        _activePaneId = -1;
+        _scene = new SceneGraph();
+        if (_config.splitLayout.nodes.length > 0) {
+            if (_scene.applyLayoutConfig(_config.splitLayout)) {
+                _activePaneId = _config.splitLayout.activePaneId;
+            }
+        }
+        updateViewports(false);
         _glContext.setViewport(width, height);
         _renderer.setViewport(width, height);
-        _cols = width / _cellWidth;
-        _rows = height / _cellHeight;
 
-        // Create terminal emulator
-        _emulator = new PureDEmulator(_cols, _rows, this);
-        _rawCursorStyle = _emulator.cursorStyle;
-        refreshCursorSettings();
-        initializeFrames();
-
-        // Create input handling
+        // Create terminal session
         _inputHandler = new InputHandler();
-        _scrollback = new ScrollbackViewport(_rows);
-        _scrollbackBuffer = new ScrollbackBuffer();
-        _scrollbackMutex = new Mutex();
         _scrollbackMaxLines = _config.scrollbackMaxLines;
-        _scrollbackBuffer.initialize(_cols, _scrollbackMaxLines);
-        _lastScrollbackCount = 0;
-        _selection = new Selection((col, row) => getCharAt(col, row));
+        _snapshotPath = defaultSnapshotPath();
 
-        // Create and spawn PTY
-        _pty = new PTY();
-        if (!_pty.spawn(cast(ushort)_cols, cast(ushort)_rows)) {
-            stderr.writefln("Error: Failed to spawn PTY");
+        auto active = activePane();
+        if (active is null) {
             _window.terminate();
             return false;
         }
+        _cols = active.cols;
+        _rows = active.rows;
+        _rawCursorStyle = active.session.emulator.cursorStyle;
+        refreshCursorSettings();
+        initializeFrames(active.session, _cols, _rows);
+
+        // Attempt crash recovery snapshot restore before PTY starts streaming.
+        int recoveredOffset = 0;
+        TerminalFrame snapshot;
+        if (active !is null && loadSnapshot(snapshot, recoveredOffset, _snapshotPath)) {
+            if (snapshot.cols == active.cols && snapshot.rows == active.rows) {
+                active.session.frames.writeBuffer = snapshot;
+                active.session.frames.publish();
+                active.session.frames.consume();
+                active.scrollback.scrollTo(recoveredOffset);
+            }
+        }
 
         _titleMutex = new Mutex();
-        _shellTitle = "";
-
-        _parserWorker = new ParserWorker(
-            _emulator,
-            _frames,
-            _scrollbackBuffer,
-            _scrollbackMutex,
-            _scrollbackMaxLines
-        );
-        _parserWorker.start();
-
-        _ptyReader = new PtyReader(_pty.masterFd);
-        _ptyReader.start((data) => _parserWorker.enqueue(data));
+        startAllPanes();
 
         // Set up callbacks
         _window.onResize(&onResize);
@@ -289,7 +349,10 @@ public:
         writefln("  Target: 320Hz+ framerate, <1ms input latency");
         writefln("  Window: %dx%d", width, height);
         writefln("  Terminal: %dx%d cells", _cols, _rows);
-        writefln("  PTY: master fd=%d", _pty.masterFd);
+        auto infoPane = activePane();
+        if (infoPane !is null && infoPane.session !is null) {
+            writefln("  PTY: master fd=%d", infoPane.session.pty.masterFd);
+        }
 
         startConfigWatcher();
         startIpcServer();
@@ -412,6 +475,333 @@ public:
         _window.setPosition(xpos, ypos);
     }
 
+    void updateViewports(bool startNewSessions = true) {
+        if (_scene is null) {
+            _scene = new SceneGraph();
+        }
+        int fbWidth;
+        int fbHeight;
+        _window.getFramebufferSize(fbWidth, fbHeight);
+        _scene.computeViewports(0, 0, fbWidth, fbHeight, _viewports);
+        if (_viewports.length != 0 && _activePaneId < 0) {
+            _activePaneId = _viewports[0].paneId;
+        }
+        syncPanesForViewports(startNewSessions);
+    }
+
+    PaneState paneForId(int paneId) {
+        auto found = paneId in _panes;
+        return found is null ? null : *found;
+    }
+
+    PaneState activePane() {
+        return paneForId(_activePaneId);
+    }
+
+    void setActivePane(int paneId, bool force = false) {
+        if (!force && paneId == _activePaneId) {
+            return;
+        }
+        _activePaneId = paneId;
+        auto pane = activePane();
+        if (pane !is null) {
+            _cols = pane.cols;
+            _rows = pane.rows;
+            if (pane.session !is null && pane.session.parserWorker !is null) {
+                _lastPtyBytes = pane.session.parserWorker.totalBytesProcessed();
+            } else {
+                _lastPtyBytes = 0;
+            }
+            if (pane.session !is null && pane.session.emulator !is null) {
+                _rawCursorStyle = pane.session.emulator.cursorStyle;
+                if (!_cursorStyleOverride) {
+                    _cursorStyle = mapCursorStyle(_rawCursorStyle);
+                }
+            }
+        }
+        resetSearchAndLinks();
+    }
+
+    int clampScrollbackMaxLines() const {
+        if (_scrollbackMaxLines > cast(size_t)int.max) {
+            return int.max;
+        }
+        return cast(int)_scrollbackMaxLines;
+    }
+
+    PaneState ensurePane(int paneId, int cols, int rows, bool startNow = true) {
+        auto found = paneId in _panes;
+        if (found !is null) {
+            auto pane = *found;
+            resizePane(pane, cols, rows);
+            return pane;
+        }
+
+        auto pane = new PaneState();
+        pane.cols = cols;
+        pane.rows = rows;
+        pane.scrollback = new ScrollbackViewport(rows, clampScrollbackMaxLines());
+        pane.selection = new Selection((col, row) => getCharAt(paneId, col, row));
+        pane.clickDetector = ClickDetector.init;
+        pane.lastScrollbackCount = 0;
+        pane.lastScrollbackOffset = int.min;
+
+        pane.session = new TerminalSession();
+        auto callbacks = new SessionCallbacks(this, paneId);
+        if (!pane.session.initialize(cols, rows, callbacks, _scrollbackMaxLines)) {
+            stderr.writefln("Error: Failed to initialize session for pane %d", paneId);
+            return null;
+        }
+        initializeFrames(pane.session, cols, rows);
+        if (startNow) {
+            pane.session.start();
+        }
+        _panes[paneId] = pane;
+        return pane;
+    }
+
+    void resizePane(PaneState pane, int cols, int rows) {
+        if (pane is null) {
+            return;
+        }
+        if (pane.cols == cols && pane.rows == rows) {
+            return;
+        }
+        pane.cols = cols;
+        pane.rows = rows;
+        resizeFrameBuffers(pane.session, cols, rows);
+        if (pane.scrollback !is null) {
+            pane.scrollback.resize(rows);
+        }
+        if (pane.session !is null) {
+            pane.session.resize(cols, rows);
+        }
+        if (pane.session is null ||
+            pane.session.parserWorker is null ||
+            !pane.session.parserWorker.isRunning) {
+            updateFrameFromEmulator(pane.session);
+            pane.session.frames.publish();
+            pane.session.frames.consume();
+        }
+    }
+
+    void syncPanesForViewports(bool startNewSessions) {
+        bool[int] activePanes;
+        int maxCols = 0;
+        int maxRows = 0;
+        int previousActive = _activePaneId;
+
+        foreach (vp; _viewports) {
+            int cols = vp.width / _cellWidth;
+            int rows = vp.height / _cellHeight;
+            if (cols < 1) {
+                cols = 1;
+            }
+            if (rows < 1) {
+                rows = 1;
+            }
+            if (cols > maxCols) {
+                maxCols = cols;
+            }
+            if (rows > maxRows) {
+                maxRows = rows;
+            }
+            auto pane = ensurePane(vp.paneId, cols, rows, startNewSessions);
+            if (pane !is null) {
+                pane.cols = cols;
+                pane.rows = rows;
+                activePanes[vp.paneId] = true;
+            }
+        }
+
+        int[] stale;
+        foreach (paneId, pane; _panes) {
+            if (!(paneId in activePanes)) {
+                stale ~= paneId;
+            }
+        }
+        foreach (paneId; stale) {
+            auto pane = _panes[paneId];
+            if (pane !is null && pane.session !is null) {
+                pane.session.stop();
+            }
+            _panes.remove(paneId);
+        }
+
+        if (_activePaneId >= 0 && paneForId(_activePaneId) is null && _viewports.length > 0) {
+            _activePaneId = _viewports[0].paneId;
+        }
+
+        if (_renderer !is null && maxCols > 0 && maxRows > 0) {
+            _renderer.prepareBuffers(maxCols, maxRows);
+        }
+
+        if (_activePaneId != previousActive) {
+            setActivePane(_activePaneId, true);
+        } else {
+            auto active = activePane();
+            if (active !is null) {
+                _cols = active.cols;
+                _rows = active.rows;
+            }
+        }
+    }
+
+    void startAllPanes() {
+        foreach (paneId, pane; _panes) {
+            if (pane !is null && pane.session !is null) {
+                pane.session.start();
+            }
+        }
+    }
+
+    void splitActive(SplitOrientation orientation) {
+        if (_scene is null) {
+            _scene = new SceneGraph();
+        }
+        int newPane = _scene.splitLeaf(_activePaneId, orientation, 0.5f);
+        if (newPane < 0) {
+            stderr.writefln("Split: failed to split pane %d", _activePaneId);
+            return;
+        }
+        updateViewports();
+        setActivePane(newPane);
+        persistSplitLayout();
+    }
+
+    void resizeActiveSplit(SplitOrientation orientation, float delta) {
+        if (_scene is null) {
+            return;
+        }
+        if (_scene.adjustSplitForPane(_activePaneId, orientation, delta)) {
+            updateViewports();
+            persistSplitLayout();
+        }
+    }
+
+    bool beginSplitDrag(double x, double y) {
+        if (_viewports.length < 2) {
+            return false;
+        }
+        const double threshold = 4.0;
+
+        foreach (i; 0 .. _viewports.length) {
+            auto a = _viewports[i];
+            foreach (j; i + 1 .. _viewports.length) {
+                auto b = _viewports[j];
+
+                // Vertical split boundary (side-by-side)
+                if (a.y == b.y && a.height == b.height) {
+                    int boundaryX = -1;
+                    if (a.x + a.width == b.x) {
+                        boundaryX = b.x;
+                    } else if (b.x + b.width == a.x) {
+                        boundaryX = a.x;
+                    }
+                    if (boundaryX >= 0 &&
+                        y >= a.y &&
+                        y <= a.y + a.height &&
+                        (x >= boundaryX - threshold) &&
+                        (x <= boundaryX + threshold)) {
+                        auto left = a.x < b.x ? a : b;
+                        auto right = a.x < b.x ? b : a;
+                        _splitDrag.active = true;
+                        _splitDrag.orientation = SplitOrientation.vertical;
+                        _splitDrag.paneId = left.paneId;
+                        _splitDrag.origin = left.x;
+                        _splitDrag.span = left.width + right.width;
+                        return true;
+                    }
+                }
+
+                // Horizontal split boundary (stacked)
+                if (a.x == b.x && a.width == b.width) {
+                    int boundaryY = -1;
+                    if (a.y + a.height == b.y) {
+                        boundaryY = b.y;
+                    } else if (b.y + b.height == a.y) {
+                        boundaryY = a.y;
+                    }
+                    if (boundaryY >= 0 &&
+                        x >= a.x &&
+                        x <= a.x + a.width &&
+                        (y >= boundaryY - threshold) &&
+                        (y <= boundaryY + threshold)) {
+                        auto top = a.y < b.y ? a : b;
+                        auto bottom = a.y < b.y ? b : a;
+                        _splitDrag.active = true;
+                        _splitDrag.orientation = SplitOrientation.horizontal;
+                        _splitDrag.paneId = top.paneId;
+                        _splitDrag.origin = top.y;
+                        _splitDrag.span = top.height + bottom.height;
+                        return true;
+                    }
+                }
+            }
+        }
+        return false;
+    }
+
+    void updateSplitDrag(double x, double y) {
+        if (!_splitDrag.active || _scene is null) {
+            return;
+        }
+        double pos = _splitDrag.orientation == SplitOrientation.vertical ? x : y;
+        if (_splitDrag.span <= 1.0) {
+            return;
+        }
+        double ratio = (pos - _splitDrag.origin) / _splitDrag.span;
+        if (ratio < 0.1) {
+            ratio = 0.1;
+        } else if (ratio > 0.9) {
+            ratio = 0.9;
+        }
+        if (_scene.setSplitRatioForPane(_splitDrag.paneId,
+                _splitDrag.orientation, cast(float)ratio)) {
+            updateViewports();
+        }
+    }
+
+    void endSplitDrag() {
+        _splitDrag.active = false;
+        persistSplitLayout();
+    }
+
+    void persistSplitLayout() {
+        if (_configPath.length == 0 || _scene is null) {
+            return;
+        }
+        auto layout = _scene.toLayoutConfig();
+        layout.activePaneId = resolveActivePaneId(layout.rootPaneId);
+        if (!saveSplitLayout(layout, _configPath)) {
+            stderr.writefln("Warning: Failed to persist split layout to %s", _configPath);
+        }
+    }
+
+    int resolveActivePaneId(int fallbackId) const {
+        int candidate = _activePaneId;
+        foreach (vp; _viewports) {
+            if (vp.paneId == candidate) {
+                return candidate;
+            }
+        }
+        if (_viewports.length > 0) {
+            return _viewports[0].paneId;
+        }
+        return fallbackId;
+    }
+
+    bool viewportAt(double x, double y, out Viewport viewport) {
+        foreach (vp; _viewports) {
+            if (x >= vp.x && x < vp.x + vp.width &&
+                y >= vp.y && y < vp.y + vp.height) {
+                viewport = vp;
+                return true;
+            }
+        }
+        return false;
+    }
+
     void spawnNewInstance(string[] extraArgs = null) {
         string exePath;
         try {
@@ -521,8 +911,19 @@ public:
 
         if (_config.scrollbackMaxLines != previous.scrollbackMaxLines) {
             _scrollbackMaxLines = _config.scrollbackMaxLines;
-            if (_parserWorker !is null) {
-                _parserWorker.setScrollbackMaxLines(_scrollbackMaxLines);
+            foreach (paneId, pane; _panes) {
+                if (pane !is null &&
+                    pane.session !is null &&
+                    pane.session.parserWorker !is null) {
+                    pane.session.parserWorker.setScrollbackMaxLines(_scrollbackMaxLines);
+                }
+            }
+        }
+
+        if (_config.splitLayout.nodes.length > 0 && _scene !is null) {
+            if (_scene.applyLayoutConfig(_config.splitLayout)) {
+                _activePaneId = _config.splitLayout.activePaneId;
+                updateViewports();
             }
         }
 
@@ -540,10 +941,29 @@ public:
         }
     }
 
+    void resetSearchAndLinks() {
+        _searchHits.length = 0;
+        _searchRanges.length = 0;
+        _searchIndex = 0;
+        _searchGeneration++;
+        _searchRangesGeneration = 0;
+        _searchRangesScrollbackCount = 0;
+        _searchRangesOffset = int.min;
+        _hyperlinks.length = 0;
+        _lastHyperlinkSequence = 0;
+        _lastHyperlinkOffset = int.min;
+    }
+
     void triggerSearch() {
         string query;
-        if (_selection.hasSelection) {
-            query = _selection.getSelectedText((col, row) => getCharAt(col, row), _cols);
+        auto pane = activePane();
+        if (pane is null || pane.scrollback is null) {
+            return;
+        }
+        if (pane.selection !is null && pane.selection.hasSelection) {
+            query = pane.selection.getSelectedText(
+                (col, row) => getCharAt(_activePaneId, col, row),
+                pane.cols);
         }
         if (query.length == 0) {
             query = _searchQuery;
@@ -559,14 +979,16 @@ public:
 
         _searchHits.length = 0;
         size_t sbCount = 0;
-        if (_scrollbackBuffer !is null && _scrollbackMutex !is null) {
-            _scrollbackMutex.lock();
-            sbCount = _scrollbackBuffer.lineCount;
-            _searchHits = findInScrollback(_scrollbackBuffer, query, 512);
-            _scrollbackMutex.unlock();
+        if (pane.session !is null &&
+            pane.session.scrollbackBuffer !is null &&
+            pane.session.scrollbackMutex !is null) {
+            pane.session.scrollbackMutex.lock();
+            sbCount = pane.session.scrollbackBuffer.lineCount;
+            _searchHits = findInScrollback(pane.session.scrollbackBuffer, query, 512);
+            pane.session.scrollbackMutex.unlock();
         }
 
-        auto ref liveFrame = _frames.readBuffer;
+        auto ref liveFrame = pane.session.frames.readBuffer;
         auto frameHits = findInFrame(liveFrame, query, sbCount, 512, _searchHits.length);
         if (frameHits.length) {
             _searchHits ~= frameHits;
@@ -592,6 +1014,10 @@ public:
         if (_searchHits.length == 0) {
             return;
         }
+        auto pane = activePane();
+        if (pane is null || pane.session is null) {
+            return;
+        }
         if (_searchIndex < 0) {
             _searchIndex = cast(int)_searchHits.length - 1;
         }
@@ -599,14 +1025,14 @@ public:
             _searchIndex = 0;
         }
         auto hit = _searchHits[_searchIndex];
-        size_t sbCount = getScrollbackCount();
+        size_t sbCount = getScrollbackCount(pane);
         int bufferRow;
         if (hit.line < sbCount) {
             int offset = cast(int)(sbCount - hit.line);
-            _scrollback.scrollTo(offset);
+            pane.scrollback.scrollTo(offset);
             bufferRow = cast(int)hit.line - cast(int)sbCount;
         } else {
-            _scrollback.scrollToBottom();
+            pane.scrollback.scrollToBottom();
             bufferRow = cast(int)(hit.line - sbCount);
         }
         int startCol = cast(int)hit.column;
@@ -614,17 +1040,23 @@ public:
         if (endCol < startCol) {
             endCol = startCol;
         }
-        if (endCol >= _cols) {
-            endCol = _cols - 1;
+        if (endCol >= pane.cols) {
+            endCol = pane.cols - 1;
         }
-        _selection.start(startCol, bufferRow, SelectionType.character);
-        _selection.update(endCol, bufferRow);
-        _selection.finish();
+        if (pane.selection !is null) {
+            pane.selection.start(startCol, bufferRow, SelectionType.character);
+            pane.selection.update(endCol, bufferRow);
+            pane.selection.finish();
+        }
     }
 
-    SearchRange[] buildSearchRanges(ref TerminalFrame frame) {
-        size_t sbCount = getScrollbackCount();
-        int currentOffset = _scrollback.offset;
+    SearchRange[] buildSearchRanges(PaneState pane, ref TerminalFrame frame) {
+        if (pane is null || pane.scrollback is null) {
+            _searchRanges.length = 0;
+            return _searchRanges;
+        }
+        size_t sbCount = getScrollbackCount(pane);
+        int currentOffset = pane.scrollback.offset;
         if (_searchHits.length == 0 || _searchMatchLen == 0 ||
             frame.rows <= 0 || frame.cols <= 0) {
             _searchRanges.length = 0;
@@ -640,7 +1072,7 @@ public:
             return _searchRanges;
         }
 
-        long topIndex = cast(long)sbCount - _scrollback.offset;
+        long topIndex = cast(long)sbCount - pane.scrollback.offset;
         long bottomIndex = topIndex + frame.rows - 1;
 
         if (_searchRanges.length < _searchHits.length) {
@@ -870,22 +1302,27 @@ public:
         atomicStore!(MemoryOrder.raw)(_exitRequested, true);
         writefln("Shutting down... (rendered %d frames)", _totalFrameCount);
 
+        if (_snapshotPath.length != 0) {
+            auto pane = activePane();
+            if (pane !is null && pane.session !is null) {
+                auto ref snapshotFrame = pane.scrollback.offset > 0 ?
+                    pane.session.scrollFrame : pane.session.frames.readBuffer;
+                if (snapshotFrame.cells.length != 0) {
+                    saveSnapshot(snapshotFrame, pane.scrollback.offset, _snapshotPath);
+                }
+            }
+        }
+
         if (_ipcServer !is null) {
             _ipcServer.stop();
             _ipcServer = null;
         }
-        if (_ptyReader !is null) {
-            _ptyReader.stop();
-            _ptyReader = null;
+        foreach (paneId, pane; _panes) {
+            if (pane !is null && pane.session !is null) {
+                pane.session.stop();
+            }
         }
-        if (_parserWorker !is null) {
-            _parserWorker.stop();
-            _parserWorker = null;
-        }
-        if (_pty !is null) {
-            _pty.close();
-            _pty = null;
-        }
+        _panes.clear();
         if (_renderer !is null) {
             _renderer.terminate();
             _renderer = null;
@@ -903,36 +1340,23 @@ public:
     // === ITerminalCallbacks implementation ===
 
     void onTitleChanged(string title) {
-        if (_titleMutex is null) {
-            _shellTitle = title;
-            return;
-        }
-        _titleMutex.lock();
-        scope(exit) _titleMutex.unlock();
-        _shellTitle = title;
+        onPaneTitleChanged(_activePaneId, title);
     }
 
     void onSendToApplication(scope const(void)[] data) {
-        // This is called when the emulator wants to send data to the PTY
-        // (e.g., response to terminal queries)
-        if (_pty !is null && _pty.isOpen) {
-            _pty.write(cast(const(ubyte)[])data);
-        }
+        onPaneSendToApplication(_activePaneId, data);
     }
 
     void onBell() {
-        atomicStore!(MemoryOrder.raw)(_bellTriggered, true);
+        onPaneBell(_activePaneId);
     }
 
     void onRequestExit() {
-        atomicStore!(MemoryOrder.raw)(_exitRequested, true);
+        onPaneRequestExit(_activePaneId);
     }
 
     void onCursorStyleChanged(TerminalEmulator.CursorStyle style) {
-        _rawCursorStyle = style;
-        if (!_cursorStyleOverride) {
-            _cursorStyle = mapCursorStyle(style);
-        }
+        onPaneCursorStyleChanged(_activePaneId, style);
     }
 
     void onCopyToClipboard(string text) {
@@ -961,16 +1385,63 @@ public:
         return _clipboard.requestPrimary();
     }
 
+    void onPaneTitleChanged(int paneId, string title) {
+        auto pane = paneForId(paneId);
+        if (pane is null) {
+            return;
+        }
+        if (_titleMutex is null) {
+            pane.shellTitle = title;
+            return;
+        }
+        _titleMutex.lock();
+        scope(exit) _titleMutex.unlock();
+        pane.shellTitle = title;
+    }
+
+    void onPaneSendToApplication(int paneId, scope const(void)[] data) {
+        auto pane = paneForId(paneId);
+        if (pane is null || pane.session is null || !pane.session.isOpen) {
+            return;
+        }
+        pane.session.pty.write(cast(const(ubyte)[])data);
+    }
+
+    void onPaneBell(int paneId) {
+        if (paneId == _activePaneId) {
+            atomicStore!(MemoryOrder.raw)(_bellTriggered, true);
+        }
+    }
+
+    void onPaneRequestExit(int paneId) {
+        if (paneId == _activePaneId) {
+            atomicStore!(MemoryOrder.raw)(_exitRequested, true);
+        }
+    }
+
+    void onPaneCursorStyleChanged(int paneId, TerminalEmulator.CursorStyle style) {
+        if (paneId != _activePaneId) {
+            return;
+        }
+        _rawCursorStyle = style;
+        if (!_cursorStyleOverride) {
+            _cursorStyle = mapCursorStyle(style);
+        }
+    }
+
 private:
     /**
      * Read available PTY output and feed to emulator.
      */
     void checkPtyExit() {
-        if (_pty is null || !_pty.isOpen) return;
+        auto pane = activePane();
+        if (pane is null || pane.session is null || !pane.session.isOpen) {
+            return;
+        }
 
         // Check if child exited
-        if (_pty.checkChild()) {
-            writefln("Shell exited with status %d", _pty.exitStatus);
+        if (pane.session.pty.checkChild()) {
+            writefln("Shell exited with status %d", pane.session.pty.exitStatus);
             _window.close();
             return;
         }
@@ -984,15 +1455,26 @@ private:
         _glContext.setClearColor(0.1f, 0.1f, 0.15f, 1.0f);  // Dark terminal background
         _glContext.clear();
 
-        // Render terminal cells using the cell renderer
-        bool hasNewFrame = _frames.consume();
-        auto ref liveFrame = _frames.readBuffer;
-        bool cursorVisible = true;
+        int fbWidth;
+        int fbHeight;
+        _window.getFramebufferSize(fbWidth, fbHeight);
+        if (_viewports.length == 0) {
+            updateViewports();
+        }
 
-        if (hasNewFrame && liveFrame.sequence != _lastFrameSequence) {
+        auto active = activePane();
+        if (active is null || active.session is null) {
+            return;
+        }
+
+        bool activeHasNewFrame = active.session.frames.consume();
+        auto ref activeLiveFrame = active.session.frames.readBuffer;
+        bool activeScrollbackChanged = false;
+
+        if (activeHasNewFrame && activeLiveFrame.sequence != _lastFrameSequence) {
             auto now = MonoTime.currTime;
-            auto latencyUs = (now - liveFrame.publishTime).total!"usecs";
-            _lastFrameSequence = liveFrame.sequence;
+            auto latencyUs = (now - activeLiveFrame.publishTime).total!"usecs";
+            _lastFrameSequence = activeLiveFrame.sequence;
             _latencyMs = latencyUs / 1000.0;
             if (_latencyAvgMs == 0.0) {
                 _latencyAvgMs = _latencyMs;
@@ -1000,48 +1482,101 @@ private:
                 _latencyAvgMs = _latencyAvgMs * 0.9 + _latencyMs * 0.1;
             }
         }
-
-        if (hasNewFrame) {
-            applyInputModes(liveFrame);
+        if (activeHasNewFrame) {
+            applyInputModes(activeLiveFrame);
         }
-        bool scrollbackChanged = hasNewFrame ? updateScrollbackState() : false;
-        if (_scrollback.offset > 0) {
-            if (hasNewFrame || scrollbackChanged || _scrollback.offset != _lastScrollbackOffset) {
-                composeScrollbackFrame(liveFrame, _scrollback.offset);
+        activeScrollbackChanged = activeHasNewFrame ? updateScrollbackState(active) : false;
+        if (active.scrollback.offset > 0) {
+            if (activeHasNewFrame ||
+                activeScrollbackChanged ||
+                active.scrollback.offset != active.lastScrollbackOffset) {
+                composeScrollbackFrame(active, activeLiveFrame, active.scrollback.offset);
             }
-            cursorVisible = false;
         }
-        _lastScrollbackOffset = _scrollback.offset;
+        active.lastScrollbackOffset = active.scrollback.offset;
+
+        foreach (vp; _viewports) {
+            if (vp.paneId == _activePaneId) {
+                continue;
+            }
+            auto pane = paneForId(vp.paneId);
+            if (pane is null || pane.session is null) {
+                continue;
+            }
+            bool hasNewFrame = pane.session.frames.consume();
+            auto ref liveFrame = pane.session.frames.readBuffer;
+            if (hasNewFrame) {
+                updateScrollbackState(pane);
+            }
+            if (pane.scrollback.offset > 0 &&
+                (hasNewFrame || pane.scrollback.offset != pane.lastScrollbackOffset)) {
+                composeScrollbackFrame(pane, liveFrame, pane.scrollback.offset);
+            }
+            pane.lastScrollbackOffset = pane.scrollback.offset;
+        }
+
+        auto ref activeRenderFrame = active.scrollback.offset > 0 ?
+            active.session.scrollFrame : activeLiveFrame;
+
+        auto searchRanges = buildSearchRanges(active, activeRenderFrame);
+        bool sequenceChanged = activeHasNewFrame &&
+            activeLiveFrame.sequence != _lastHyperlinkSequence;
+        if (sequenceChanged) {
+            _lastHyperlinkSequence = activeLiveFrame.sequence;
+        }
+        bool refreshLinks = sequenceChanged ||
+                            activeScrollbackChanged ||
+                            active.scrollback.offset != _lastHyperlinkOffset;
+        updateHyperlinkRanges(activeRenderFrame, refreshLinks);
+        if (refreshLinks) {
+            _lastHyperlinkOffset = active.scrollback.offset;
+        }
 
         if (_renderer !is null) {
-            auto ref renderFrame = _scrollback.offset > 0 ? _scrollFrame : liveFrame;
-            auto searchRanges = buildSearchRanges(renderFrame);
-            bool sequenceChanged = hasNewFrame && liveFrame.sequence != _lastHyperlinkSequence;
-            if (sequenceChanged) {
-                _lastHyperlinkSequence = liveFrame.sequence;
-            }
-            bool refreshLinks = sequenceChanged ||
-                                scrollbackChanged ||
-                                _scrollback.offset != _lastHyperlinkOffset;
-            updateHyperlinkRanges(renderFrame, refreshLinks);
-            if (refreshLinks) {
-                _lastHyperlinkOffset = _scrollback.offset;
-            }
             _renderer.setBellIntensity(_bellIntensity);
-            _renderer.render(renderFrame, cursorVisible, _selection, _scrollback.offset,
-                _selectionBg, _selectionFg, searchRanges, _searchBg, _searchFg,
-                _hyperlinks, _linkFg, _cursorStyle, _cursorThickness);
+            foreach (vp; _viewports) {
+                auto pane = paneForId(vp.paneId);
+                if (pane is null || pane.session is null) {
+                    continue;
+                }
+                auto ref paneFrame = pane.scrollback.offset > 0 ?
+                    pane.session.scrollFrame : pane.session.frames.readBuffer;
+                bool cursorVisible = (pane is active) && pane.scrollback.offset == 0;
+                Selection selection = pane is active ? pane.selection : null;
+                int selectionOffset = pane is active ? pane.scrollback.offset : 0;
+                auto paneSearch = pane is active ? searchRanges : null;
+                auto paneLinks = pane is active ? _hyperlinks : null;
+                int glX = vp.x;
+                int glY = fbHeight - vp.y - vp.height;
+                _glContext.setViewportRect(glX, glY, vp.width, vp.height);
+                _renderer.setViewport(vp.width, vp.height);
+                _renderer.render(paneFrame, cursorVisible, selection, selectionOffset,
+                    _selectionBg, _selectionFg, paneSearch, _searchBg, _searchFg,
+                    paneLinks, _linkFg, _cursorStyle, _cursorThickness);
+            }
+        }
+
+        if (activeHasNewFrame && _snapshotPath.length != 0) {
+            auto now = MonoTime.currTime;
+            if (_lastSnapshotTime == MonoTime.init ||
+                (now - _lastSnapshotTime).total!"msecs" >= 1000) {
+                auto ref snapshotFrame = active.scrollback.offset > 0 ?
+                    active.session.scrollFrame : activeLiveFrame;
+                saveSnapshot(snapshotFrame, active.scrollback.offset, _snapshotPath);
+                _lastSnapshotTime = now;
+            }
         }
 
         // Update window title with stats periodically
         if (_frameCount % 60 == 0) {
             string shellTitle;
+            auto titlePane = activePane();
             if (_titleMutex !is null) {
                 _titleMutex.lock();
-                shellTitle = _shellTitle;
+                shellTitle = titlePane is null ? "" : titlePane.shellTitle;
                 _titleMutex.unlock();
             } else {
-                shellTitle = _shellTitle;
+                shellTitle = titlePane is null ? "" : titlePane.shellTitle;
             }
             size_t instanceCount = _renderer !is null ? _renderer.lastInstanceCount : 0;
             import core.stdc.stdio : snprintf;
@@ -1091,7 +1626,11 @@ private:
     debug void printDebugLine() {
         import std.array : appender;
         auto line = appender!string();
-        auto ref frame = _frames.readBuffer;
+        auto pane = activePane();
+        if (pane is null || pane.session is null) {
+            return;
+        }
+        auto ref frame = pane.session.frames.readBuffer;
         if (frame.cols <= 0 || frame.rows <= 0) return;
         foreach (x; 0 .. frame.cols) {
             size_t idx = cast(size_t)x;
@@ -1122,8 +1661,9 @@ private:
         // Update FPS every second
         if (_frameTimeAccum >= 1.0) {
             _fps = _frameCount / _frameTimeAccum;
-            if (_parserWorker !is null) {
-                auto totalBytes = _parserWorker.totalBytesProcessed();
+            auto pane = activePane();
+            if (pane !is null && pane.session !is null && pane.session.parserWorker !is null) {
+                auto totalBytes = pane.session.parserWorker.totalBytesProcessed();
                 auto deltaBytes = totalBytes - _lastPtyBytes;
                 _lastPtyBytes = totalBytes;
                 _ptyMbps = (deltaBytes / _frameTimeAccum) / (1024.0 * 1024.0);
@@ -1143,31 +1683,11 @@ private:
         if (_renderer !is null) {
             _renderer.setViewport(width, height);
         }
+        int prevCols = _cols;
+        int prevRows = _rows;
+        updateViewports();
 
-        // Recalculate terminal dimensions
-        int newCols = width / _cellWidth;
-        int newRows = height / _cellHeight;
-
-        if (newCols != _cols || newRows != _rows) {
-            _cols = newCols;
-            _rows = newRows;
-
-            // Resize PTY
-            if (_pty !is null && _pty.isOpen) {
-                _pty.resize(cast(ushort)_cols, cast(ushort)_rows);
-            }
-
-            // Resize emulator
-            resizeFrameBuffers(_cols, _rows);
-            _scrollback.resize(_rows);
-            if (_parserWorker !is null) {
-                _parserWorker.resize(_cols, _rows);
-            } else {
-                updateFrameFromEmulator();
-                _frames.publish();
-                _frames.consume();
-            }
-
+        if (_cols != prevCols || _rows != prevRows) {
             writefln("Window resized: %dx%d (terminal: %dx%d)", width, height, _cols, _rows);
         }
     }
@@ -1182,10 +1702,47 @@ private:
      */
     void onKey(int key, int scancode, int action, int mods) {
         _lastKeyMods = mods;
+        auto pane = activePane();
         // Close on Ctrl+Q (keep as hardcoded shortcut)
         if (action == GLFW_PRESS && key == GLFW_KEY_Q && (mods & GLFW_MOD_CONTROL)) {
             _window.close();
             return;
+        }
+
+        if (action == GLFW_PRESS &&
+            (mods & GLFW_MOD_CONTROL) &&
+            (mods & GLFW_MOD_SHIFT)) {
+            if (key == GLFW_KEY_E) {
+                splitActive(SplitOrientation.vertical);
+                return;
+            }
+            if (key == GLFW_KEY_O) {
+                splitActive(SplitOrientation.horizontal);
+                return;
+            }
+        }
+
+        if ((action == GLFW_PRESS || action == GLFW_REPEAT) &&
+            (mods & GLFW_MOD_CONTROL) &&
+            (mods & GLFW_MOD_SHIFT) &&
+            (mods & GLFW_MOD_ALT)) {
+            float delta = 0.05f;
+            if (key == GLFW_KEY_LEFT) {
+                resizeActiveSplit(SplitOrientation.vertical, -delta);
+                return;
+            }
+            if (key == GLFW_KEY_RIGHT) {
+                resizeActiveSplit(SplitOrientation.vertical, delta);
+                return;
+            }
+            if (key == GLFW_KEY_UP) {
+                resizeActiveSplit(SplitOrientation.horizontal, -delta);
+                return;
+            }
+            if (key == GLFW_KEY_DOWN) {
+                resizeActiveSplit(SplitOrientation.horizontal, delta);
+                return;
+            }
         }
 
         if (action == GLFW_PRESS &&
@@ -1206,16 +1763,24 @@ private:
         if (action == GLFW_PRESS || action == GLFW_REPEAT) {
             if (mods & GLFW_MOD_SHIFT) {
                 if (key == GLFW_KEY_PAGE_UP) {
-                    _scrollback.scrollPages(1);
+                    if (pane !is null && pane.scrollback !is null) {
+                        pane.scrollback.scrollPages(1);
+                    }
                     return;
                 } else if (key == GLFW_KEY_PAGE_DOWN) {
-                    _scrollback.scrollPages(-1);
+                    if (pane !is null && pane.scrollback !is null) {
+                        pane.scrollback.scrollPages(-1);
+                    }
                     return;
                 } else if (key == GLFW_KEY_HOME) {
-                    _scrollback.scrollToTop();
+                    if (pane !is null && pane.scrollback !is null) {
+                        pane.scrollback.scrollToTop();
+                    }
                     return;
                 } else if (key == GLFW_KEY_END) {
-                    _scrollback.scrollToBottom();
+                    if (pane !is null && pane.scrollback !is null) {
+                        pane.scrollback.scrollToBottom();
+                    }
                     return;
                 }
             }
@@ -1254,7 +1819,10 @@ private:
      * Handle character input (Unicode).
      */
     void onChar(uint codepoint) {
-        if (_pty is null || !_pty.isOpen) return;
+        auto pane = activePane();
+        if (pane is null || pane.session is null || !pane.session.isOpen) {
+            return;
+        }
 
         // Use InputHandler for Alt+key handling
         auto data = _inputHandler.translateChar(codepoint, _lastKeyMods);
@@ -1267,15 +1835,51 @@ private:
      * Handle mouse button events.
      */
     void onMouseButton(int button, int action, int mods) {
-        int col = cast(int)(_mouseX / _cellWidth);
-        int row = cast(int)(_mouseY / _cellHeight);
+        Viewport viewport;
+        if (!viewportAt(_mouseX, _mouseY, viewport)) {
+            return;
+        }
+        setActivePane(viewport.paneId);
+        auto pane = activePane();
+        if (pane is null) {
+            return;
+        }
+
+        if (action == GLFW_PRESS &&
+            button == GLFW_MOUSE_BUTTON_LEFT &&
+            (mods & GLFW_MOD_ALT) &&
+            _inputHandler.mouseMode == MouseMode.none) {
+            if (beginSplitDrag(_mouseX, _mouseY)) {
+                _mouseButtons |= (1 << button);
+                return;
+            }
+        }
+
+        if (action == GLFW_RELEASE &&
+            button == GLFW_MOUSE_BUTTON_LEFT &&
+            _splitDrag.active) {
+            _mouseButtons &= ~(1 << button);
+            endSplitDrag();
+            return;
+        }
+
+        double localX = _mouseX - viewport.x;
+        double localY = _mouseY - viewport.y;
+        int colsInView = viewport.width / _cellWidth;
+        int rowsInView = viewport.height / _cellHeight;
+        if (colsInView <= 0 || rowsInView <= 0) {
+            return;
+        }
+
+        int col = cast(int)(localX / _cellWidth);
+        int row = cast(int)(localY / _cellHeight);
 
         // Clamp to valid range
-        col = col < 0 ? 0 : (col >= _cols ? _cols - 1 : col);
-        row = row < 0 ? 0 : (row >= _rows ? _rows - 1 : row);
+        col = col < 0 ? 0 : (col >= colsInView ? colsInView - 1 : col);
+        row = row < 0 ? 0 : (row >= rowsInView ? rowsInView - 1 : row);
 
         // Convert to buffer coordinates (account for scrollback)
-        int bufferRow = _scrollback.bufferRow(row);
+        int bufferRow = pane.scrollback.bufferRow(row);
 
         if (action == GLFW_PRESS &&
             button == GLFW_MOUSE_BUTTON_MIDDLE &&
@@ -1299,15 +1903,19 @@ private:
                     }
                 }
                 // Detect click count for word/line selection
-                int clickCount = _clickDetector.click(col, bufferRow);
-                auto selType = _clickDetector.selectionType();
+                pane.clickDetector.click(col, bufferRow);
+                auto selType = pane.clickDetector.selectionType();
 
                 if (mods & GLFW_MOD_SHIFT) {
                     // Shift+click extends selection
-                    _selection.extend(col, bufferRow);
+                    if (pane.selection !is null) {
+                        pane.selection.extend(col, bufferRow);
+                    }
                 } else {
                     // Start new selection
-                    _selection.start(col, bufferRow, selType);
+                    if (pane.selection !is null) {
+                        pane.selection.start(col, bufferRow, selType);
+                    }
                 }
             } else {
                 // Send to application if mouse mode enabled
@@ -1319,8 +1927,10 @@ private:
         } else if (action == GLFW_RELEASE) {
             _mouseButtons &= ~(1 << button);
 
-            if (button == GLFW_MOUSE_BUTTON_LEFT && _selection.active) {
-                _selection.finish();
+            if (button == GLFW_MOUSE_BUTTON_LEFT &&
+                pane.selection !is null &&
+                pane.selection.active) {
+                pane.selection.finish();
                 copySelectionToPrimary();
             } else {
                 auto data = _inputHandler.translateMouseButton(button, action, mods, col, row);
@@ -1335,8 +1945,24 @@ private:
      * Handle scroll wheel events.
      */
     void onScroll(double xoffset, double yoffset) {
-        int col = cast(int)(_mouseX / _cellWidth);
-        int row = cast(int)(_mouseY / _cellHeight);
+        Viewport viewport;
+        if (!viewportAt(_mouseX, _mouseY, viewport)) {
+            return;
+        }
+        setActivePane(viewport.paneId);
+        auto pane = activePane();
+        if (pane is null) {
+            return;
+        }
+        double localX = _mouseX - viewport.x;
+        double localY = _mouseY - viewport.y;
+        int colsInView = viewport.width / _cellWidth;
+        int rowsInView = viewport.height / _cellHeight;
+        if (colsInView <= 0 || rowsInView <= 0) {
+            return;
+        }
+        int col = cast(int)(localX / _cellWidth);
+        int row = cast(int)(localY / _cellHeight);
 
         // If mouse mode is active, send to application
         if (_inputHandler.mouseMode != MouseMode.none) {
@@ -1346,7 +1972,7 @@ private:
             }
         } else {
             // Otherwise, scroll the viewport
-            _scrollback.handleScrollWheel(yoffset);
+            pane.scrollback.handleScrollWheel(yoffset);
         }
     }
 
@@ -1357,18 +1983,41 @@ private:
         _mouseX = xpos;
         _mouseY = ypos;
 
-        int col = cast(int)(xpos / _cellWidth);
-        int row = cast(int)(ypos / _cellHeight);
+        if (_splitDrag.active) {
+            updateSplitDrag(xpos, ypos);
+            return;
+        }
+
+        Viewport viewport;
+        if (!viewportAt(xpos, ypos, viewport)) {
+            return;
+        }
+        setActivePane(viewport.paneId);
+        auto pane = activePane();
+        if (pane is null) {
+            return;
+        }
+
+        double localX = xpos - viewport.x;
+        double localY = ypos - viewport.y;
+        int colsInView = viewport.width / _cellWidth;
+        int rowsInView = viewport.height / _cellHeight;
+        if (colsInView <= 0 || rowsInView <= 0) {
+            return;
+        }
+
+        int col = cast(int)(localX / _cellWidth);
+        int row = cast(int)(localY / _cellHeight);
 
         // Clamp to valid range
-        col = col < 0 ? 0 : (col >= _cols ? _cols - 1 : col);
-        row = row < 0 ? 0 : (row >= _rows ? _rows - 1 : row);
+        col = col < 0 ? 0 : (col >= colsInView ? colsInView - 1 : col);
+        row = row < 0 ? 0 : (row >= rowsInView ? rowsInView - 1 : row);
 
-        int bufferRow = _scrollback.bufferRow(row);
+        int bufferRow = pane.scrollback.bufferRow(row);
 
         // Update selection if dragging
-        if (_selection.active && (_mouseButtons & 1)) {
-            _selection.update(col, bufferRow);
+        if (pane.selection !is null && pane.selection.active && (_mouseButtons & 1)) {
+            pane.selection.update(col, bufferRow);
         }
 
         // Send motion to application if mouse tracking enabled
@@ -1392,13 +2041,18 @@ private:
      * Helper to send data to PTY.
      */
     void sendToPty(const(ubyte)[] data) {
-        if (_pty !is null && _pty.isOpen && data.length > 0) {
-            _pty.write(data);
+        auto pane = activePane();
+        if (pane !is null &&
+            pane.session !is null &&
+            pane.session.isOpen &&
+            data.length > 0) {
+            pane.session.pty.write(data);
         }
     }
 
     void pasteText(string text) {
-        if (_pty is null || !_pty.isOpen || text.length == 0) {
+        auto pane = activePane();
+        if (pane is null || pane.session is null || !pane.session.isOpen || text.length == 0) {
             return;
         }
         auto start = _inputHandler.bracketedPasteStart();
@@ -1413,10 +2067,14 @@ private:
     }
 
     void copySelectionToPrimary() {
-        if (_clipboard is null || !_selection.hasSelection) {
+        auto pane = activePane();
+        if (_clipboard is null || pane is null || pane.selection is null ||
+            !pane.selection.hasSelection) {
             return;
         }
-        auto text = _selection.getSelectedText((col, row) => getCharAt(col, row), _cols);
+        auto text = pane.selection.getSelectedText(
+            (col, row) => getCharAt(_activePaneId, col, row),
+            pane.cols);
         if (text.length == 0) {
             return;
         }
@@ -1424,10 +2082,14 @@ private:
     }
 
     void copySelectionToClipboard() {
-        if (_clipboard is null || !_selection.hasSelection) {
+        auto pane = activePane();
+        if (_clipboard is null || pane is null || pane.selection is null ||
+            !pane.selection.hasSelection) {
             return;
         }
-        auto text = _selection.getSelectedText((col, row) => getCharAt(col, row), _cols);
+        auto text = pane.selection.getSelectedText(
+            (col, row) => getCharAt(_activePaneId, col, row),
+            pane.cols);
         if (text.length == 0) {
             return;
         }
@@ -1437,17 +2099,21 @@ private:
     /**
      * Get character at buffer position (for selection word detection).
      */
-    dchar getCharAt(int col, int row) {
-        auto ref frame = _frames.readBuffer;
+    dchar getCharAt(int paneId, int col, int row) {
+        auto pane = paneForId(paneId);
+        if (pane is null || pane.session is null) {
+            return ' ';
+        }
+        auto ref frame = pane.session.frames.readBuffer;
         if (frame.cols <= 0 || frame.rows <= 0) return ' ';
         if (col < 0 || col >= frame.cols) return ' ';
 
-        size_t sbCount = getScrollbackCount();
+        size_t sbCount = getScrollbackCount(pane);
         long globalIndex = cast(long)sbCount + row;
         if (globalIndex < 0) return ' ';
 
         if (globalIndex < cast(long)sbCount) {
-            auto cell = getScrollbackCell(cast(size_t)globalIndex, col);
+            auto cell = getScrollbackCell(pane, cast(size_t)globalIndex, col);
             if (cell.hasNonCharacterData) return ' ';
             return cell.ch == 0 ? ' ' : cell.ch;
         }
@@ -1464,39 +2130,44 @@ private:
         return cell.ch == 0 ? ' ' : cell.ch;
     }
 
-    void initializeFrames() {
-        _frames.reset();
-        resizeFrameBuffers(_cols, _rows);
-        updateFrameFromEmulator();
-        _frames.publish();
-        _frames.consume();
+    void initializeFrames(TerminalSession session, int cols, int rows) {
+        if (session is null) {
+            return;
+        }
+        session.frames.reset();
+        resizeFrameBuffers(session, cols, rows);
+        updateFrameFromEmulator(session);
+        session.frames.publish();
+        session.frames.consume();
     }
 
-    void resizeFrameBuffers(int cols, int rows) {
+    void resizeFrameBuffers(TerminalSession session, int cols, int rows) {
+        if (session is null) {
+            return;
+        }
         foreach (i; 0 .. 3) {
-            _frames.bufferAt(i).ensureSize(cols, rows);
-        }
-        if (_renderer !is null) {
-            _renderer.prepareBuffers(cols, rows);
+            session.frames.bufferAt(i).ensureSize(cols, rows);
         }
     }
 
-    void updateFrameFromEmulator() {
-        if (_emulator is null) return;
-        auto screen = _emulator.getScreenBuffer();
-        auto ref back = _frames.writeBuffer;
+    void updateFrameFromEmulator(TerminalSession session) {
+        if (session is null || session.emulator is null) {
+            return;
+        }
+        auto screen = session.emulator.getScreenBuffer();
+        auto ref back = session.frames.writeBuffer;
         back.updateFromCells(
             screen,
-            _emulator.cols,
-            _emulator.rows,
-            _emulator.cursorCol,
-            _emulator.cursorRow,
-            _emulator.isAlternateScreen,
-            _emulator.applicationCursorMode,
-            _emulator.mouseMode,
-            _emulator.mouseEncoding,
-            _emulator.bracketedPasteModeEnabled,
-            _emulator.focusReportingEnabled
+            session.emulator.cols,
+            session.emulator.rows,
+            session.emulator.cursorCol,
+            session.emulator.cursorRow,
+            session.emulator.isAlternateScreen,
+            session.emulator.applicationCursorMode,
+            session.emulator.mouseMode,
+            session.emulator.mouseEncoding,
+            session.emulator.bracketedPasteModeEnabled,
+            session.emulator.focusReportingEnabled
         );
     }
 
@@ -1523,59 +2194,74 @@ private:
         onResize(width, height);
     }
 
-    bool updateScrollbackState() {
-        size_t sbCount = getScrollbackCount();
-        if (sbCount > _lastScrollbackCount) {
-            _scrollback.linesAdded(cast(int)(sbCount - _lastScrollbackCount));
-        } else if (sbCount < _lastScrollbackCount) {
-            _scrollback.clear();
-            _scrollback.linesAdded(cast(int)sbCount);
+    bool updateScrollbackState(PaneState pane) {
+        if (pane is null || pane.scrollback is null) {
+            return false;
         }
-        bool changed = sbCount != _lastScrollbackCount;
-        _lastScrollbackCount = sbCount;
+        size_t sbCount = getScrollbackCount(pane);
+        if (sbCount > pane.lastScrollbackCount) {
+            pane.scrollback.linesAdded(cast(int)(sbCount - pane.lastScrollbackCount));
+        } else if (sbCount < pane.lastScrollbackCount) {
+            pane.scrollback.clear();
+            pane.scrollback.linesAdded(cast(int)sbCount);
+        }
+        bool changed = sbCount != pane.lastScrollbackCount;
+        pane.lastScrollbackCount = sbCount;
         return changed;
     }
 
-    size_t getScrollbackCount() {
-        if (_scrollbackBuffer is null || _scrollbackMutex is null) {
+    size_t getScrollbackCount(PaneState pane) {
+        if (pane is null ||
+            pane.session is null ||
+            pane.session.scrollbackBuffer is null ||
+            pane.session.scrollbackMutex is null) {
             return 0;
         }
-        _scrollbackMutex.lock();
-        scope(exit) _scrollbackMutex.unlock();
-        return _scrollbackBuffer.lineCount;
+        pane.session.scrollbackMutex.lock();
+        scope(exit) pane.session.scrollbackMutex.unlock();
+        return pane.session.scrollbackBuffer.lineCount;
     }
 
-    TerminalEmulator.TerminalCell getScrollbackCell(size_t lineIndex, int col) {
+    TerminalEmulator.TerminalCell getScrollbackCell(PaneState pane,
+            size_t lineIndex, int col) {
         TerminalEmulator.TerminalCell cell;
-        if (_scrollbackBuffer is null || _scrollbackMutex is null) {
+        if (pane is null ||
+            pane.session is null ||
+            pane.session.scrollbackBuffer is null ||
+            pane.session.scrollbackMutex is null) {
             return cell;
         }
-        _scrollbackMutex.lock();
-        scope(exit) _scrollbackMutex.unlock();
-        auto line = _scrollbackBuffer.lineView(lineIndex);
+        pane.session.scrollbackMutex.lock();
+        scope(exit) pane.session.scrollbackMutex.unlock();
+        auto line = pane.session.scrollbackBuffer.lineView(lineIndex);
         if (line !is null && col >= 0 && col < line.length) {
             cell = line[cast(size_t)col];
         }
         return cell;
     }
 
-    void composeScrollbackFrame(ref TerminalFrame liveFrame, int offset) {
-        _scrollFrame.ensureSize(liveFrame.cols, liveFrame.rows);
-        _scrollFrame.cursorCol = liveFrame.cursorCol;
-        _scrollFrame.cursorRow = liveFrame.cursorRow;
-        _scrollFrame.alternateScreen = liveFrame.alternateScreen;
+    void composeScrollbackFrame(PaneState pane, ref TerminalFrame liveFrame, int offset) {
+        if (pane is null || pane.session is null) {
+            return;
+        }
+        pane.session.scrollFrame.ensureSize(liveFrame.cols, liveFrame.rows);
+        pane.session.scrollFrame.cursorCol = liveFrame.cursorCol;
+        pane.session.scrollFrame.cursorRow = liveFrame.cursorRow;
+        pane.session.scrollFrame.alternateScreen = liveFrame.alternateScreen;
 
         int rows = liveFrame.rows;
         int cols = liveFrame.cols;
         size_t sbCount = 0;
 
-        _scrollbackMutex.lock();
-        sbCount = _scrollbackBuffer !is null ? _scrollbackBuffer.lineCount : 0;
+        pane.session.scrollbackMutex.lock();
+        sbCount = pane.session.scrollbackBuffer !is null
+            ? pane.session.scrollbackBuffer.lineCount
+            : 0;
 
         long topIndex = cast(long)sbCount - offset;
         foreach (row; 0 .. rows) {
             long globalIndex = topIndex + row;
-            auto dest = _scrollFrame.cells[(row * cols) .. ((row + 1) * cols)];
+            auto dest = pane.session.scrollFrame.cells[(row * cols) .. ((row + 1) * cols)];
 
             if (globalIndex < 0) {
                 fillBlankLine(dest);
@@ -1583,7 +2269,7 @@ private:
             }
 
             if (globalIndex < cast(long)sbCount) {
-                auto line = _scrollbackBuffer.lineView(cast(size_t)globalIndex);
+                auto line = pane.session.scrollbackBuffer.lineView(cast(size_t)globalIndex);
                 if (line is null) {
                     fillBlankLine(dest);
                 } else {
@@ -1601,7 +2287,7 @@ private:
             auto src = liveFrame.cells[(screenRow * cols) .. ((screenRow + 1) * cols)];
             copyLine(dest, src);
         }
-        _scrollbackMutex.unlock();
+        pane.session.scrollbackMutex.unlock();
     }
 
     static void fillBlankLine(ref TerminalEmulator.TerminalCell[] dest) {

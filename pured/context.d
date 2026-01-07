@@ -113,9 +113,13 @@ public:
      * Update viewport size.
      */
     void setViewport(int width, int height) {
+        setViewportRect(0, 0, width, height);
+    }
+
+    void setViewportRect(int x, int y, int width, int height) {
         _viewportWidth = width;
         _viewportHeight = height;
-        glViewport(0, 0, width, height);
+        glViewport(x, y, width, height);
     }
 
     /**
