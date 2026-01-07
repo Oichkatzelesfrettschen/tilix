@@ -63,6 +63,7 @@ Notes:
 - `quakeHeight`: height fraction (0.1 to 1.0) used when `quakeMode` is true.
 - `palette` requires 16 entries (RGBA, 0.0 to 1.0).
 - Invalid or missing config falls back to defaults.
+- Unknown keys are ignored with a warning.
 - Changes are polled every ~250ms and applied live.
 - If `themePath` is set, it overrides the inline `theme` block.
 - `themeFormat` supports `xresources` and `alacritty` (auto-detected by extension).

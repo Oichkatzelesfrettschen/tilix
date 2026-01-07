@@ -229,6 +229,14 @@ PureDConfig loadConfig(string path = null) {
     }
     try {
         auto text = readText(target);
+        try {
+            auto root = parseJSON(text);
+            warnUnknownKeys(root, target);
+        } catch (Exception ex) {
+            stderr.writefln("Warning: Failed to parse Pure D config at %s: %s",
+                target, ex.msg);
+            return cfg;
+        }
         auto parsed = text.deserializeJson!PureDConfig;
         return sanitizeConfig(parsed);
     } catch (Exception ex) {
@@ -236,6 +244,97 @@ PureDConfig loadConfig(string path = null) {
             target, ex.msg);
     }
     return cfg;
+}
+
+private void warnUnknownKeys(JSONValue root, string path) {
+    if (root.type != JSONType.object) {
+        return;
+    }
+    bool[string] allowed = [
+        "fontPath": true,
+        "fontSize": true,
+        "windowWidth": true,
+        "windowHeight": true,
+        "quakeMode": true,
+        "quakeHeight": true,
+        "scrollbackMaxLines": true,
+        "swapInterval": true,
+        "themePath": true,
+        "themeFormat": true,
+        "cursorStyle": true,
+        "cursorThickness": true,
+        "accessibilityPreset": true,
+        "selectionBg": true,
+        "selectionFg": true,
+        "searchBg": true,
+        "searchFg": true,
+        "linkFg": true,
+        "theme": true,
+        "splitLayout": true,
+    ];
+    auto rootObj = root.object;
+    foreach (key, _; rootObj) {
+        if (!(key in allowed)) {
+            stderr.writefln("Warning: Unknown config key in %s: %s", path, key);
+        }
+    }
+
+    if ("theme" in rootObj) {
+        auto themeVal = rootObj["theme"];
+        if (themeVal.type == JSONType.object) {
+            bool[string] themeAllowed = [
+                "foreground": true,
+                "background": true,
+                "palette": true,
+            ];
+            foreach (key, _; themeVal.object) {
+                if (!(key in themeAllowed)) {
+                    stderr.writefln("Warning: Unknown theme key in %s: %s", path, key);
+                }
+            }
+        }
+    }
+
+    if ("splitLayout" in rootObj) {
+        auto splitVal = rootObj["splitLayout"];
+        if (splitVal.type == JSONType.object) {
+            bool[string] splitAllowed = [
+                "rootPaneId": true,
+                "activePaneId": true,
+                "nodes": true,
+            ];
+            foreach (key, _; splitVal.object) {
+                if (!(key in splitAllowed)) {
+                    stderr.writefln("Warning: Unknown splitLayout key in %s: %s", path, key);
+                }
+            }
+            if ("nodes" in splitVal.object) {
+                auto nodesVal = splitVal.object["nodes"];
+                if (nodesVal.type == JSONType.array) {
+                    foreach (i, nodeVal; nodesVal.array) {
+                        if (nodeVal.type != JSONType.object) {
+                            stderr.writefln("Warning: splitLayout.nodes[%d] is not an object in %s", i, path);
+                            continue;
+                        }
+                        bool[string] nodeAllowed = [
+                            "paneId": true,
+                            "first": true,
+                            "second": true,
+                            "orientation": true,
+                            "splitRatio": true,
+                        ];
+                        foreach (key, _; nodeVal.object) {
+                            if (!(key in nodeAllowed)) {
+                                stderr.writefln(
+                                    "Warning: Unknown splitLayout.nodes[%d] key in %s: %s",
+                                    i, path, key);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
 }
 
 SplitLayoutConfig sanitizeSplitLayout(SplitLayoutConfig layout) {
