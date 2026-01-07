@@ -1693,16 +1693,43 @@ private:
      * Read available PTY output and feed to emulator.
      */
     void checkPtyExit() {
-        auto pane = activePane();
-        if (pane is null || pane.session is null || !pane.session.isOpen) {
+        ensureTabs();
+        if (_tabs.length == 0) {
             return;
         }
 
-        // Check if child exited
-        if (pane.session.pty.checkChild()) {
-            writefln("Shell exited with status %d", pane.session.pty.exitStatus);
-            _window.close();
+        int[] tabsToClose;
+        foreach (i, tab; _tabs) {
+            if (tab.scene is null) {
+                continue;
+            }
+            int[] paneIds;
+            tab.scene.collectLeafPaneIds(paneIds);
+            bool anyOpen = false;
+            foreach (paneId; paneIds) {
+                auto pane = paneForId(paneId);
+                if (pane is null || pane.session is null || pane.session.pty is null) {
+                    continue;
+                }
+                if (pane.session.pty.checkChild()) {
+                    writefln("Shell exited in pane %d with status %d",
+                        paneId, pane.session.pty.exitStatus);
+                    pane.session.stop();
+                }
+                if (pane.session.isOpen) {
+                    anyOpen = true;
+                }
+            }
+            if (!anyOpen && paneIds.length != 0) {
+                tabsToClose ~= cast(int)i;
+            }
+        }
+
+        if (tabsToClose.length == 0) {
             return;
+        }
+        foreach_reverse (idx; tabsToClose) {
+            closeTab(idx);
         }
     }
 

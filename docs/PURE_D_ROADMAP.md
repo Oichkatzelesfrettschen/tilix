@@ -1109,6 +1109,7 @@ How:
 #### 9.2 Process Monitoring
 ```
 Tasks:
+- [x] Detect child exit and close tab
 - [ ] Detect running process name
 - [ ] Show in tab title
 - [ ] Notification on process exit
