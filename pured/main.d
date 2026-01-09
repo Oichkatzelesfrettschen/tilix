@@ -19,12 +19,22 @@ import pured.context;
 import pured.emulator;
 import pured.session : TerminalSession;
 import pured.renderer;
+import pured.widget.renderer : WidgetRenderer;
+import pured.widget.base : RenderContext, Rect;
+import pured.widget.dialogs : PreferencesDialog;
 import pured.config : PureDConfig, ThemeConfig, resolveTheme, loadConfig,
     defaultConfigPath, saveSplitLayout;
 import pured.theme_importer;
 import pured.platform.input;
 import pured.platform.input_types : MouseMode;
 import pured.platform.clipboard;
+import pured.accessibility.atspi;
+
+version (Wayland) {
+    import pured.platform.wayland.fractional_scale : WaylandFractionalScaleBridge;
+    import pured.platform.wayland.data_device : WaylandDataDeviceBridge;
+}
+
 import pured.terminal.frame : TerminalFrame;
 import pured.terminal.selection;
 import pured.terminal.scrollback;
@@ -111,6 +121,7 @@ private struct KeybindingSet {
     KeyChord scrollPageDown;
     KeyChord scrollTop;
     KeyChord scrollBottom;
+    KeyChord preferences;
 }
 
 private class SessionCallbacks : ITerminalCallbacks {
@@ -171,11 +182,16 @@ private:
     GLFWWindow _window;
     GLContext _glContext;
     CellRenderer _renderer;
+    WidgetRenderer _widgetRenderer;
     PaneState[int] _panes;
 
     // Input handling
     InputHandler _inputHandler;
     ClipboardBridge _clipboard;
+    version (Wayland) {
+        WaylandFractionalScaleBridge _fractionalScale;
+        WaylandDataDeviceBridge _dataDevice;
+    }
     KeybindingSet _keybindings;
     size_t _scrollbackMaxLines = 200_000;
 
@@ -265,6 +281,36 @@ private:
     HyperlinkRange _hoverLink;
     bool _hoverLinkActive;
 
+    // Context menu state
+    bool _contextMenuActive;
+    int _contextMenuX;
+    int _contextMenuY;
+    int _contextMenuSelectedIndex;
+    static immutable string[] _contextMenuItems = [
+        "Copy",
+        "Paste",
+        "Select All",
+        "---",
+        "Find...",
+        "---",
+        "Split Horizontal",
+        "Split Vertical"
+    ];
+
+    // Dialog state (E.2: Dialog Framework Rendering)
+    bool _dialogActive;
+    int _dialogWidth = 600;      // Dialog width (configurable)
+    int _dialogHeight = 400;     // Dialog height (configurable)
+    int _dialogX;                // Dialog X position
+    int _dialogY;                // Dialog Y position
+
+    // Dialog focus state (E.3: Focus Indicators & Keyboard Navigation)
+    int _dialogFocusedWidget = 0;  // Index of focused widget (0 = first button)
+    int _dialogButtonCount = 2;     // Number of buttons (OK, Cancel)
+
+    // E.5.1: Preferences dialog instance
+    PreferencesDialog _preferencesDialog;
+
 public:
     /**
      * Initialize the terminal application.
@@ -296,6 +342,44 @@ public:
             return false;
         }
         _clipboard = new ClipboardBridge(_window.handle);
+
+        // Initialize accessibility framework
+        if (initializeATSPI()) {
+            auto provider = getATSPIProvider();
+            if (provider !is null) {
+                writeln("AT-SPI accessibility framework initialized");
+
+                // Run validation tests if requested
+                import std.process : environment;
+                if (environment.get("TILIX_VALIDATE_ATSPI", "") == "1") {
+                    writeln("\nRunning AT-SPI validation tests...");
+                    validateATSPI();
+                }
+            }
+        }
+
+        // Initialize Wayland protocol bridges
+        version (Wayland) {
+            // Fractional scaling for high-DPI displays
+            _fractionalScale = new WaylandFractionalScaleBridge();
+            auto waylandSurface = _window.getWaylandSurface();
+            if (waylandSurface !is null) {
+                if (_fractionalScale.setSurface(waylandSurface)) {
+                    _fractionalScale.onScaleChanged(&onScaleChanged);
+                    writeln("Fractional scale protocol initialized");
+                } else {
+                    writeln("Warning: Failed to set Wayland surface for fractional scaling");
+                }
+            } else {
+                writeln("Warning: Could not obtain Wayland surface (not running on Wayland?)");
+            }
+
+            // System clipboard via wl_data_device
+            _dataDevice = new WaylandDataDeviceBridge();
+            if (_dataDevice.available) {
+                writeln("Data device (clipboard) protocol initialized");
+            }
+        }
 
         // Initialize OpenGL context
         _glContext = new GLContext();
@@ -333,6 +417,14 @@ public:
         // Get cell dimensions from font atlas
         _cellWidth = _renderer.cellWidth;
         _cellHeight = _renderer.cellHeight;
+
+        // Initialize widget renderer (shares font atlas with CellRenderer)
+        _widgetRenderer = new WidgetRenderer();
+        int fbWidth, fbHeight;
+        _window.getFramebufferSize(fbWidth, fbHeight);
+        if (!_widgetRenderer.initialize(_renderer.fontAtlas, fbWidth, fbHeight)) {
+            stderr.writefln("Warning: Failed to initialize widget renderer");
+        }
 
         applyQuakeMode();
 
@@ -445,6 +537,19 @@ public:
             if (_clipboard !is null) {
                 _clipboard.pump();
             }
+
+            // Pump Wayland protocol events
+            version (Wayland) {
+                if (_fractionalScale !is null) {
+                    _fractionalScale.pump();
+                }
+                if (_dataDevice !is null) {
+                    _dataDevice.pump();
+                }
+            }
+
+            // Pump accessibility events
+            pumpAccessibilityEvents();
 
             applyPendingConfig();
             applyIpcCommands();
@@ -1673,6 +1778,7 @@ public:
         _keybindings.scrollPageDown = resolveKeybinding("scrollPageDown", "Shift+PageDown");
         _keybindings.scrollTop = resolveKeybinding("scrollTop", "Shift+Home");
         _keybindings.scrollBottom = resolveKeybinding("scrollBottom", "Shift+End");
+        _keybindings.preferences = resolveKeybinding("preferences", "Ctrl+Comma");
     }
 
     KeyChord resolveKeybinding(string name, string fallback) {
@@ -1800,6 +1906,9 @@ public:
         atomicStore!(MemoryOrder.raw)(_exitRequested, true);
         writefln("Shutting down... (rendered %d frames)", _totalFrameCount);
         persistSplitLayout();
+
+        // Shutdown accessibility framework
+        shutdownATSPI();
 
         if (_snapshotPath.length != 0) {
             auto pane = activePane();
@@ -2100,6 +2209,25 @@ private:
             }
         }
 
+        // Render UI widgets (dialogs, menus, context menu) on top of terminal
+        if (_widgetRenderer !is null) {
+            _widgetRenderer.reset();
+            _widgetRenderer.setViewport(fbWidth, fbHeight);
+
+            // Render modal overlay if dialog is active (E.2.1: Modal Overlay Dimming)
+            if (_dialogActive) {
+                Rect screenBounds = Rect(0, 0, fbWidth, fbHeight);
+                _widgetRenderer.drawModalOverlay(screenBounds, 0.5f);
+                // Render dialog frame (E.2.2: Dialog Framework Rendering)
+                renderDialog(_widgetRenderer);
+            }
+
+            // Render context menu if active
+            if (_contextMenuActive) {
+                renderContextMenu(_widgetRenderer);
+            }
+        }
+
         if (activeHasNewFrame && _snapshotPath.length != 0) {
             auto now = MonoTime.currTime;
             if (_lastSnapshotTime == MonoTime.init ||
@@ -2242,12 +2370,49 @@ private:
     }
 
     /**
+     * Handle Wayland fractional scale changes (wp_fractional_scale_v1).
+     * Scale is fixed-point with factor of 120 (e.g., 180 = 1.5x, 240 = 2.0x).
+     */
+    void onScaleChanged(uint scale) {
+        float floatScale = scale / 120.0f;
+        writefln("Fractional scale changed: %d (%.2fx)", scale, floatScale);
+        applyContentScale(floatScale);
+    }
+
+    /**
      * Handle key press.
      */
     void onKey(int key, int scancode, int action, int mods) {
         _lastKeyMods = mods;
         _inputHandler.updateKeyState(scancode, action);
         auto pane = activePane();
+
+        // Context menu key handling
+        if (_contextMenuActive) {
+            if (action == GLFW_PRESS || action == GLFW_REPEAT) {
+                if (key == GLFW_KEY_ESCAPE) {
+                    hideContextMenu();
+                    return;
+                }
+                if (key == GLFW_KEY_UP) {
+                    navigateContextMenu(-1);
+                    return;
+                }
+                if (key == GLFW_KEY_DOWN) {
+                    navigateContextMenu(1);
+                    return;
+                }
+                if (key == GLFW_KEY_ENTER) {
+                    if (_contextMenuSelectedIndex >= 0) {
+                        executeContextMenuItem(_contextMenuSelectedIndex);
+                    }
+                    hideContextMenu();
+                    return;
+                }
+            }
+            return;  // Consume all keys while menu is open
+        }
+
         if (_searchPromptActive) {
             if (action == GLFW_PRESS || action == GLFW_REPEAT) {
                 if (key == GLFW_KEY_ENTER) {
@@ -2334,6 +2499,12 @@ private:
         if (action == GLFW_PRESS &&
             matchKeyChord(_keybindings.fullscreen, key, mods)) {
             _window.toggleFullscreen();
+            return;
+        }
+
+        if (action == GLFW_PRESS &&
+            matchKeyChord(_keybindings.preferences, key, mods)) {
+            openPreferences();
             return;
         }
 
@@ -2531,6 +2702,22 @@ private:
             _inputHandler.mouseMode == MouseMode.none) {
             string text = _clipboard is null ? "" : _clipboard.requestPrimary();
             pasteText(text);
+            return;
+        }
+
+        // Right-click for context menu (when mouse mode is off)
+        if (action == GLFW_PRESS &&
+            button == GLFW_MOUSE_BUTTON_RIGHT &&
+            _inputHandler.mouseMode == MouseMode.none) {
+            showContextMenu(cast(int)_mouseX, cast(int)_mouseY);
+            return;
+        }
+
+        // Left-click dismisses context menu
+        if (action == GLFW_PRESS &&
+            button == GLFW_MOUSE_BUTTON_LEFT &&
+            _contextMenuActive) {
+            handleContextMenuClick(cast(int)_mouseX, cast(int)_mouseY);
             return;
         }
 
@@ -2748,6 +2935,541 @@ private:
             return;
         }
         _clipboard.setClipboard(text);
+    }
+
+    // === Context Menu ===
+
+    /**
+     * Show context menu at position.
+     */
+    void showContextMenu(int x, int y) {
+        _contextMenuActive = true;
+        _contextMenuX = x;
+        _contextMenuY = y;
+        _contextMenuSelectedIndex = -1;
+    }
+
+    /**
+     * Hide context menu.
+     */
+    void hideContextMenu() {
+        _contextMenuActive = false;
+        _contextMenuSelectedIndex = -1;
+    }
+
+    /**
+     * Handle click in context menu area.
+     */
+    void handleContextMenuClick(int x, int y) {
+        if (!_contextMenuActive) return;
+
+        // Calculate menu bounds
+        int menuWidth = 180;
+        int itemHeight = _cellHeight + 4;
+        int menuHeight = 0;
+        foreach (item; _contextMenuItems) {
+            if (item == "---") {
+                menuHeight += 8;  // Separator height
+            } else {
+                menuHeight += itemHeight;
+            }
+        }
+
+        int menuX = _contextMenuX;
+        int menuY = _contextMenuY;
+
+        // Check if click is inside menu
+        if (x >= menuX && x < menuX + menuWidth &&
+            y >= menuY && y < menuY + menuHeight) {
+            // Find which item was clicked
+            int yOffset = y - menuY;
+            int currentY = 0;
+            foreach (i, item; _contextMenuItems) {
+                int thisHeight = item == "---" ? 8 : itemHeight;
+                if (yOffset >= currentY && yOffset < currentY + thisHeight) {
+                    if (item != "---") {
+                        executeContextMenuItem(cast(int)i);
+                    }
+                    hideContextMenu();
+                    return;
+                }
+                currentY += thisHeight;
+            }
+        }
+
+        // Click outside menu - dismiss
+        hideContextMenu();
+    }
+
+    /**
+     * Execute a context menu action.
+     */
+    void executeContextMenuItem(int index) {
+        if (index < 0 || index >= _contextMenuItems.length) return;
+
+        string item = _contextMenuItems[index];
+        switch (item) {
+            case "Copy":
+                copySelectionToClipboard();
+                break;
+            case "Paste":
+                string text = _clipboard is null ? "" : _clipboard.requestClipboard();
+                pasteText(text);
+                break;
+            case "Select All":
+                selectAll();
+                break;
+            case "Find...":
+                startSearchPrompt();
+                break;
+            case "Split Horizontal":
+                splitActive(SplitOrientation.horizontal);
+                break;
+            case "Split Vertical":
+                splitActive(SplitOrientation.vertical);
+                break;
+            default:
+                break;
+        }
+    }
+
+    /**
+     * Navigate context menu up/down.
+     */
+    void navigateContextMenu(int delta) {
+        if (!_contextMenuActive) return;
+
+        // Count non-separator items
+        int[] validIndices;
+        foreach (i, item; _contextMenuItems) {
+            if (item != "---") {
+                validIndices ~= cast(int)i;
+            }
+        }
+        if (validIndices.length == 0) return;
+
+        // Find current position in valid indices
+        int currentPos = -1;
+        foreach (i, idx; validIndices) {
+            if (idx == _contextMenuSelectedIndex) {
+                currentPos = cast(int)i;
+                break;
+            }
+        }
+
+        // Navigate
+        if (delta > 0) {
+            if (currentPos < 0) {
+                _contextMenuSelectedIndex = validIndices[0];
+            } else if (currentPos < cast(int)validIndices.length - 1) {
+                _contextMenuSelectedIndex = validIndices[currentPos + 1];
+            }
+        } else {
+            if (currentPos < 0) {
+                _contextMenuSelectedIndex = validIndices[$ - 1];
+            } else if (currentPos > 0) {
+                _contextMenuSelectedIndex = validIndices[currentPos - 1];
+            }
+        }
+    }
+
+    /**
+     * Render context menu using WidgetRenderer.
+     */
+    void renderContextMenu(RenderContext ctx) {
+        if (!_contextMenuActive) return;
+
+        // Cast to WidgetRenderer for styled rendering methods
+        auto widgetCtx = cast(WidgetRenderer)ctx;
+        if (widgetCtx is null) return;
+
+        // Menu styling
+        int menuWidth = 180;
+        int itemHeight = _cellHeight + 4;
+        int menuPaddingX = 8;
+        int menuPaddingY = 4;
+
+        // Calculate menu bounds
+        int menuHeight = 0;
+        foreach (item; _contextMenuItems) {
+            if (item == "---") {
+                menuHeight += 8;  // Separator height
+            } else {
+                menuHeight += itemHeight;
+            }
+        }
+
+        int menuX = _contextMenuX;
+        int menuY = _contextMenuY;
+
+        // Clamp menu to viewport
+        int viewportWidth = 1024;  // Default, will be updated
+        int viewportHeight = 768;
+        if (menuX + menuWidth > viewportWidth) {
+            menuX = viewportWidth - menuWidth - 10;
+        }
+        if (menuY + menuHeight > viewportHeight) {
+            menuY = viewportHeight - menuHeight - 10;
+        }
+
+        // Draw menu background and border
+        Rect menuBounds = Rect(menuX, menuY, menuWidth, menuHeight);
+        ctx.fillRect(menuBounds, widgetCtx.theme.menuBg);
+        ctx.drawRect(menuBounds, widgetCtx.theme.menuBorder, 1);
+
+        // Draw menu items
+        int yOffset = menuY;
+        foreach (i, item; _contextMenuItems) {
+            if (item == "---") {
+                // Draw separator
+                int sepY = yOffset + 4;
+                int sepWidth = menuWidth - 8;
+                widgetCtx.drawSeparator(menuX + 4, sepY, sepWidth, 1);
+                yOffset += 8;
+            } else {
+                Rect itemBounds = Rect(menuX, yOffset, menuWidth, itemHeight);
+                bool selected = (cast(int)i == _contextMenuSelectedIndex);
+
+                // Draw menu item with proper styling
+                widgetCtx.drawMenuItem(itemBounds, item, selected, true);
+
+                yOffset += itemHeight;
+            }
+        }
+    }
+
+    /**
+     * Handle keyboard navigation in dialog.
+     * (E.3.3: Keyboard Navigation Testing)
+     *
+     * Params:
+     *   key = Key code
+     *   mods = Modifier keys (shift, ctrl, etc.)
+     */
+    void handleDialogKeyboard(int key, int mods) {
+        if (!_dialogActive) return;
+
+        // Tab key: cycle focus forward
+        if (key == 258) {  // GLFW_KEY_TAB
+            if ((mods & 1) != 0) {  // Shift+Tab: cycle backward
+                _dialogFocusedWidget--;
+                if (_dialogFocusedWidget < 0) {
+                    _dialogFocusedWidget = _dialogButtonCount - 1;
+                }
+            } else {  // Tab: cycle forward
+                _dialogFocusedWidget++;
+                if (_dialogFocusedWidget >= _dialogButtonCount) {
+                    _dialogFocusedWidget = 0;
+                }
+            }
+        }
+        // Escape key: close dialog
+        else if (key == 256) {  // GLFW_KEY_ESCAPE
+            _dialogActive = false;
+            _dialogFocusedWidget = 0;
+        }
+        // Enter key: activate focused button
+        else if (key == 257) {  // GLFW_KEY_ENTER
+            if (_dialogFocusedWidget == 0) {
+                // OK button
+                _dialogActive = false;
+                _dialogFocusedWidget = 0;
+            } else if (_dialogFocusedWidget == 1) {
+                // Cancel button
+                _dialogActive = false;
+                _dialogFocusedWidget = 0;
+            }
+        }
+    }
+
+    /**
+     * Center and clamp dialog to viewport bounds.
+     * (E.2.4: Dialog Positioning and Sizing)
+     *
+     * Params:
+     *   viewportWidth = Viewport width
+     *   viewportHeight = Viewport height
+     *   width = Dialog width (modified if it exceeds bounds)
+     *   height = Dialog height (modified if it exceeds bounds)
+     *   x = Dialog X position (calculated)
+     *   y = Dialog Y position (calculated)
+     */
+    void centerAndClampDialog(int viewportWidth, int viewportHeight,
+                              ref int width, ref int height,
+                              ref int x, ref int y) {
+        // Enforce minimum dialog size (200x150)
+        const int minWidth = 200;
+        const int minHeight = 150;
+        if (width < minWidth) width = minWidth;
+        if (height < minHeight) height = minHeight;
+
+        // Clamp to viewport bounds (leave 10px margin)
+        if (width > viewportWidth - 20) {
+            width = viewportWidth - 20;
+        }
+        if (height > viewportHeight - 20) {
+            height = viewportHeight - 20;
+        }
+
+        // Center on screen
+        x = (viewportWidth - width) / 2;
+        y = (viewportHeight - height) / 2;
+
+        // Clamp position to viewport
+        if (x < 10) x = 10;
+        if (y < 10) y = 10;
+        if (x + width > viewportWidth - 10) {
+            x = viewportWidth - width - 10;
+        }
+        if (y + height > viewportHeight - 10) {
+            y = viewportHeight - height - 10;
+        }
+    }
+
+    /**
+     * Render dialog frame with title bar, content area, and button bar.
+     * (E.2.2: Dialog Framework Rendering + E.2.3: Button Bar Rendering + E.2.4: Positioning)
+     *
+     * Handles the layering: modal overlay -> dialog frame -> content -> button bar.
+     */
+    void renderDialog(RenderContext ctx) {
+        if (!_dialogActive) return;
+
+        auto widgetCtx = cast(WidgetRenderer)ctx;
+        if (widgetCtx is null) return;
+
+        // Get viewport dimensions
+        int viewportWidth = 1024;   // TODO: Get from widget renderer
+        int viewportHeight = 768;
+
+        // Dialog styling
+        const int titleBarHeight = 24;
+        const int buttonBarHeight = 40;
+        const int dialogPadding = 8;
+
+        // Calculate and clamp dialog positioning (E.2.4)
+        centerAndClampDialog(viewportWidth, viewportHeight,
+                            _dialogWidth, _dialogHeight, _dialogX, _dialogY);
+
+        Rect dialogBounds = Rect(_dialogX, _dialogY, _dialogWidth, _dialogHeight);
+
+        // Draw dialog frame (title bar, background, border)
+        string dialogTitle = "Dialog";
+        if (_preferencesDialog !is null) {
+            dialogTitle = "Preferences";
+        }
+        widgetCtx.drawDialog(dialogBounds, dialogTitle, true);
+
+        // E.5.2: Render preferences dialog with tabs if it's active
+        if (_preferencesDialog !is null && _dialogActive) {
+            renderPreferencesDialogContent(widgetCtx, dialogBounds);
+        }
+
+        // Calculate button bar bounds
+        Rect buttonBarBounds = Rect(_dialogX, _dialogY + _dialogHeight - buttonBarHeight,
+                                     _dialogWidth, buttonBarHeight);
+
+        // Draw button bar (E.2.3: Button Bar Rendering)
+        string[] buttonLabels = ["OK", "Cancel"];
+        widgetCtx.drawButtonBar(buttonBarBounds, buttonLabels, -1, -1, true, 4, 80);
+
+        // Draw focus ring on focused widget (E.3.2: Focus Ring Integration)
+        if (_dialogFocusedWidget >= 0 && _dialogFocusedWidget < _dialogButtonCount) {
+            // Calculate bounds of the focused button
+            int totalWidth = _dialogButtonCount * 80 + (_dialogButtonCount - 1) * 4;
+            int buttonStartX = buttonBarBounds.x + buttonBarBounds.width - totalWidth - 8;
+            int buttonY = buttonBarBounds.y + (buttonBarBounds.height - 24) / 2;
+
+            int focusedButtonX = buttonStartX + _dialogFocusedWidget * (80 + 4);
+            Rect focusedBounds = Rect(focusedButtonX, buttonY, 80, 24);
+
+            // Draw focus ring around focused button
+            widgetCtx.drawFocusRing(focusedBounds, 2);  // 2px thick focus ring
+        }
+    }
+
+    /**
+     * Render preferences dialog content with tabs (E.5.2: Tab bar rendering).
+     *
+     * Params:
+     *   ctx = Widget render context
+     *   dialogBounds = Dialog frame bounds
+     */
+    void renderPreferencesDialogContent(WidgetRenderer ctx, Rect dialogBounds) {
+        if (_preferencesDialog is null) return;
+
+        const int titleBarHeight = 24;
+        const int tabBarHeight = 28;
+        const int buttonBarHeight = 40;
+        const int dialogPadding = 8;
+
+        // Calculate tab bar bounds (below title bar)
+        Rect tabBarBounds = Rect(dialogBounds.x,
+                                 dialogBounds.y + titleBarHeight,
+                                 dialogBounds.width,
+                                 tabBarHeight);
+
+        // Get tab information
+        int tabCount = _preferencesDialog.tabCount;
+        int selectedTab = _preferencesDialog.selectedTab;
+
+        // Create tab labels array
+        string[] tabLabels;
+        for (int i = 0; i < tabCount; i++) {
+            tabLabels ~= _preferencesDialog.getTabTitle(i);
+        }
+
+        // Draw tab bar (E.5.2: Tab bar rendering)
+        ctx.drawTabBar(tabBarBounds, tabLabels, selectedTab);
+
+        // Calculate content area bounds (after tab bar, before button bar)
+        Rect contentBounds = Rect(dialogBounds.x + dialogPadding,
+                                   dialogBounds.y + titleBarHeight + tabBarHeight + dialogPadding,
+                                   dialogBounds.width - 2 * dialogPadding,
+                                   dialogBounds.height - titleBarHeight - tabBarHeight - buttonBarHeight - 2 * dialogPadding);
+
+        // Draw content area background
+        ctx.fillRect(contentBounds, 0xFF2A2A2A);  // Dark gray background
+
+        // E.5.3: Render form widgets for the active tab
+        renderPreferencesTabContent(ctx, contentBounds, selectedTab);
+    }
+
+    /**
+     * Render preferences tab content with form widgets (E.5.3: Form widget rendering).
+     *
+     * Params:
+     *   ctx = Widget render context
+     *   bounds = Content area bounds
+     *   tabIndex = Which tab to render (0=General, 1=Appearance, 2=Keybindings, 3=Advanced)
+     */
+    void renderPreferencesTabContent(WidgetRenderer ctx, Rect bounds, int tabIndex) {
+        if (bounds.height <= 0 || bounds.width <= 0) return;
+
+        import pured.widget.base : Point;
+        const int fieldHeight = 24;
+        const int spacing = 8;
+        const int labelWidth = 150;
+        int currentY = bounds.y + spacing;
+
+        // E.5.3: Render form widgets based on active tab
+        switch (tabIndex) {
+            case 0: // General tab
+                // Font Size: Label + TextInput
+                ctx.drawLabel(Point(bounds.x + spacing, currentY), "Font Size:");
+                Rect fontSizeInput = Rect(bounds.x + labelWidth + spacing, currentY,
+                                         bounds.width - labelWidth - 2 * spacing, fieldHeight);
+                ctx.drawTextInput(fontSizeInput, "16", false);
+                currentY += fieldHeight + spacing;
+
+                // Scrollback Lines: Label + NumericInput
+                ctx.drawLabel(Point(bounds.x + spacing, currentY), "Scrollback Lines:");
+                Rect scrollbackInput = Rect(bounds.x + labelWidth + spacing, currentY,
+                                           bounds.width - labelWidth - 2 * spacing, fieldHeight);
+                ctx.drawNumericInput(scrollbackInput, "200000", false);
+                currentY += fieldHeight + spacing;
+
+                // Quake Mode: Checkbox
+                Rect quakeModeCheckbox = Rect(bounds.x + spacing, currentY,
+                                             bounds.width - 2 * spacing, fieldHeight);
+                ctx.drawCheckbox(quakeModeCheckbox, "Enable Quake Mode (dropdown terminal)", false);
+                break;
+
+            case 1: // Appearance tab
+                // Theme Path: Label + TextInput
+                ctx.drawLabel(Point(bounds.x + spacing, currentY), "Theme Path:");
+                Rect themePathInput = Rect(bounds.x + labelWidth + spacing, currentY,
+                                          bounds.width - labelWidth - 2 * spacing, fieldHeight);
+                ctx.drawTextInput(themePathInput, "", false);
+                currentY += fieldHeight + spacing;
+
+                // Cursor Style: Label + Dropdown
+                ctx.drawLabel(Point(bounds.x + spacing, currentY), "Cursor Style:");
+                Rect cursorStyleDropdown = Rect(bounds.x + labelWidth + spacing, currentY,
+                                               bounds.width - labelWidth - 2 * spacing, fieldHeight);
+                ctx.drawDropdown(cursorStyleDropdown, "block", false);
+                currentY += fieldHeight + spacing;
+
+                // Info text
+                ctx.drawLabel(Point(bounds.x + spacing, currentY), "Colors are loaded from theme file");
+                break;
+
+            case 2: // Keybindings tab
+                // Header
+                ctx.drawLabel(Point(bounds.x + spacing, currentY), "Keyboard Shortcuts");
+                currentY += fieldHeight + spacing;
+
+                // Sample keybindings (display only)
+                ctx.drawLabel(Point(bounds.x + spacing, currentY), "Copy:              Ctrl+Shift+C");
+                currentY += fieldHeight;
+                ctx.drawLabel(Point(bounds.x + spacing, currentY), "Paste:             Ctrl+Shift+V");
+                currentY += fieldHeight;
+                ctx.drawLabel(Point(bounds.x + spacing, currentY), "New Tab:           Ctrl+Shift+T");
+                currentY += fieldHeight;
+                ctx.drawLabel(Point(bounds.x + spacing, currentY), "Close Tab:         Ctrl+Shift+W");
+                currentY += fieldHeight;
+                ctx.drawLabel(Point(bounds.x + spacing, currentY), "Split Horizontal:  Ctrl+Shift+E");
+                break;
+
+            case 3: // Advanced tab
+                // Info text
+                ctx.drawLabel(Point(bounds.x + spacing, currentY), "Advanced Settings");
+                currentY += fieldHeight + spacing;
+
+                ctx.drawLabel(Point(bounds.x + spacing, currentY), "IPC: Cap'n Proto over Unix socket");
+                currentY += fieldHeight;
+                ctx.drawLabel(Point(bounds.x + spacing, currentY), "Socket: $XDG_RUNTIME_DIR/tilix-pure.sock");
+                currentY += fieldHeight + spacing;
+
+                ctx.drawLabel(Point(bounds.x + spacing, currentY), "Accessibility:");
+                currentY += fieldHeight;
+                ctx.drawLabel(Point(bounds.x + spacing + 16, currentY), "- High contrast themes available");
+                break;
+
+            default:
+                break;
+        }
+    }
+
+    /**
+     * Select all text in terminal.
+     */
+    void selectAll() {
+        auto pane = activePane();
+        if (pane is null || pane.selection is null) return;
+
+        size_t sbCount = getScrollbackCount(pane);
+        auto ref frame = pane.session.frames.readBuffer;
+
+        // Select from start of scrollback to end of screen
+        pane.selection.start(0, -cast(int)sbCount, SelectionType.character);
+        pane.selection.extend(frame.cols - 1, frame.rows - 1);
+        pane.selection.finish();
+    }
+
+    // === Preferences ===
+
+    /**
+     * Open preferences dialog.
+     *
+     * E.5.1: Displays the preferences dialog with tabbed settings.
+     * The dialog allows editing terminal configuration options.
+     */
+    void openPreferences() {
+        // Create preferences dialog if not already created
+        if (_preferencesDialog is null) {
+            _preferencesDialog = new PreferencesDialog(_config);
+        }
+
+        // Show the preferences dialog
+        _preferencesDialog.showModal();
+        _dialogActive = true;
+
+        // Set dialog size to default (600x400)
+        _dialogWidth = 600;
+        _dialogHeight = 400;
+        _dialogFocusedWidget = 0;
+        _dialogButtonCount = 2;  // OK, Cancel buttons
     }
 
     /**

@@ -94,6 +94,7 @@ public:
     Signal!(int, int) sizeChanged;
     Signal!() bellRang;
     Signal!(string) hyperlinkActivated;
+    Signal!(int, int) contextMenuRequested;  // Screen coordinates for context menu
 
     // === Construction ===
 
@@ -357,6 +358,9 @@ public:
                     _selection.start(col, row, _clickDetector.selectionType());
                 }
                 invalidateVisual();
+            } else if (button == 1) {  // Right button - context menu
+                // Request context menu at screen position
+                contextMenuRequested.emit(cast(int)xpos, cast(int)ypos);
             }
 
             // Send to terminal if mouse reporting enabled
