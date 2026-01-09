@@ -1,18 +1,27 @@
 # Gemini Audit and Roadmap
 
+> This document provides a high-level summary. For detailed documentation, see [docs/README.md](docs/README.md).
+
 ## Decision
 DUB is the primary build system. Meson remains as a packaging fallback for distro
 integration until DUB reaches feature parity across resources, i18n, schemas,
 metadata, and install steps.
 
 ## Repository Walkthrough (Audit)
-- source/: D modules for GTK wrappers, Tilix app core, X11 and secret storage.
-- data/: icons, resources, UI files, schemas, desktop/appdata templates, scripts.
-- po/: translation sources and manpage localization inputs.
-- scripts/: install/uninstall helpers and benchmark tooling.
-- docs/: requirements, audits, and research notes.
-- verification/: formal methods specs and proof artifacts.
-- experimental/: optional packaging and backend experiments.
+- **source/**: D modules for GTK wrappers, Tilix app core, X11 and secret storage.
+- **data/**: icons, resources, UI files, schemas, desktop/appdata templates, scripts.
+- **po/**: translation sources and manpage localization inputs.
+- **scripts/**: install/uninstall helpers and benchmark tooling.
+- **docs/**: comprehensive documentation (see [docs/README.md](docs/README.md))
+  - `audits/`: code audits and technical debt analysis
+  - `design/`: architecture design documents
+  - `roadmaps/`: development roadmaps and TODO tracking
+  - `research/`: research notes on DUB, external docs, etc.
+  - `pure-d/`: Pure D backend implementation docs
+  - `architecture/`: backend interface maps
+  - `term_analysis/`: terminal emulator comparison research
+- **verification/**: formal methods specs and proof artifacts (Coq, TLA+, OCaml).
+- **experimental/**: optional packaging and backend experiments.
 
 ## Ultra-detailed Re-audit (Interconnections)
 - Entry: source/app.d -> gx.tilix.application -> gx.tilix.appwindow ->
@@ -54,8 +63,8 @@ metadata, and install steps.
 - Debug logs include environment variables; treat them as sensitive artifacts.
 
 ## Feature Harvest Status
-- Initial inventory captured in docs/research/feature-harvest.md.
-- Backend interface draft captured in docs/architecture/backend-interface-map.md.
+- Initial inventory captured in [docs/research/feature-harvest.md](docs/research/feature-harvest.md).
+- Backend interface draft captured in [docs/architecture/backend-interface-map.md](docs/architecture/backend-interface-map.md).
 - Alacritty and kitty sources were pulled from upstream docs (no local repos).
 
 ## Testable Hypotheses and Validation Notes
@@ -72,3 +81,11 @@ metadata, and install steps.
 - Phase 3: Formalize backend boundaries and performance benchmarks.
 - Phase 4: Feature harvest from other terminals and modernization roadmap.
 - Phase 5: Packaging cleanup and Meson deprecation decision point.
+
+## Key Documentation References
+- **[docs/README.md](docs/README.md)**: Master documentation index
+- **[docs/roadmaps/COMPREHENSIVE_ROADMAP.md](docs/roadmaps/COMPREHENSIVE_ROADMAP.md)**: Full development roadmap
+- **[docs/audits/ARCHITECTURAL_AUDIT.md](docs/audits/ARCHITECTURAL_AUDIT.md)**: Critical architectural issues
+- **[docs/audits/TECH_DEBT_AUDIT.md](docs/audits/TECH_DEBT_AUDIT.md)**: Technical debt inventory
+- **[docs/INSTALL_REQUIREMENTS.md](docs/INSTALL_REQUIREMENTS.md)**: Build dependencies
+- **[CONTRIBUTING.md](CONTRIBUTING.md)**: Contribution guidelines

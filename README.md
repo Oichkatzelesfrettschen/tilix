@@ -113,7 +113,9 @@ Note : `install.sh` will install Tilix to your `/usr` directory. If you are inte
 argument to the `install.sh` script (e.g : `./install.sh $HOME/.local` will install Tilix into `$HOME/.local`). However, this requires you to add your `$PREFIX/share`
 directory to your `$XDG_DATA_DIRS` environment variable.
 
-For the full DUB workflow, see `docs/BUILD_DUB.md`.
+For the full DUB workflow, see [docs/BUILD_DUB.md](docs/BUILD_DUB.md).
+
+For a comprehensive list of all dependencies, see [docs/INSTALL_REQUIREMENTS.md](docs/INSTALL_REQUIREMENTS.md).
 
 You can also run the scrolling benchmark binary with:
 
@@ -150,3 +152,15 @@ and then execute it:
 ```
 sudo sh uninstall.sh
 ```
+
+### Documentation
+
+Comprehensive documentation is available in the [docs/](docs/README.md) directory:
+
+- **[docs/README.md](docs/README.md)** - Documentation index
+- **[docs/BUILD_DUB.md](docs/BUILD_DUB.md)** - DUB build guide
+- **[docs/INSTALL_REQUIREMENTS.md](docs/INSTALL_REQUIREMENTS.md)** - Dependency requirements
+- **[docs/roadmaps/](docs/roadmaps/)** - Development roadmaps
+- **[docs/audits/](docs/audits/)** - Code audits and technical debt
+- **[docs/design/](docs/design/)** - Architecture design documents
+- **[gemini.md](gemini.md)** - Project audit summary
