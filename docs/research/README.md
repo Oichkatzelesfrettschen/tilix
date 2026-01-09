@@ -1,41 +1,76 @@
 # Research Sources
 
-This folder captures upstream documentation used for the DUB-first refactor.
+This folder captures upstream documentation, research notes, and validation findings used for the DUB-first refactor and Pure D backend development.
 
-## DUB
-- Build settings: docs/research/dub-build-settings.md
-- Package settings: docs/research/dub-package-settings.md
-- Target types: docs/research/dub-target-types.md
-- Hooks: docs/research/dub-hooks.md
-- Sub-packages: docs/research/dub-subpackages.md
-- Package format redirects: docs/research/dub-package-format.html
-- Package format upgrades: docs/research/dub-package-format-upgrades.html
-- Environment variables: docs/research/dub-environment-variables.md
-- Recipe reference: docs/research/dub-recipe.md
-- Settings reference: docs/research/dub-settings.md
+## DUB Documentation
+
+| Document | Description |
+|----------|-------------|
+| [dub-build-settings.md](dub-build-settings.md) | Build settings reference |
+| [dub-package-settings.md](dub-package-settings.md) | Package settings reference |
+| [dub-target-types.md](dub-target-types.md) | Target types reference |
+| [dub-hooks.md](dub-hooks.md) | Pre/post build hooks |
+| [dub-subpackages.md](dub-subpackages.md) | Subpackage configuration |
+| [dub-environment-variables.md](dub-environment-variables.md) | Environment variables |
+| [dub-recipe.md](dub-recipe.md) | Recipe format reference |
+| [dub-settings.md](dub-settings.md) | Settings reference |
+
+HTML copies for traceability:
+- dub-package-format.html
+- dub-package-format-ref.html
+- dub-package-format-upgrades.html
+- dub-build-settings.html
+- dub-subpackages.html
 
 Sources:
 - https://github.com/dlang/dub-docs (raw files under docs/dub-reference)
 - https://dub.pm (HTML copies and redirects)
 
-## DMD compiler flags
-- DMD switch reference: docs/research/dmd.html
-- Key switches used: -w (warnings as errors via DFLAGS) and -de
+## DMD Compiler Reference
 
-Source:
-- https://dlang.org/dmd.html
+| Document | Description |
+|----------|-------------|
+| dmd.html | DMD switch reference |
 
-## Notes
-- These references justify the strict build requirements and checks.
-- The HTML copies are preserved for traceability when the docs move URLs.
+Key switches used:
+- `-w` (warnings as errors via DFLAGS)
+- `-de` (deprecation as errors)
 
-## Feature harvest
-- Feature inventory: docs/research/feature-harvest.md
+Source: https://dlang.org/dmd.html
+
+## Feature Harvest
+
+| Document | Description |
+|----------|-------------|
+| [feature-harvest.md](feature-harvest.md) | Feature inventory from other terminals |
 
 Sources:
-- /home/eirikr/Github/ghostty/README.md
-- https://raw.githubusercontent.com/alacritty/alacritty/master/docs/features.md
-- https://sw.kovidgoyal.net/kitty/overview/
+- Ghostty README
+- Alacritty features.md
+- Kitty overview
 
-## XPRA investigation
-- Crash notes: docs/research/xpra-crash.md
+## Pure D Backend Research
+
+| Document | Description |
+|----------|-------------|
+| [pure-d-packages.md](pure-d-packages.md) | Pure D package candidates |
+| [gc-audit.md](gc-audit.md) | GC usage audit |
+
+## Accessibility Research
+
+| Document | Description |
+|----------|-------------|
+| [accessibility-contrast.md](accessibility-contrast.md) | WCAG contrast research |
+
+## Validation and Testing
+
+| Document | Description |
+|----------|-------------|
+| [validation-2026-01-05.md](validation-2026-01-05.md) | Validation notes |
+| [xpra-crash.md](xpra-crash.md) | XPRA crash investigation |
+
+## Notes
+
+- These references justify the strict build requirements and checks.
+- HTML copies are preserved for traceability when upstream docs move URLs.
+- Feature harvest informs the Pure D backend roadmap.

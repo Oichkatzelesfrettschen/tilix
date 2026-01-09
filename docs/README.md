@@ -11,7 +11,7 @@ This directory contains the comprehensive documentation for the Tilix terminal e
 
 ## Documentation Structure
 
-### 📋 [Roadmaps](roadmaps/)
+### 📋 [Roadmaps](roadmaps/) ([README](roadmaps/README.md))
 
 Project planning, phase documentation, and TODO tracking.
 
@@ -25,7 +25,7 @@ Project planning, phase documentation, and TODO tracking.
 | [PHASE5_DEPLOYMENT_CHECKLIST.md](roadmaps/PHASE5_DEPLOYMENT_CHECKLIST.md) | Phase 5 deployment checklist |
 | [PHASE5_PERFORMANCE_BASELINE.md](roadmaps/PHASE5_PERFORMANCE_BASELINE.md) | Performance baseline documentation |
 
-### 🔍 [Audits](audits/)
+### 🔍 [Audits](audits/) ([README](audits/README.md))
 
 Code audits, technical debt analysis, and quality reports.
 
@@ -40,7 +40,7 @@ Code audits, technical debt analysis, and quality reports.
 | [TODO-FIXME-AUDIT.md](audits/TODO-FIXME-AUDIT.md) | TODO/FIXME inventory |
 | [TODO-FIXME-SUMMARY.md](audits/TODO-FIXME-SUMMARY.md) | TODO/FIXME summary |
 
-### 🏗️ [Design](design/)
+### 🏗️ [Design](design/) ([README](design/README.md))
 
 Architecture design documents and technical specifications.
 
@@ -53,7 +53,7 @@ Architecture design documents and technical specifications.
 | [FORMAL_METHODS_EXPANSION_DESIGN.md](design/FORMAL_METHODS_EXPANSION_DESIGN.md) | TLA+ and Z3 integration design |
 | [VIRTUAL_CALLS_REFACTORING_DESIGN.md](design/VIRTUAL_CALLS_REFACTORING_DESIGN.md) | Virtual calls refactoring plan |
 
-### 📊 [Analysis](analysis/)
+### 📊 [Analysis](analysis/) ([README](analysis/README.md))
 
 Development analysis and research findings.
 
@@ -61,7 +61,7 @@ Development analysis and research findings.
 |----------|-------------|
 | [TILIX_DEVELOPMENT_ANALYSIS_2026.md](analysis/TILIX_DEVELOPMENT_ANALYSIS_2026.md) | Comprehensive development analysis |
 
-### 🏛️ [Architecture](architecture/)
+### 🏛️ [Architecture](architecture/) ([README](architecture/README.md))
 
 Backend interface maps and architectural documentation.
 
@@ -69,7 +69,7 @@ Backend interface maps and architectural documentation.
 |----------|-------------|
 | [backend-interface-map.md](architecture/backend-interface-map.md) | Backend abstraction interface map |
 
-### 💡 [Pure D Backend](pure-d/)
+### 💡 [Pure D Backend](pure-d/) ([README](pure-d/README.md))
 
 Pure D backend implementation documentation.
 
@@ -93,7 +93,7 @@ Pure D backend implementation documentation.
 | [theme-presets.md](pure-d/theme-presets.md) | Theme preset system |
 | [threading-model.md](pure-d/threading-model.md) | Threading model |
 
-### 📚 [Research](research/)
+### 📚 [Research](research/) ([README](research/README.md))
 
 Research notes on external documentation and technologies.
 
@@ -115,17 +115,17 @@ Research notes on external documentation and technologies.
 | [validation-2026-01-05.md](research/validation-2026-01-05.md) | Validation notes |
 | [xpra-crash.md](research/xpra-crash.md) | XPRA crash analysis |
 
-### 📖 [Terminal Analysis](term_analysis/)
+### 📖 [Terminal Analysis](term_analysis/) ([README](term_analysis/README.md))
 
 Analysis of other terminal emulators.
 
 | Document | Description |
 |----------|-------------|
-| [README.md](term_analysis/README.md) | Terminal analysis overview |
 | [scan-summary.md](term_analysis/scan-summary.md) | Build markers and extension counts |
 | [doc-index.md](term_analysis/doc-index.md) | Documentation index per repository |
+| [term-analysis.md](term_analysis/term-analysis.md) | Analysis overview |
 
-### 📝 [Guides](guides/)
+### 📝 [Guides](guides/) ([README](guides/README.md))
 
 User and developer guides.
 

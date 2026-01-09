@@ -1061,12 +1061,12 @@ Phase 3 (Quality) ← Can run in parallel with Phase 2
 
 ## REFERENCES
 
-- Technical Debt Audit: `docs/TECH_DEBT_AUDIT.md`
-- Architectural Audit: This roadmap, Section "Architectural Schizophrenia"
+- Technical Debt Audit: `docs/audits/TECH_DEBT_AUDIT.md`
+- Architectural Audit: `docs/audits/ARCHITECTURAL_AUDIT.md`
 - Phase 5 Plan: Planning agent output (process indicators, tab previews)
 - Phase 6 Plan: Planning agent output (vi-mode, hints)
 - Backend Interface Map: `docs/architecture/backend-interface-map.md`
-- TODO List: `docs/TODO.md`
+- TODO List: `docs/roadmaps/TODO.md`
 - Build Guide: `docs/BUILD_DUB.md`
 - Contributing: `CONTRIBUTING.md`
 

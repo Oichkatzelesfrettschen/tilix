@@ -66,7 +66,7 @@ Next: Phase 5 (process indicators), Phase 6 (vi-mode), IO thread hookup
 - [x] Add term_analysis overview doc with repo list and scope
 
 ## TODO/FIXME Audit
-- [x] Generate TODO/FIXME inventory (docs/TODO-FIXME-AUDIT.md)
+- [x] Generate TODO/FIXME inventory (docs/audits/TODO-FIXME-AUDIT.md)
 - [x] Classify TODO/FIXME items by subsystem and severity
 - [x] Convert actionable TODO/FIXME items into tasks with owners (TBD)
 - [x] Remove obsolete or invalid TODOs

@@ -4,7 +4,7 @@ Generated: 2026-01-06T11:16:05-08:00
 
 ## Scope
 - Includes: source/, pured/, experimental/, docs/research.
-- Excludes: vendor/ (third-party), docs/TODO.md, and audit/roadmap docs (narrative references to TODO).
+- Excludes: vendor/ (third-party), docs/roadmaps/TODO.md, and audit/roadmap docs (narrative references to TODO).
 
 ## Counts by top-level area
 - source: 0
