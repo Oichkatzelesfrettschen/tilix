@@ -3102,9 +3102,9 @@ private:
         int menuX = _contextMenuX;
         int menuY = _contextMenuY;
 
-        // Clamp menu to viewport
-        int viewportWidth = 1024;  // Default, will be updated
-        int viewportHeight = 768;
+        // Clamp menu to viewport using current widget viewport
+        int viewportWidth = widgetCtx.viewport.width;
+        int viewportHeight = widgetCtx.viewport.height;
         if (menuX + menuWidth > viewportWidth) {
             menuX = viewportWidth - menuWidth - 10;
         }
