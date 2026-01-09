@@ -550,6 +550,9 @@ public:
         return _fontAtlas !is null ? cast(int)(_fontAtlas.cellHeight * _contentScale) : 20;
     }
 
+    /// Font atlas (shared with widget renderer)
+    @property FontAtlas fontAtlas() { return _fontAtlas; }
+
     void setTheme(in ResolvedTheme theme) {
         _theme = theme;
     }

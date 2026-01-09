@@ -23,6 +23,10 @@ import bindbc.opengl;
 import std.string : toStringz, fromStringz;
 import std.stdio : stderr, writefln;
 
+version (Wayland) {
+    import wayland.client.opaque_types;
+}
+
 /**
  * GLFW window wrapper for terminal rendering.
  *
@@ -273,6 +277,29 @@ public:
      */
     void getContentScale(out float xScale, out float yScale) {
         glfwGetWindowContentScale(_handle, &xScale, &yScale);
+    }
+
+    /**
+     * Get Wayland surface for protocol operations (Wayland only).
+     *
+     * Returns the wl_surface* for use with Wayland protocol bridges.
+     * This enables direct access to Wayland protocols like fractional scaling.
+     *
+     * Returns:
+     *   wl_surface* pointer if running on Wayland, null otherwise.
+     *
+     * Note: This is a low-level function for platform integration. Most
+     * applications should use glfwGetWindowContentScale() instead.
+     */
+    version (Wayland) {
+        wl_surface* getWaylandSurface() {
+            static if (glfwSupport >= GLFWSupport.glfw33) {
+                // glfwGetWaylandWindow is available in GLFW 3.3+
+                return glfwGetWaylandWindow(_handle);
+            } else {
+                return null;
+            }
+        }
     }
 
     /**
