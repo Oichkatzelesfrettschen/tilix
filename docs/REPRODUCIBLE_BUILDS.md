@@ -2,7 +2,7 @@
 
 This guide records the exact commands used to build and test Tilix with
 warnings treated as errors. It assumes the packages in
-`docs/INSTALL_REQUIREMENTS.md` are installed.
+[INSTALL_REQUIREMENTS.md](INSTALL_REQUIREMENTS.md) are installed.
 
 ## Environment
 - DMD 2.111.0

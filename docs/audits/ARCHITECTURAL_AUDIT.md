@@ -1089,11 +1089,11 @@ grep -r "new TerminalStateManager\|TerminalStateManager()" source/gx/tilix --inc
 
 ## REFERENCES
 
-- Technical Debt Audit: `docs/TECH_DEBT_AUDIT.md`
-- Comprehensive Roadmap: `docs/COMPREHENSIVE_ROADMAP.md`
+- Technical Debt Audit: `docs/audits/TECH_DEBT_AUDIT.md`
+- Comprehensive Roadmap: `docs/roadmaps/COMPREHENSIVE_ROADMAP.md`
 - Backend Interface Map: `docs/architecture/backend-interface-map.md`
-- TODO List: `docs/TODO.md`
-- TODO/FIXME Audit: `docs/TODO-FIXME-AUDIT.md`
+- TODO List: `docs/roadmaps/TODO.md`
+- TODO/FIXME Audit: `docs/audits/TODO-FIXME-AUDIT.md`
 
 ---
 

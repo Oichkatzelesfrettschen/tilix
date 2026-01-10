@@ -208,7 +208,7 @@ GRegex getCompiledRegex(string pattern) {
 |--------|-------|
 | Largest file | terminal.d (4,677 lines) |
 | Files >1000 lines | 3 (terminal, session, appwindow) |
-| TODO/FIXME items | 0 (non-vendor; see docs/TODO-FIXME-SUMMARY.md) |
+| TODO/FIXME items | 0 (non-vendor; see docs/audits/TODO-FIXME-SUMMARY.md) |
 | Global singletons | 3 (ProcessMonitor, settings objects) |
 | Untested modules | 15+ |
 | Regex compilations/click | O(n) patterns |
@@ -218,6 +218,6 @@ GRegex getCompiledRegex(string pattern) {
 ## REFERENCES
 
 - Architecture doc: `docs/architecture/backend-interface-map.md`
-- TODO list: `docs/TODO.md`
+- TODO list: `docs/roadmaps/TODO.md`
 - Build guide: `docs/BUILD_DUB.md`
 - Contributing: `CONTRIBUTING.md`
